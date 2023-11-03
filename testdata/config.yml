@@ -1,0 +1,4 @@
+profiles:
+    - name: simple
+      user: user1
+      password: s3cr3tP@ssw0rd

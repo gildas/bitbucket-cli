@@ -4,73 +4,134 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
+// Log is the logger for this application
+var Log *logger.Logger
+
+// RootOptions describes the options for the application
+type RootOptions struct {
+	ConfigFile     string           `mapstructure:"-"`
+	Bootstrap      bool             `mapstructure:"-"` // True if we are creating a config file
+	LogDestination string           `mapstructure:"-"`
+	ProfileName    string           `mapstructure:"-"`
+	CurrentProfile *profile.Profile `mapstructure:"-"`
+	Verbose        bool             `mapstructure:"-"`
+	Debug          bool             `mapstructure:"-"`
+}
+
+// CmdOptions contains the options for the application
+var CmdOptions RootOptions
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "bb",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Use:     APP,
+	Version: Version(),
+	Short:   "BitBucket Command Line Interface",
+	Long: `BitBucket Command Line Interface is a tool to manage your BitBucket.
+You can manage your pull requests, issues, profiles, repositories, users, etc. with it.
+`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
+	Log.Flush()
 	if err != nil {
-		os.Exit(1)
+		Die(1, "Error: %s", err)
 	}
 }
 
 func init() {
+	Log = logger.Create(APP, &logger.NilStream{})
+	configDir, err := os.UserConfigDir()
+	cobra.CheckErr(err)
+
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	// Global flags
+	rootCmd.PersistentFlags().StringVar(&CmdOptions.ConfigFile, "config", "", "config file (default is .env, "+filepath.Join(configDir, "bitbucket", "config-cli.yml"))
+	rootCmd.PersistentFlags().StringVarP(&CmdOptions.ProfileName, "profile", "p", "", "Profile to use. Overrides TSGGLOBAL_PROFILE environment variable")
+	rootCmd.PersistentFlags().StringVarP(&CmdOptions.LogDestination, "log", "l", "", "Log destination (stdout, stderr, file, none), overrides LOG_DESTINATION environment variable")
+	rootCmd.PersistentFlags().BoolVar(&CmdOptions.Debug, "debug", false, "logs are written at DEBUG level, overrides DEBUG environment variable")
+	rootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.bb.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.AddCommand(profile.Command)
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
+	configDir, err := os.UserConfigDir()
+	cobra.CheckErr(err)
 
-		// Search config in home directory with name ".bb" (without extension).
-		viper.AddConfigPath(home)
+	// Bind environment variables
+	_ = viper.BindEnv("DEBUG")
+	_ = viper.BindEnv("VERBOSE")
+	_ = viper.BindEnv("LOG_DESTINATION")
+	_ = viper.BindEnv("BITBUCKET_PROFILE")
+
+	if len(CmdOptions.ConfigFile) > 0 { // Use config file from the flag.
+		viper.SetConfigFile(CmdOptions.ConfigFile)
+	} else if len(configDir) > 0 {
+		viper.AddConfigPath(filepath.Join(configDir, "bitbucket"))
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".bb")
+		viper.SetConfigName("config-cli.yml")
+	} else { // Old fashion configuration file in $HOME
+		homeDir, err := os.UserHomeDir()
+		cobra.CheckErr(err)
+		viper.AddConfigPath(homeDir)
+		viper.SetConfigType("yaml")
+		viper.SetConfigName(".bitbucket-cli")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	// Read the config file
+	err = viper.ReadInConfig()
+	if verr, ok := err.(viper.ConfigFileNotFoundError); ok {
+		Error("%s", verr)
+		CmdOptions.Bootstrap = true
+	} else if err != nil {
+		Die(1, "Failed to read config file: %s", err)
 	}
+
+	os.Setenv("DEBUG", viper.GetString("DEBUG"))
+	os.Setenv("LOG_DESTINATION", viper.GetString("LOG_DESTINATION"))
+	if len(viper.GetString("LOG_DESTINATION")) == 0 {
+		if viper.GetBool("DEBUG") {
+			Log = logger.Create(APP, APP+".log")
+		}
+	} else {
+		Log = logger.Create(APP, viper.GetString("LOG_DESTINATION"))
+	}
+	profile.Log = Log.Child("profile", "profile")
+
+	Log.Infof(strings.Repeat("-", 80))
+	Log.Infof("Starting %s v%s (%s)", APP, Version(), runtime.GOARCH)
+	Log.Infof("Log Destination: %s", Log)
+	Log.Infof("Config File: %s", viper.ConfigFileUsed())
+
+	if err := profile.Profiles.Load(); err != nil {
+		Die(1, "Failed to load profiles: %s", err)
+	}
+	if len(CmdOptions.ProfileName) > 0 {
+		var found bool
+
+		if CmdOptions.CurrentProfile, found = profile.Profiles.Find(CmdOptions.ProfileName); !found {
+			Die(1, "Profile %s not found", CmdOptions.ProfileName)
+		}
+	} else {
+		CmdOptions.CurrentProfile = profile.Profiles.Current()
+	}
+	Log.Infof("Profile: %s", CmdOptions.CurrentProfile)
 }
