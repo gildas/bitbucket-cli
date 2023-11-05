@@ -12,18 +12,19 @@ import (
 type Profile struct {
 	Name        string `json:"name"                  mapstructure:"name"`
 	Description string `json:"description,omitempty" mapstructure:"description,omitempty" yaml:",omitempty"`
-	Default     bool   `json:"default"               mapstructure:"default" yaml:",omitempty"`
-	User        string `json:"user"                  mapstructure:"user"`
-	Password    string `json:"-"                     mapstructure:"password"`
+	Default     bool   `json:"default"               mapstructure:"default"               yaml:",omitempty"`
+	User        string `json:"user,omitempty"        mapstructure:"user"                  yaml:",omitempty"`
+	Password    string `json:"-"                     mapstructure:"password"              yaml:",omitempty"`
+	AccessToken string `json:"accessToken,omitempty" mapstructure:"accessToken"           yaml:",omitempty"`
 }
 
 // Log is the logger for this application
 var Log *logger.Logger
 
-// profileCmd represents the profile command
+// Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "profile",
-	Short: "Manage profile",
+	Short: "Manage profiles",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Profile requires a subcommand:")
 		for _, command := range cmd.Commands() {
@@ -40,13 +41,15 @@ func (profile *Profile) Validate() error {
 		merr.Append(errors.ArgumentMissing.With("name"))
 	}
 	if _, found := Profiles.Find(profile.Name); found {
-		merr.Append(errors.DuplicateFound.With("name", createOptions.Name))
+		merr.Append(errors.DuplicateFound.With("name", profile.Name))
 	}
-	if len(profile.User) == 0 {
-		merr.Append(errors.ArgumentMissing.With("user"))
-	}
-	if len(profile.Password) == 0 {
-		merr.Append(errors.ArgumentMissing.With("password"))
+	if len(profile.AccessToken) == 0 {
+		if len(profile.User) == 0 {
+			merr.Append(errors.ArgumentMissing.With("user"))
+		}
+		if len(profile.Password) == 0 {
+			merr.Append(errors.ArgumentMissing.With("password"))
+		}
 	}
 	return merr.AsError()
 }

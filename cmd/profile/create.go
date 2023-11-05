@@ -22,9 +22,10 @@ func init() {
 	createCmd.Flags().BoolVar(&createOptions.Default, "default", false, "True if this is the default profile")
 	createCmd.Flags().StringVarP(&createOptions.User, "user", "u", "", "User's name of the profile")
 	createCmd.Flags().StringVar(&createOptions.Password, "password", "", "Password of the profile")
+	createCmd.Flags().StringVar(&createOptions.AccessToken, "access-token", "", "Access Token of the profile")
 	_ = createCmd.MarkFlagRequired("name")
-	_ = createCmd.MarkFlagRequired("user")
-	_ = createCmd.MarkFlagRequired("password")
+	createCmd.MarkFlagsRequiredTogether("user", "password")
+	createCmd.MarkFlagsMutuallyExclusive("user", "access-token")
 }
 
 func createProcess(cmd *cobra.Command, args []string) error {
