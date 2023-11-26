@@ -62,7 +62,10 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 	log.Record("result", string(result.Data)).Infof("Result from Bitbucket")
-
+	if len(pullrequests.Values) == 0 {
+		log.Infof("No pullrequest found")
+		return
+	}
 	payload, _ := json.MarshalIndent(pullrequests, "", "  ")
 	fmt.Println(string(payload))
 	return nil
