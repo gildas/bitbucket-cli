@@ -1,4 +1,8 @@
+debug: "1"
 profiles:
     - name: simple
       user: user1
       password: s3cr3tP@ssw0rd
+    - name: test
+      default: true
+      accesstoken: ATCTT3xFfGN03kG4enjyE7bXhopP4Gm9YlRV-nA3gcTwBkjVRxfenRVJOx48UiryNAApYpDZEblf_ZTzoDRKMtCsdvkk3m_5_SSwaYhKm-l-8ok5af1FhpJNWg8ynMpGrsJEtyzzDVurNqH8sU-3OhpIRTzF6XtVtcAl8xVJ6I3kHuo5kh4qwDo=F9EC7207

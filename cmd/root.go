@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -67,6 +68,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
 
 	rootCmd.AddCommand(profile.Command)
+	rootCmd.AddCommand(pullrequest.Command)
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -115,6 +117,7 @@ func initConfig() {
 		Log = logger.Create(APP, viper.GetString("LOG_DESTINATION"))
 	}
 	profile.Log = Log.Child("profile", "profile")
+	pullrequest.Log = Log.Child("pullrequest", "pullrequest")
 
 	Log.Infof(strings.Repeat("-", 80))
 	Log.Infof("Starting %s v%s (%s)", APP, Version(), runtime.GOARCH)
@@ -134,4 +137,5 @@ func initConfig() {
 		CmdOptions.CurrentProfile = profile.Profiles.Current()
 	}
 	Log.Infof("Profile: %s", CmdOptions.CurrentProfile)
+	pullrequest.Profile = CmdOptions.CurrentProfile
 }

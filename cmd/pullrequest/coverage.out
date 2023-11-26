@@ -1,0 +1,14 @@
+mode: set
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/list.go:27.13,33.2 3 1
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/list.go:35.65,38.38 2 0
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/list.go:38.38,40.3 1 0
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/list.go:42.2,42.33 1 0
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/list.go:42.33,44.3 1 0
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/list.go:46.2,61.16 4 0
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/list.go:61.16,63.3 1 0
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/list.go:64.2,68.12 4 0
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/pullrequest.go:53.47,55.42 2 0
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/pullrequest.go:55.42,57.4 1 0
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/pullrequest.go:62.50,66.2 2 0
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/pullrequest.go:71.48,73.2 1 0
+bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/pullrequest.go:76.71,89.2 3 1
