@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"time"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
 	"github.com/gildas/go-core"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-request"
 	"github.com/spf13/cobra"
 )
@@ -36,7 +36,11 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	var log = Log.Child(nil, "list")
 
 	if len(listOptions.Repository) == 0 {
-		return errors.NotImplemented.WithStack()
+		remote, err := remote.GetFromGitConfig("origin")
+		if err != nil {
+			return err
+		}
+		listOptions.Repository = remote.Repository()
 	}
 
 	if len(listOptions.State) == 0 {
