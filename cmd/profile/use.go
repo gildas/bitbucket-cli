@@ -21,7 +21,7 @@ func init() {
 func useProcess(cmd *cobra.Command, args []string) error {
 	var log = Log.Child(nil, "get")
 
-	log.Infof("Displaying profile %s", args[0])
+	log.Infof("Using profile %s", args[0])
 	log.Warnf("Valid names: %s", Profiles.Names())
 	profile, found := Profiles.Find(args[0])
 	if !found {
