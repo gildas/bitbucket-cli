@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -19,14 +21,14 @@ type PullRequest struct {
 	Description       string             `json:"description"            mapstructure:"description"`
 	Summary           PullRequestSummary `json:"summary"                mapstructure:"summary"`
 	State             string             `json:"state"                  mapstructure:"state"`
-	MergeCommit       *Commit            `json:"merge_commit,omitempty" mapstructure:"merge_commit"`
+	MergeCommit       *commit.Commit     `json:"merge_commit,omitempty" mapstructure:"merge_commit"`
 	CloseSourceBranch bool               `json:"close_source_branch"    mapstructure:"close_source_branch"`
 	ClosedBy          common.User        `json:"closed_by"              mapstructure:"closed_by"`
 	Author            common.AppUser     `json:"author"                 mapstructure:"author"`
 	Reason            string             `json:"reason"                 mapstructure:"reason"`
 	Destination       Endpoint           `json:"destination"            mapstructure:"destination"`
 	Source            Endpoint           `json:"source"                 mapstructure:"source"`
-	Links             common.Links       `json:"links"                  mapstructure:"links"`
+	Links             link.Links         `json:"links"                  mapstructure:"links"`
 	CommentCount      uint64             `json:"comment_count"          mapstructure:"comment_count"`
 	TaskCount         uint64             `json:"task_count"             mapstructure:"task_count"`
 	CreatedOn         time.Time          `json:"created_on"             mapstructure:"created_on"`

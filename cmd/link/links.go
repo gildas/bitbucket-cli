@@ -1,4 +1,4 @@
-package common
+package link
 
 type Links struct {
 	Self           *Link `json:"self,omitempty"            mapstructure:"self"`
@@ -9,6 +9,7 @@ type Links struct {
 	RequestChanges *Link `json:"request-changes,omitempty" mapstructure:"request-changes"`
 	Diff           *Link `json:"diff,omitempty"            mapstructure:"diff"`
 	DiffStat       *Link `json:"diffstat,omitempty"        mapstructure:"diffstat"`
+	Patch          *Link `json:"patch,omitempty"           mapstructure:"patch"`
 	Comments       *Link `json:"comments,omitempty"        mapstructure:"comments"`
 	Activity       *Link `json:"activity,omitempty"        mapstructure:"activity"`
 	Merge          *Link `json:"merge,omitempty"           mapstructure:"merge"`
