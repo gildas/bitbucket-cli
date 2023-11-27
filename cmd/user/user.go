@@ -1,4 +1,4 @@
-package common
+package user
 
 import "bitbucket.org/gildas_cherruel/bb/cmd/link"
 

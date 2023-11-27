@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -23,7 +24,7 @@ type PullRequest struct {
 	State             string             `json:"state"                  mapstructure:"state"`
 	MergeCommit       *commit.Commit     `json:"merge_commit,omitempty" mapstructure:"merge_commit"`
 	CloseSourceBranch bool               `json:"close_source_branch"    mapstructure:"close_source_branch"`
-	ClosedBy          common.User        `json:"closed_by"              mapstructure:"closed_by"`
+	ClosedBy          user.User          `json:"closed_by"              mapstructure:"closed_by"`
 	Author            common.AppUser     `json:"author"                 mapstructure:"author"`
 	Reason            string             `json:"reason"                 mapstructure:"reason"`
 	Destination       Endpoint           `json:"destination"            mapstructure:"destination"`
