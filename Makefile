@@ -56,7 +56,7 @@ PANDOC  ?= pandoc
 # Flags
 #MAKEFLAGS += --silent
 # GO
-LDFLAGS = -ldflags "-X main.commit=$(COMMIT) -X main.branch=$(BRANCH) -X main.stamp=$(STAMP)"
+LDFLAGS = -ldflags "-X main.app_commit=$(COMMIT) -X main.app_branch=$(BRANCH) -X main.app_stamp=$(STAMP)"
 ifneq ($(what),)
 TEST_ARG := -run '$(what)'
 else
