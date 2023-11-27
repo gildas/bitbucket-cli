@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
 	"github.com/gildas/go-logger"
@@ -68,6 +69,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
 
 	rootCmd.AddCommand(profile.Command)
+	rootCmd.AddCommand(commit.Command)
 	rootCmd.AddCommand(pullrequest.Command)
 }
 
@@ -116,6 +118,7 @@ func initConfig() {
 	} else {
 		Log = logger.Create(APP, viper.GetString("LOG_DESTINATION"))
 	}
+	commit.Log = Log.Child("commit", "commit")
 	profile.Log = Log.Child("profile", "profile")
 	pullrequest.Log = Log.Child("pullrequest", "pullrequest")
 
@@ -137,5 +140,6 @@ func initConfig() {
 		CmdOptions.CurrentProfile = profile.Profiles.Current()
 	}
 	Log.Infof("Profile: %s", CmdOptions.CurrentProfile)
+	commit.Profile = CmdOptions.CurrentProfile
 	pullrequest.Profile = CmdOptions.CurrentProfile
 }

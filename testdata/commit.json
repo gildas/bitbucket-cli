@@ -1,0 +1,96 @@
+{
+  "type": "commit",
+  "hash": "026560720168aa12820a01e8262f6bb60f0639d1",
+  "date": "2023-11-27T14:43:10+00:00",
+  "author": {
+    "type": "author",
+    "raw": "Gildas Cherruel <gildas@breizh.org>",
+    "user": {
+      "display_name": "Gildas Cherruel",
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/users/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D"
+        },
+        "avatar": {
+          "href": "https://secure.gravatar.com/avatar/30dbb120d3b75aaa0cec44e826c85cd7?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGC-0.png"
+        },
+        "html": {
+          "href": "https://bitbucket.org/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D/"
+        }
+      },
+      "type": "user",
+      "uuid": "{4115785a-a1b9-4887-9af2-ca401bc7f168}",
+      "account_id": "557058:ec46c4b2-f245-496e-8c11-1404869e3346",
+      "nickname": "gildas_cherruel"
+    }
+  },
+  "message": "Added BitBucket's CLI requirement\n",
+  "summary": {
+    "type": "rendered",
+    "raw": "Added BitBucket's CLI requirement\n",
+    "markup": "markdown",
+    "html": "<p>Added BitBucket's CLI requirement</p>"
+  },
+  "links": {
+    "self": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/026560720168aa12820a01e8262f6bb60f0639d1"
+    },
+    "html": {
+      "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/026560720168aa12820a01e8262f6bb60f0639d1"
+    },
+    "diff": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/diff/026560720168aa12820a01e8262f6bb60f0639d1"
+    },
+    "approve": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/026560720168aa12820a01e8262f6bb60f0639d1/approve"
+    },
+    "comments": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/026560720168aa12820a01e8262f6bb60f0639d1/comments"
+    },
+    "statuses": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/026560720168aa12820a01e8262f6bb60f0639d1/statuses"
+    },
+    "patch": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/patch/026560720168aa12820a01e8262f6bb60f0639d1"
+    }
+  },
+  "parents": [
+    {
+      "hash": "3c7d72f40aaaab534ac99826de511023b635878f",
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/3c7d72f40aaaab534ac99826de511023b635878f"
+        },
+        "html": {
+          "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/3c7d72f40aaaab534ac99826de511023b635878f"
+        }
+      },
+      "type": "commit"
+    }
+  ],
+  "rendered": {
+    "message": {
+      "type": "rendered",
+      "raw": "Added BitBucket's CLI requirement\n",
+      "markup": "markdown",
+      "html": "<p>Added BitBucket's CLI requirement</p>"
+    }
+  },
+  "repository": {
+    "type": "repository",
+    "full_name": "gildas_cherruel/gitflow-pr-sandbox",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox"
+      },
+      "html": {
+        "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox"
+      },
+      "avatar": {
+        "href": "https://bytebucket.org/ravatar/%7Bf12769c1-7465-4a94-b265-8b1b04e07cb5%7D?ts=go"
+      }
+    },
+    "name": "gitflow-pr-sandbox",
+    "uuid": "{f12769c1-7465-4a94-b265-8b1b04e07cb5}"
+  }
+}
