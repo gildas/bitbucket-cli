@@ -1,14 +1,11 @@
 package commit
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
-	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
-	"github.com/gildas/go-core"
-	"github.com/gildas/go-request"
 	"github.com/spf13/cobra"
 )
 
@@ -48,17 +45,15 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		Page     int      `json:"page"`
 	}
 
-	result, err := request.Send(&request.Options{
-		Method:        "GET",
-		URL:           core.Must(url.Parse(fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/commits", listOptions.Repository))),
-		Authorization: request.BearerAuthorization(Profile.AccessToken),
-		Timeout:       30 * time.Second,
-		Logger:        log,
-	}, &commits)
+	err = Profile.Get(
+		log.ToContext(context.Background()),
+		listOptions.Repository,
+		"commits",
+		&commits,
+	)
 	if err != nil {
 		return err
 	}
-	log.Record("result", string(result.Data)).Infof("Result from Bitbucket")
 	if len(commits.Values) == 0 {
 		log.Infof("No branch found")
 		return

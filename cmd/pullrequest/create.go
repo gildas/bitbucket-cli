@@ -1,15 +1,11 @@
 package pullrequest
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
-	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
-	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
-	"github.com/gildas/go-request"
 	"github.com/spf13/cobra"
 )
 
@@ -54,14 +50,6 @@ func init() {
 func createProcess(cmd *cobra.Command, args []string) (err error) {
 	var log = Log.Child(nil, "create")
 
-	if len(createOptions.Repository) == 0 {
-		remote, err := remote.GetFromGitConfig("origin")
-		if err != nil {
-			return err
-		}
-		createOptions.Repository = remote.Repository()
-	}
-
 	if len(createOptions.Title) == 0 {
 		return errors.ArgumentMissing.With("title")
 	}
@@ -82,17 +70,16 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Record("payload", payload).Infof("Creating pullrequest")
 	var pullrequest PullRequest
 
-	result, err := request.Send(&request.Options{
-		Method:        "POST",
-		URL:           core.Must(url.Parse(fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/pullrequests", listOptions.Repository))),
-		Authorization: request.BearerAuthorization(Profile.AccessToken),
-		Timeout:       30 * time.Second,
-		Logger:        log,
-	}, &pullrequest)
+	err = Profile.Post(
+		log.ToContext(context.Background()),
+		createOptions.Repository,
+		"pullrequests",
+		payload,
+		&pullrequest,
+	)
 	if err != nil {
 		return err
 	}
-	log.Record("result", string(result.Data)).Infof("Result from Bitbucket")
 	data, _ := json.MarshalIndent(pullrequest, "", "  ")
 	fmt.Println(string(data))
 
