@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/gildas/go-errors"
 	"github.com/spf13/cobra"
@@ -78,10 +79,11 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		&pullrequest,
 	)
 	if err != nil {
-		return err
+		fmt.Fprintf(os.Stderr, "Failed to create pullrequest: %s\n", err)
+		return nil
 	}
 	data, _ := json.MarshalIndent(pullrequest, "", "  ")
 	fmt.Println(string(data))
 
-	return nil
+	return
 }
