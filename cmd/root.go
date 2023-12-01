@@ -64,6 +64,8 @@ func init() {
 	rootCmd.AddCommand(commit.Command)
 	rootCmd.AddCommand(pullrequest.Command)
 
+	rootCmd.SilenceUsage = true // Do not show usage when an error occurs
+
 	_ = godotenv.Load()
 	createLogger()
 	cobra.OnInitialize(initConfig)
