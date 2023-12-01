@@ -1,6 +1,3 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -14,19 +11,14 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
-	"github.com/gildas/go-logger"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-// Log is the logger for this application
-var Log *logger.Logger
-
 // RootOptions describes the options for the application
 type RootOptions struct {
 	ConfigFile     string           `mapstructure:"-"`
-	Bootstrap      bool             `mapstructure:"-"` // True if we are creating a config file
 	LogDestination string           `mapstructure:"-"`
 	ProfileName    string           `mapstructure:"-"`
 	CurrentProfile *profile.Profile `mapstructure:"-"`
@@ -53,22 +45,13 @@ func Execute() {
 	Log.Flush()
 	if err != nil {
 		Log.Fatalf("Error: %s", err)
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		os.Exit(1)
 	}
 }
 
 func init() {
-	_ = godotenv.Load()
-	if len(os.Getenv("LOG_DESTINATION")) == 0 {
-		Log = logger.Create(APP, &logger.NilStream{})
-	} else {
-		Log = logger.Create(APP)
-	}
 	configDir, err := os.UserConfigDir()
 	cobra.CheckErr(err)
-
-	cobra.OnInitialize(initConfig)
 
 	// Global flags
 	rootCmd.PersistentFlags().StringVar(&CmdOptions.ConfigFile, "config", "", "config file (default is .env, "+filepath.Join(configDir, "bitbucket", "config-cli.yml"))
@@ -81,25 +64,19 @@ func init() {
 	rootCmd.AddCommand(branch.Command)
 	rootCmd.AddCommand(commit.Command)
 	rootCmd.AddCommand(pullrequest.Command)
+
+	_ = godotenv.Load()
+	createLogger()
+	cobra.OnInitialize(initConfig)
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if CmdOptions.Debug {
-		os.Setenv("DEBUG", "true")
-		if len(os.Getenv("LOG_DESTINATION")) == 0 {
-			Log = logger.Create(APP)
-		}
-	}
-	if len(CmdOptions.LogDestination) > 0 {
-		Log = logger.Create(APP, CmdOptions.LogDestination)
-	}
+	configDir, _ := os.UserConfigDir()
+	createLogger() // We need to create the logger again as command arguments may have been provided
 	Log.Infof(strings.Repeat("-", 80))
 	Log.Infof("Starting %s v%s (%s)", APP, Version(), runtime.GOARCH)
 	Log.Infof("Log Destination: %s", Log)
-
-	configDir, err := os.UserConfigDir()
-	cobra.CheckErr(err)
 
 	if len(CmdOptions.ConfigFile) > 0 { // Use config file from the flag.
 		viper.SetConfigFile(CmdOptions.ConfigFile)
@@ -114,45 +91,48 @@ func initConfig() {
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".bitbucket-cli")
 	}
-
 	Log.Infof("Config File: %s", viper.ConfigFileUsed())
-
-	// Read the config file
-	err = viper.ReadInConfig()
-	if verr, ok := err.(viper.ConfigFileNotFoundError); ok {
-		Log.Errorf("Config file not found: %s", verr)
-		CmdOptions.Bootstrap = true
-	} else if err != nil {
-		Log.Fatalf("Failed to read config file: %s", err)
-		fmt.Fprintf(os.Stderr, "Failed to read config file: %s\n", err)
-		os.Exit(1)
-	}
-
-	viper.AutomaticEnv() // read in environment variables that match
 
 	branch.Log = Log.Child("branch", "branch")
 	commit.Log = Log.Child("commit", "commit")
 	profile.Log = Log.Child("profile", "profile")
 	pullrequest.Log = Log.Child("pullrequest", "pullrequest")
 
-	if err := profile.Profiles.Load(); err != nil {
-		Log.Fatalf("Failed to load profiles: %s", err)
-		fmt.Fprintf(os.Stderr, "Failed to load profiles: %s\n", err)
-		os.Exit(1)
-	}
-	if len(CmdOptions.ProfileName) > 0 {
-		var found bool
-
-		if CmdOptions.CurrentProfile, found = profile.Profiles.Find(CmdOptions.ProfileName); !found {
-			Log.Fatalf("Profile %s not found", CmdOptions.ProfileName)
-			fmt.Fprintf(os.Stderr, "Profile %s not found\n", CmdOptions.ProfileName)
+	// Read the config file
+	err := viper.ReadInConfig()
+	if verr, ok := err.(viper.ConfigFileNotFoundError); ok {
+		Log.Warnf("Config file not found: %s", verr)
+		if len(CmdOptions.ProfileName) > 0 {
+			Log.Fatalf("Profile %s not found (missing config file)", CmdOptions.ProfileName)
+			fmt.Fprintf(os.Stderr, "Profile %s not found (missing config file)\n", CmdOptions.ProfileName)
 			os.Exit(1)
 		}
+	} else if err != nil {
+		Log.Fatalf("Failed to read config file: %s", err)
+		fmt.Fprintf(os.Stderr, "Failed to read config file: %s\n", err)
+		os.Exit(1)
 	} else {
-		CmdOptions.CurrentProfile = profile.Profiles.Current()
+		if err := profile.Profiles.Load(); err != nil {
+			Log.Fatalf("Failed to load profiles: %s", err)
+			fmt.Fprintf(os.Stderr, "Failed to load profiles: %s\n", err)
+			os.Exit(1)
+		}
+		if len(CmdOptions.ProfileName) > 0 {
+			var found bool
+
+			if CmdOptions.CurrentProfile, found = profile.Profiles.Find(CmdOptions.ProfileName); !found {
+				Log.Fatalf("Profile %s not found", CmdOptions.ProfileName)
+				fmt.Fprintf(os.Stderr, "Profile %s not found in %s\n", CmdOptions.ProfileName, viper.ConfigFileUsed())
+				os.Exit(1)
+			}
+		} else {
+			CmdOptions.CurrentProfile = profile.Profiles.Current()
+		}
+		Log.Infof("Profile: %s", CmdOptions.CurrentProfile)
+		branch.Profile = CmdOptions.CurrentProfile
+		commit.Profile = CmdOptions.CurrentProfile
+		pullrequest.Profile = CmdOptions.CurrentProfile
+
+		Log.Infof("Viper Keys: %s", viper.AllKeys())
 	}
-	Log.Infof("Profile: %s", CmdOptions.CurrentProfile)
-	branch.Profile = CmdOptions.CurrentProfile
-	commit.Profile = CmdOptions.CurrentProfile
-	pullrequest.Profile = CmdOptions.CurrentProfile
 }
