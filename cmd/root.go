@@ -4,6 +4,7 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -51,7 +52,9 @@ func Execute() {
 	err := rootCmd.Execute()
 	Log.Flush()
 	if err != nil {
-		Die(1, "Error: %s", err)
+		Log.Fatalf("Error: %s", err)
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		os.Exit(1)
 	}
 }
 
@@ -117,10 +120,12 @@ func initConfig() {
 	// Read the config file
 	err = viper.ReadInConfig()
 	if verr, ok := err.(viper.ConfigFileNotFoundError); ok {
-		Error("%s", verr)
+		Log.Errorf("Config file not found: %s", verr)
 		CmdOptions.Bootstrap = true
 	} else if err != nil {
-		Die(1, "Failed to read config file: %s", err)
+		Log.Fatalf("Failed to read config file: %s", err)
+		fmt.Fprintf(os.Stderr, "Failed to read config file: %s\n", err)
+		os.Exit(1)
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
@@ -131,13 +136,17 @@ func initConfig() {
 	pullrequest.Log = Log.Child("pullrequest", "pullrequest")
 
 	if err := profile.Profiles.Load(); err != nil {
-		Die(1, "Failed to load profiles: %s", err)
+		Log.Fatalf("Failed to load profiles: %s", err)
+		fmt.Fprintf(os.Stderr, "Failed to load profiles: %s\n", err)
+		os.Exit(1)
 	}
 	if len(CmdOptions.ProfileName) > 0 {
 		var found bool
 
 		if CmdOptions.CurrentProfile, found = profile.Profiles.Find(CmdOptions.ProfileName); !found {
-			Die(1, "Profile %s not found", CmdOptions.ProfileName)
+			Log.Fatalf("Profile %s not found", CmdOptions.ProfileName)
+			fmt.Fprintf(os.Stderr, "Profile %s not found\n", CmdOptions.ProfileName)
+			os.Exit(1)
 		}
 	} else {
 		CmdOptions.CurrentProfile = profile.Profiles.Current()
