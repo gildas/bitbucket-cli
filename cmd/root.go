@@ -71,23 +71,21 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	configDir, _ := os.UserConfigDir()
 	createLogger() // We need to create the logger again as command arguments may have been provided
 	Log.Infof(strings.Repeat("-", 80))
 	Log.Infof("Starting %s v%s (%s)", APP, Version(), runtime.GOARCH)
 	Log.Infof("Log Destination: %s", Log)
 
+	viper.SetConfigType("yaml")
 	if len(CmdOptions.ConfigFile) > 0 { // Use config file from the flag.
 		viper.SetConfigFile(CmdOptions.ConfigFile)
-	} else if len(configDir) > 0 {
+	} else if configDir, _ := os.UserConfigDir(); len(configDir) > 0 {
 		viper.AddConfigPath(filepath.Join(configDir, "bitbucket"))
-		viper.SetConfigType("yaml")
 		viper.SetConfigName("config-cli.yml")
 	} else { // Old fashion configuration file in $HOME
 		homeDir, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 		viper.AddConfigPath(homeDir)
-		viper.SetConfigType("yaml")
 		viper.SetConfigName(".bitbucket-cli")
 	}
 	Log.Infof("Config File: %s", viper.ConfigFileUsed())
