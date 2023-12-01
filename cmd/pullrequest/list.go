@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/go-errors"
 	"github.com/spf13/cobra"
 )
 
@@ -31,11 +33,15 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	var log = Log.Child(nil, "list")
 
+	if profile.Current == nil {
+		return errors.ArgumentMissing.With("profile")
+	}
+
 	if len(listOptions.State) == 0 {
 		listOptions.State = "all"
 	}
 
-	log.Infof("Listing all pull requests for repository: %s with profile %s", listOptions.Repository, Profile)
+	log.Infof("Listing all pull requests for repository: %s with profile %s", listOptions.Repository, profile.Current)
 	var pullrequests struct {
 		Values   []PullRequest `json:"values"`
 		PageSize int           `json:"pagelen"`
@@ -43,7 +49,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		Page     int           `json:"page"`
 	}
 
-	err = Profile.Get(
+	err = profile.Current.Get(
 		log.ToContext(context.Background()),
 		listOptions.Repository,
 		fmt.Sprintf("pullrequests?state=%s", listOptions.State),

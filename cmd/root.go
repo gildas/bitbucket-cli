@@ -21,7 +21,6 @@ type RootOptions struct {
 	ConfigFile     string           `mapstructure:"-"`
 	LogDestination string           `mapstructure:"-"`
 	ProfileName    string           `mapstructure:"-"`
-	CurrentProfile *profile.Profile `mapstructure:"-"`
 	Verbose        bool             `mapstructure:"-"`
 	Debug          bool             `mapstructure:"-"`
 }
@@ -120,18 +119,15 @@ func initConfig() {
 		if len(CmdOptions.ProfileName) > 0 {
 			var found bool
 
-			if CmdOptions.CurrentProfile, found = profile.Profiles.Find(CmdOptions.ProfileName); !found {
+			if profile.Current, found = profile.Profiles.Find(CmdOptions.ProfileName); !found {
 				Log.Fatalf("Profile %s not found", CmdOptions.ProfileName)
 				fmt.Fprintf(os.Stderr, "Profile %s not found in %s\n", CmdOptions.ProfileName, viper.ConfigFileUsed())
 				os.Exit(1)
 			}
 		} else {
-			CmdOptions.CurrentProfile = profile.Profiles.Current()
+			profile.Current = profile.Profiles.Current()
 		}
-		Log.Infof("Profile: %s", CmdOptions.CurrentProfile)
-		branch.Profile = CmdOptions.CurrentProfile
-		commit.Profile = CmdOptions.CurrentProfile
-		pullrequest.Profile = CmdOptions.CurrentProfile
+		Log.Infof("Profile: %s", profile.Current)
 
 		Log.Infof("Viper Keys: %s", viper.AllKeys())
 	}

@@ -21,6 +21,9 @@ type Profile struct {
 // Log is the logger for this application
 var Log *logger.Logger
 
+// Current is the current profile
+var Current *Profile
+
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "profile",

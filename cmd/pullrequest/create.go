@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/spf13/cobra"
 )
@@ -51,6 +52,10 @@ func init() {
 func createProcess(cmd *cobra.Command, args []string) (err error) {
 	var log = Log.Child(nil, "create")
 
+	if profile.Current == nil {
+		return errors.ArgumentMissing.With("profile")
+	}
+
 	if len(createOptions.Title) == 0 {
 		return errors.ArgumentMissing.With("title")
 	}
@@ -71,7 +76,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Record("payload", payload).Infof("Creating pullrequest")
 	var pullrequest PullRequest
 
-	err = Profile.Post(
+	err = profile.Current.Post(
 		log.ToContext(context.Background()),
 		createOptions.Repository,
 		"pullrequests",

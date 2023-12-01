@@ -7,7 +7,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
@@ -40,9 +39,6 @@ type RenderedMessage struct {
 
 // Log is the logger for this application
 var Log *logger.Logger
-
-// Profile is the profile for this command
-var Profile *profile.Profile
 
 // Command represents this folder's command
 var Command = &cobra.Command{
