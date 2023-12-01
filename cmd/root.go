@@ -18,11 +18,11 @@ import (
 
 // RootOptions describes the options for the application
 type RootOptions struct {
-	ConfigFile     string           `mapstructure:"-"`
-	LogDestination string           `mapstructure:"-"`
-	ProfileName    string           `mapstructure:"-"`
-	Verbose        bool             `mapstructure:"-"`
-	Debug          bool             `mapstructure:"-"`
+	ConfigFile     string `mapstructure:"-"`
+	LogDestination string `mapstructure:"-"`
+	ProfileName    string `mapstructure:"-"`
+	Verbose        bool   `mapstructure:"-"`
+	Debug          bool   `mapstructure:"-"`
 }
 
 // CmdOptions contains the options for the application
@@ -128,7 +128,5 @@ func initConfig() {
 			profile.Current = profile.Profiles.Current()
 		}
 		Log.Infof("Profile: %s", profile.Current)
-
-		Log.Infof("Viper Keys: %s", viper.AllKeys())
 	}
 }
