@@ -87,7 +87,14 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to create pullrequest: %s\n", err)
 		return nil
 	}
-	data, _ := json.MarshalIndent(pullrequest, "", "  ")
+	ref := struct {
+		Title string `json:"title"`
+		ID    uint64 `json:"id"`
+	}{
+		Title: pullrequest.Title,
+		ID:    pullrequest.ID,
+	}
+	data, _ := json.MarshalIndent(ref, "", "  ")
 	fmt.Println(string(data))
 
 	return
