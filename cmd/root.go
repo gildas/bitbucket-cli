@@ -14,6 +14,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
 	"github.com/gildas/go-logger"
+	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -41,8 +42,7 @@ var rootCmd = &cobra.Command{
 	Version: Version(),
 	Short:   "BitBucket Command Line Interface",
 	Long: `BitBucket Command Line Interface is a tool to manage your BitBucket.
-You can manage your pull requests, issues, profiles, repositories, users, etc. with it.
-`,
+You can manage your pull requests, issues, profiles, etc.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -56,7 +56,12 @@ func Execute() {
 }
 
 func init() {
-	Log = logger.Create(APP, &logger.NilStream{})
+	_ = godotenv.Load()
+	if len(os.Getenv("LOG_DESTINATION")) == 0 {
+		Log = logger.Create(APP, &logger.NilStream{})
+	} else {
+		Log = logger.Create(APP)
+	}
 	configDir, err := os.UserConfigDir()
 	cobra.CheckErr(err)
 
@@ -77,14 +82,21 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	if CmdOptions.Debug {
+		os.Setenv("DEBUG", "true")
+		if len(os.Getenv("LOG_DESTINATION")) == 0 {
+			Log = logger.Create(APP)
+		}
+	}
+	if len(CmdOptions.LogDestination) > 0 {
+		Log = logger.Create(APP, CmdOptions.LogDestination)
+	}
+	Log.Infof(strings.Repeat("-", 80))
+	Log.Infof("Starting %s v%s (%s)", APP, Version(), runtime.GOARCH)
+	Log.Infof("Log Destination: %s", Log)
+
 	configDir, err := os.UserConfigDir()
 	cobra.CheckErr(err)
-
-	// Bind environment variables
-	_ = viper.BindEnv("DEBUG")
-	_ = viper.BindEnv("VERBOSE")
-	_ = viper.BindEnv("LOG_DESTINATION")
-	_ = viper.BindEnv("BITBUCKET_PROFILE")
 
 	if len(CmdOptions.ConfigFile) > 0 { // Use config file from the flag.
 		viper.SetConfigFile(CmdOptions.ConfigFile)
@@ -100,7 +112,7 @@ func initConfig() {
 		viper.SetConfigName(".bitbucket-cli")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	Log.Infof("Config File: %s", viper.ConfigFileUsed())
 
 	// Read the config file
 	err = viper.ReadInConfig()
@@ -111,24 +123,12 @@ func initConfig() {
 		Die(1, "Failed to read config file: %s", err)
 	}
 
-	os.Setenv("DEBUG", viper.GetString("DEBUG"))
-	os.Setenv("LOG_DESTINATION", viper.GetString("LOG_DESTINATION"))
-	if len(viper.GetString("LOG_DESTINATION")) == 0 {
-		if viper.GetBool("DEBUG") {
-			Log = logger.Create(APP, APP+".log")
-		}
-	} else {
-		Log = logger.Create(APP, viper.GetString("LOG_DESTINATION"))
-	}
+	viper.AutomaticEnv() // read in environment variables that match
+
 	branch.Log = Log.Child("branch", "branch")
 	commit.Log = Log.Child("commit", "commit")
 	profile.Log = Log.Child("profile", "profile")
 	pullrequest.Log = Log.Child("pullrequest", "pullrequest")
-
-	Log.Infof(strings.Repeat("-", 80))
-	Log.Infof("Starting %s v%s (%s)", APP, Version(), runtime.GOARCH)
-	Log.Infof("Log Destination: %s", Log)
-	Log.Infof("Config File: %s", viper.ConfigFileUsed())
 
 	if err := profile.Profiles.Load(); err != nil {
 		Die(1, "Failed to load profiles: %s", err)
