@@ -10,12 +10,14 @@ import (
 
 // Profile describes the configuration needed to connect to BitBucket
 type Profile struct {
-	Name        string `json:"name"                  mapstructure:"name"`
-	Description string `json:"description,omitempty" mapstructure:"description,omitempty" yaml:",omitempty"`
-	Default     bool   `json:"default"               mapstructure:"default"               yaml:",omitempty"`
-	User        string `json:"user,omitempty"        mapstructure:"user"                  yaml:",omitempty"`
-	Password    string `json:"-"                     mapstructure:"password"              yaml:",omitempty"`
-	AccessToken string `json:"accessToken,omitempty" mapstructure:"accessToken"           yaml:",omitempty"`
+	Name         string `json:"name"                  mapstructure:"name"`
+	Description  string `json:"description,omitempty" mapstructure:"description,omitempty" yaml:",omitempty"`
+	Default      bool   `json:"default"               mapstructure:"default"               yaml:",omitempty"`
+	User         string `json:"user,omitempty"        mapstructure:"user"                  yaml:",omitempty"`
+	Password     string `json:"-"                     mapstructure:"password"              yaml:",omitempty"`
+	ClientID     string `json:"clientID,omitempty"    mapstructure:"clientID"              yaml:",omitempty"`
+	ClientSecret string `json:"-"                     mapstructure:"clientSecret"          yaml:",omitempty"`
+	AccessToken  string `json:"accessToken,omitempty" mapstructure:"accessToken"           yaml:",omitempty"`
 }
 
 // Log is the logger for this application
@@ -46,12 +48,18 @@ func (profile *Profile) Validate() error {
 	if _, found := Profiles.Find(profile.Name); found {
 		merr.Append(errors.DuplicateFound.With("name", profile.Name))
 	}
-	if len(profile.AccessToken) == 0 {
-		if len(profile.User) == 0 {
-			merr.Append(errors.ArgumentMissing.With("user"))
-		}
-		if len(profile.Password) == 0 {
-			merr.Append(errors.ArgumentMissing.With("password"))
+	// We must have either an access token or a user/password or a clientID/clientSecret
+	if len(profile.AccessToken) == 0 && len(profile.ClientID) == 0 && len(profile.User) == 0 {
+		merr.Append(errors.ArgumentMissing.With("accessToken, or user/password, or clientID/clientSecret"))
+	} else if len(profile.AccessToken) == 0 {
+		if len(profile.User) != 0 {
+			if len(profile.Password) == 0 {
+				merr.Append(errors.ArgumentMissing.With("password"))
+			}
+		} else if len(profile.ClientID) != 0 {
+			if len(profile.ClientSecret) == 0 {
+				merr.Append(errors.ArgumentMissing.With("clientSecret"))
+			}
 		}
 	}
 	return merr.AsError()

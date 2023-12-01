@@ -88,7 +88,6 @@ func initConfig() {
 		viper.AddConfigPath(homeDir)
 		viper.SetConfigName(".bitbucket-cli")
 	}
-	Log.Infof("Config File: %s", viper.ConfigFileUsed())
 
 	branch.Log = Log.Child("branch", "branch")
 	commit.Log = Log.Child("commit", "commit")
@@ -109,6 +108,7 @@ func initConfig() {
 		fmt.Fprintf(os.Stderr, "Failed to read config file: %s\n", err)
 		os.Exit(1)
 	} else {
+		Log.Infof("Config File: %s", viper.ConfigFileUsed())
 		if err := profile.Profiles.Load(); err != nil {
 			Log.Fatalf("Failed to load profiles: %s", err)
 			fmt.Fprintf(os.Stderr, "Failed to load profiles: %s\n", err)
