@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +30,7 @@ func init() {
 }
 
 func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	var log = Log.Child(nil, "validargs")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "validargs")
 
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
@@ -62,7 +63,7 @@ func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([
 }
 
 func unapproveProcess(cmd *cobra.Command, args []string) (err error) {
-	var log = Log.Child(nil, "unapprove")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "unapprove")
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")

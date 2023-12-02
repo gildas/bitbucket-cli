@@ -10,7 +10,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
-	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -42,13 +41,11 @@ type PullRequestSummary struct {
 	HTML   string `json:"html"   mapstructure:"html"`
 }
 
-// Log is the logger for this application
-var Log *logger.Logger
-
 // Command represents this folder's command
 var Command = &cobra.Command{
-	Use:   "pullrequest",
-	Short: "Manage pull requests",
+	Use:     "pullrequest",
+	Aliases: []string{"pr"},
+	Short:   "Manage pull requests",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Pullrequest requires a subcommand:")
 		for _, command := range cmd.Commands() {

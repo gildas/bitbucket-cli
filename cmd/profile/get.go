@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +22,7 @@ func init() {
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
-	var log = Log.Child(nil, "get")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
 	log.Infof("Displaying profile %s", args[0])
 	log.Warnf("Valid names: %s", Profiles.Names())

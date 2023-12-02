@@ -8,6 +8,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -50,7 +51,7 @@ func init() {
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {
-	var log = Log.Child(nil, "create")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")

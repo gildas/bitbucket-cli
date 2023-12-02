@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -35,7 +36,7 @@ func init() {
 }
 
 func createProcess(cmd *cobra.Command, args []string) error {
-	log := Log.Child(nil, "create")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
 
 	log.Infof("Creating profile %s", createOptions.Name)
 	if err := createOptions.Validate(); err != nil {

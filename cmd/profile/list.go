@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +20,7 @@ func init() {
 }
 
 func listProcess(cmd *cobra.Command, args []string) {
-	var log = Log.Child(nil, "list")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(Command.Name(), "list")
 
 	log.Infof("Listing all profiles")
 	if len(Profiles) == 0 {

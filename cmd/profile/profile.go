@@ -10,7 +10,6 @@ import (
 
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
-	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -28,9 +27,6 @@ type Profile struct {
 	TokenExpires time.Time `json:"-"                     mapstructure:"tokenExpires"          yaml:"-"`
 	TokenScopes  []string  `json:"-"                     mapstructure:"tokenScopes"           yaml:"-"`
 }
-
-// Log is the logger for this application
-var Log *logger.Logger
 
 // Current is the current profile
 var Current *Profile

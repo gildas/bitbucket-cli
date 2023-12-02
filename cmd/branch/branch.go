@@ -6,7 +6,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"github.com/gildas/go-errors"
-	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -18,9 +17,6 @@ type Branch struct {
 	MergeStrategies      []string      `json:"merge_strategies,omitempty"       mapstructure:"merge_strategies"`
 	DefaultMergeStrategy string        `json:"default_merge_strategy,omitempty" mapstructure:"default_merge_strategy"`
 }
-
-// Log is the logger for this application
-var Log *logger.Logger
 
 // Command represents this folder's command
 var Command = &cobra.Command{

@@ -89,9 +89,5 @@ func (profiles *profiles) Load() error {
 	if err := viper.UnmarshalKey("profiles", &profiles); err != nil {
 		return err
 	}
-
-	if len(*profiles) == 0 {
-		Log.Warnf("No profiles found in config file %s", viper.GetViper().ConfigFileUsed())
-	}
 	return nil
 }

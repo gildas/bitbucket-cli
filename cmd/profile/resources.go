@@ -15,7 +15,7 @@ type PaginatedResources[T any] struct {
 
 // GetAllResources gets all resources using the given profile
 func GetAllResources[T any](context context.Context, profile *Profile) (resources []T, err error) {
-	log := logger.Must(logger.FromContext(context, Log)).Child(nil, "getall")
+	log := logger.Must(logger.FromContext(context)).Child(nil, "getall")
 
 	log.Infof("Getting all resources for profile %s", profile.Name)
 
@@ -23,7 +23,7 @@ func GetAllResources[T any](context context.Context, profile *Profile) (resource
 }
 
 func getResourcesAtPage[T any](context context.Context, profile *Profile, page int) (resources []T, err error) {
-	log := logger.Must(logger.FromContext(context, Log)).Child(nil, "getall")
+	log := logger.Must(logger.FromContext(context)).Child(nil, "getall")
 
 	log.Infof("Getting all resources for profile %s", profile.Name)
 

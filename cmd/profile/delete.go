@@ -3,6 +3,7 @@ package profile
 import (
 	"errors"
 
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -25,7 +26,7 @@ func init() {
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) (err error) {
-	var log = Log.Child(nil, "delete")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
 	var deleted int
 
 	if deleteOptions.All {

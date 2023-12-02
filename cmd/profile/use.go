@@ -2,6 +2,7 @@ package profile
 
 import (
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -19,7 +20,7 @@ func init() {
 }
 
 func useProcess(cmd *cobra.Command, args []string) error {
-	var log = Log.Child(nil, "get")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
 	log.Infof("Using profile %s", args[0])
 	log.Warnf("Valid names: %s", Profiles.Names())

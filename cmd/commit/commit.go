@@ -10,7 +10,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
-	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -36,9 +35,6 @@ type CommitRef struct {
 type RenderedMessage struct {
 	Message common.RenderedText `json:"message" mapstructure:"message"`
 }
-
-// Log is the logger for this application
-var Log *logger.Logger
 
 // Command represents this folder's command
 var Command = &cobra.Command{

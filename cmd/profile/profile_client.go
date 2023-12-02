@@ -36,7 +36,7 @@ func (profile *Profile) Patch(context context.Context, repository, uripath strin
 }
 
 func (profile *Profile) authorize(context context.Context) (authorization string, err error) {
-	log := logger.Must(logger.FromContext(context, Log)).Child(nil, "authorize")
+	log := logger.Must(logger.FromContext(context)).Child(nil, "authorize")
 
 	if err := profile.loadAccessToken(); err == nil {
 		if !profile.isTokenExpired() {
@@ -84,7 +84,7 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 }
 
 func (profile *Profile) send(context context.Context, method, repository, uripath string, body interface{}, response interface{}) (err error) {
-	log := logger.Must(logger.FromContext(context, Log)).Child(nil, strings.ToLower(method))
+	log := logger.Must(logger.FromContext(context)).Child(nil, strings.ToLower(method))
 
 	if len(repository) == 0 {
 		remote, err := remote.GetFromGitConfig("origin")

@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +29,7 @@ func init() {
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
-	var log = Log.Child(nil, "list")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
