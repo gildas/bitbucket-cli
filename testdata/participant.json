@@ -1,0 +1,25 @@
+{
+  "type": "participant",
+  "user": {
+    "display_name": "John Doe",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/users/%7Bff6c380f-2ce3-4ea9-8da8-bf75662f8985%7D"
+      },
+      "avatar": {
+        "href": "https://secure.gravatar.com/avatar/30dbb120d234598021385098203486d7?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGC-0.png"
+      },
+      "html": {
+        "href": "https://bitbucket.org/%7Bff6c380f-2ce3-4ea9-8da8-bf75662f8985%7D/"
+      }
+    },
+    "type": "user",
+    "uuid": "{60e4f565-f5eb-4b84-8641-9acefb365103}",
+    "account_id": "564623:f1408930-a86d-48a9-85bb-9aa3843b84ba",
+    "nickname": "john_doe"
+  },
+  "role": "PARTICIPANT",
+  "approved": true,
+  "state": "approved",
+  "participated_on": "2023-12-01T19:02:17.547176+00:00"
+}
