@@ -1,7 +1,6 @@
 package pullrequest
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -45,7 +44,7 @@ func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([
 	}
 
 	err := profile.Current.Get(
-		log.ToContext(context.Background()),
+		log.ToContext(cmd.Context()),
 		unapproveOptions.Repository,
 		"pullrequests?state=OPEN",
 		&pullrequests,
@@ -71,7 +70,7 @@ func unapproveProcess(cmd *cobra.Command, args []string) (err error) {
 
 	log.Infof("Unapproving pullrequest %s", args[0])
 	err = profile.Current.Delete(
-		log.ToContext(context.Background()),
+		log.ToContext(cmd.Context()),
 		unapproveOptions.Repository,
 		fmt.Sprintf("pullrequests/%s/approve", args[0]),
 		nil,

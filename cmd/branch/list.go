@@ -1,7 +1,6 @@
 package branch
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
@@ -44,7 +43,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	err = profile.Current.Get(
-		log.ToContext(context.Background()),
+		log.ToContext(cmd.Context()),
 		listOptions.Repository,
 		fmt.Sprintf("refs/branches"),
 		&branches,

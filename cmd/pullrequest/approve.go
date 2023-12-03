@@ -1,7 +1,6 @@
 package pullrequest
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -47,7 +46,7 @@ func approveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 	}
 
 	err := profile.Current.Get(
-		log.ToContext(context.Background()),
+		log.ToContext(cmd.Context()),
 		approveOptions.Repository,
 		"pullrequests?state=OPEN",
 		&pullrequests,
@@ -75,7 +74,7 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 	var participant user.Participant
 
 	err = profile.Current.Post(
-		log.ToContext(context.Background()),
+		log.ToContext(cmd.Context()),
 		approveOptions.Repository,
 		fmt.Sprintf("pullrequests/%s/approve", args[0]),
 		nil,

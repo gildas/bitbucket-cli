@@ -1,7 +1,6 @@
 package pullrequest
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -78,7 +77,7 @@ func mergeValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 	}
 
 	err := profile.Current.Get(
-		log.ToContext(context.Background()),
+		log.ToContext(cmd.Context()),
 		mergeOptions.Repository,
 		"pullrequests?state=OPEN",
 		&pullrequests,
@@ -116,7 +115,7 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 
 	log.Record("payload", payload).Infof("Merging pullrequest %s", args[0])
 	err = profile.Current.Post(
-		log.ToContext(context.Background()),
+		log.ToContext(cmd.Context()),
 		mergeOptions.Repository,
 		fmt.Sprintf("pullrequests/%s/merge", args[0]),
 		payload,

@@ -1,7 +1,6 @@
 package pullrequest
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -78,7 +77,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	var pullrequest PullRequest
 
 	err = profile.Current.Post(
-		log.ToContext(context.Background()),
+		log.ToContext(cmd.Context()),
 		createOptions.Repository,
 		"pullrequests",
 		payload,

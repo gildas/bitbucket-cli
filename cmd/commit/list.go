@@ -1,7 +1,6 @@
 package commit
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
