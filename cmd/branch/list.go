@@ -35,23 +35,16 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all branches for repository: %s with profile %s", listOptions.Repository, profile.Current)
-	var branches struct {
-		Values   []Branch `json:"values"`
-		PageSize int      `json:"pagelen"`
-		Size     int      `json:"size"`
-		Page     int      `json:"page"`
-	}
-
-	err = profile.Current.Get(
+	branches, err := profile.GetAll[Branch](
 		log.ToContext(cmd.Context()),
+		profile.Current,
 		listOptions.Repository,
-		fmt.Sprintf("refs/branches"),
-		&branches,
+		"refs/branches",
 	)
 	if err != nil {
 		return err
 	}
-	if len(branches.Values) == 0 {
+	if len(branches) == 0 {
 		log.Infof("No branch found")
 		return
 	}

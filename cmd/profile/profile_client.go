@@ -15,6 +15,15 @@ import (
 	"github.com/gildas/go-request"
 )
 
+type PaginatedResources[T any] struct {
+	Values   []T    `json:"values"`
+	Page     int    `json:"page"`
+	PageSize int    `json:"pagelen"`
+	Size     int    `json:"size"`
+	Next     string `json:"next"`
+	Previous string `json:"previous"`
+}
+
 func (profile *Profile) Post(context context.Context, repository, uripath string, body interface{}, response interface{}) (err error) {
 	return profile.send(context, http.MethodPost, repository, uripath, body, response)
 }
@@ -33,6 +42,36 @@ func (profile *Profile) Delete(context context.Context, repository, uripath stri
 
 func (profile *Profile) Patch(context context.Context, repository, uripath string, body interface{}, response interface{}) (err error) {
 	return profile.send(context, http.MethodPatch, repository, uripath, body, response)
+}
+
+// GetAllResources gets all resources using the given profile
+func GetAll[T any](context context.Context, profile *Profile, repository string, uripath string) (resources []T, err error) {
+	log := logger.Must(logger.FromContext(context)).Child(nil, "getall")
+
+	log.Infof("Getting all resources for profile %s", profile.Name)
+
+	for {
+		var paginated PaginatedResources[T]
+
+		err = profile.Get(
+			context,
+			repository,
+			uripath,
+			&paginated,
+		)
+		if err != nil {
+			return nil, err
+		}
+		resources = append(resources, paginated.Values...)
+		log.Debugf("Got %d resources", len(paginated.Values))
+		log.Debugf("Next page:     %s", paginated.Next)
+		log.Debugf("Previous page: %s", paginated.Previous)
+		if len(paginated.Next) == 0 {
+			break
+		}
+		uripath = paginated.Next
+	}
+	return resources, nil
 }
 
 func (profile *Profile) authorize(context context.Context) (authorization string, err error) {
@@ -104,9 +143,13 @@ func (profile *Profile) send(context context.Context, method, repository, uripat
 		return err
 	}
 
+	if !strings.HasPrefix(uripath, "http") {
+		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath)
+	}
+
 	options := &request.Options{
 		Method:        method,
-		URL:           core.Must(url.Parse(fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath))),
+		URL:           core.Must(url.Parse(uripath)),
 		Authorization: authorization,
 		Payload:       body,
 		Timeout:       30 * time.Second,

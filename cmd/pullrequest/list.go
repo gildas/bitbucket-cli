@@ -42,23 +42,16 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all pull requests for repository: %s with profile %s", listOptions.Repository, profile.Current)
-	var pullrequests struct {
-		Values   []PullRequest `json:"values"`
-		PageSize int           `json:"pagelen"`
-		Size     int           `json:"size"`
-		Page     int           `json:"page"`
-	}
-
-	err = profile.Current.Get(
+	pullrequests, err := profile.GetAll[PullRequest](
 		log.ToContext(cmd.Context()),
+		profile.Current,
 		listOptions.Repository,
-		fmt.Sprintf("pullrequests?state=%s", listOptions.State),
-		&pullrequests,
+		"commits",
 	)
 	if err != nil {
 		return err
 	}
-	if len(pullrequests.Values) == 0 {
+	if len(pullrequests) == 0 {
 		log.Infof("No pullrequest found")
 		return
 	}
@@ -66,7 +59,3 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	fmt.Println(string(payload))
 	return nil
 }
-
-/*
-{"values": [], "pagelen": 10, "size": 0, "page": 1}
-*/
