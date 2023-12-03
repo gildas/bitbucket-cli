@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -20,41 +20,17 @@ var mergeCmd = &cobra.Command{
 	RunE:              mergeProcess,
 }
 
-// MergeStrategy is the strategy to use when merging a pullrequest
-type MergeStrategy struct {
-	Allowed []string
-	Value   string
-}
-
-func (stragegy MergeStrategy) String() string {
-	return stragegy.Value
-}
-
-func (stragegy *MergeStrategy) Set(value string) error {
-	for _, allowed := range stragegy.Allowed {
-		if value == allowed {
-			stragegy.Value = value
-			return nil
-		}
-	}
-	return errors.ArgumentInvalid.With("value", value, strings.Join(stragegy.Allowed, ", "))
-}
-
-func (strategy MergeStrategy) Type() string {
-	return "string"
-}
-
 var mergeOptions struct {
 	Repository        string
 	Message           string
-	MergeStrategy     MergeStrategy
+	MergeStrategy     common.EnumFlag
 	CloseSourceBranch bool
 }
 
 func init() {
 	Command.AddCommand(mergeCmd)
 
-	mergeOptions.MergeStrategy = MergeStrategy{[]string{"merge_commit", "squash", "fast_forward"}, "merge_commit"}
+	mergeOptions.MergeStrategy = common.EnumFlag{Allowed: []string{"merge_commit", "squash", "fast_forward"}, Value: "merge_commit"}
 	mergeCmd.Flags().StringVar(&mergeOptions.Repository, "repository", "", "Repository to merge pullrequest from. Defaults to the current repository")
 	mergeCmd.Flags().StringVar(&mergeOptions.Message, "message", "", "Message of the merge")
 	mergeCmd.Flags().BoolVar(&mergeOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")

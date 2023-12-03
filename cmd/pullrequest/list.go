@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -19,15 +20,15 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Repository string
-	State      string
+	State      common.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
+	listOptions.State = common.EnumFlag{Allowed: []string{"all", "open", "closed", "merged", "declined"}, Value: "all"}
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequests from. Defaults to the current repository")
-	listCmd.Flags().StringVar(&listOptions.State, "state", "", "Pull request state to fetch. Defaults to \"all\"")
-	// TODO: flag state possible values: "all", "open", "closed", "merged"
+	listCmd.Flags().Var(&listOptions.State, "state", "Pull request state to fetch. Defaults to \"all\"")
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -37,16 +38,12 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	if len(listOptions.State) == 0 {
-		listOptions.State = "all"
-	}
-
 	log.Infof("Listing all pull requests for repository: %s with profile %s", listOptions.Repository, profile.Current)
 	pullrequests, err := profile.GetAll[PullRequest](
 		log.ToContext(cmd.Context()),
 		profile.Current,
 		listOptions.Repository,
-		"pullrequests?state="+listOptions.State,
+		"pullrequests?state="+listOptions.State.String(),
 	)
 	if err != nil {
 		return err
