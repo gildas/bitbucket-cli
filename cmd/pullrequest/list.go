@@ -46,7 +46,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.ToContext(cmd.Context()),
 		profile.Current,
 		listOptions.Repository,
-		"commits",
+		"pullrequests?state="+listOptions.State,
 	)
 	if err != nil {
 		return err
