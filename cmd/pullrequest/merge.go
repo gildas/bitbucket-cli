@@ -16,7 +16,7 @@ var mergeCmd = &cobra.Command{
 	Use:               "merge",
 	Short:             "merge a pullrequest",
 	Args:              cobra.ExactArgs(1),
-	ValidArgsFunction: mergeValidArgs,
+	ValidArgsFunction: getOpenPullRequests,
 	RunE:              mergeProcess,
 }
 
@@ -35,32 +35,6 @@ func init() {
 	mergeCmd.Flags().StringVar(&mergeOptions.Message, "message", "", "Message of the merge")
 	mergeCmd.Flags().BoolVar(&mergeOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
 	mergeCmd.Flags().Var(&mergeOptions.MergeStrategy, "merge-strategy", "Merge strategy to use. Possible values are \"merge_commit\", \"squash\" or \"fast_forward\"")
-}
-
-func mergeValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "validargs")
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	log.Infof("Getting open pullrequests for repository %s", approveOptions.Repository)
-	pullrequests, err := profile.GetAll[PullRequest](
-		log.ToContext(cmd.Context()),
-		profile.Current,
-		listOptions.Repository,
-		"pullrequests?state=OPEN",
-	)
-	if err != nil {
-		log.Errorf("Failed to get pullrequests for repository %s", mergeOptions.Repository, err)
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	var result []string
-	for _, pullrequest := range pullrequests {
-		result = append(result, fmt.Sprintf("%d", pullrequest.ID))
-	}
-	return result, cobra.ShellCompDirectiveNoFileComp
 }
 
 func mergeProcess(cmd *cobra.Command, args []string) (err error) {

@@ -16,7 +16,7 @@ var getCmd = &cobra.Command{
 	Aliases:           []string{"show", "info", "display"},
 	Short:             "get a profile",
 	Args:              cobra.ExactArgs(1),
-	ValidArgsFunction: getValidArgs,
+	ValidArgsFunction: getOpenPullRequests,
 	RunE:              getProcess,
 }
 
@@ -28,32 +28,6 @@ func init() {
 	Command.AddCommand(getCmd)
 
 	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pullrequest from. Defaults to the current repository")
-}
-
-func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "validargs")
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	log.Infof("Getting open pullrequests for repository %s", approveOptions.Repository)
-	pullrequests, err := profile.GetAll[PullRequest](
-		log.ToContext(cmd.Context()),
-		profile.Current,
-		listOptions.Repository,
-		"pullrequests?state=OPEN",
-	)
-	if err != nil {
-		log.Errorf("Failed to get pullrequests for repository %s", unapproveOptions.Repository, err)
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	var result []string
-	for _, pullrequest := range pullrequests {
-		result = append(result, fmt.Sprintf("%d", pullrequest.ID))
-	}
-	return result, cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {

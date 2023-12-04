@@ -8,8 +8,10 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
+	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -82,4 +84,35 @@ func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 		UpdatedOn: pullrequest.UpdatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
+}
+
+// getOpenPullRequests gets the pullrequests for completion
+func getOpenPullRequests(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "validargs")
+
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	log.Infof("Getting open pullrequests for repository %s", approveOptions.Repository)
+	pullrequests, err := profile.GetAll[PullRequest](
+		log.ToContext(cmd.Context()),
+		profile.Current,
+		listOptions.Repository,
+		"pullrequests?state=OPEN",
+	)
+	if err != nil {
+		log.Errorf("Failed to get pullrequests for repository %s", unapproveOptions.Repository, err)
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	var result []string
+	for _, pullrequest := range pullrequests {
+		result = append(result, fmt.Sprintf("%d", pullrequest.ID))
+	}
+	return result, cobra.ShellCompDirectiveNoFileComp
 }

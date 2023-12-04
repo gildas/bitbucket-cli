@@ -16,7 +16,7 @@ var declineCmd = &cobra.Command{
 	Use:               "decline",
 	Short:             "decline a pullrequest",
 	Args:              cobra.ExactArgs(1),
-	ValidArgsFunction: declineValidArgs,
+	ValidArgsFunction: getOpenPullRequests,
 	RunE:              declineProcess,
 }
 
@@ -28,32 +28,6 @@ func init() {
 	Command.AddCommand(declineCmd)
 
 	declineCmd.Flags().StringVar(&declineOptions.Repository, "repository", "", "Repository to decline pullrequest from. Defaults to the current repository")
-}
-
-func declineValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "validargs")
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	log.Infof("Getting open pullrequests for repository %s", approveOptions.Repository)
-	pullrequests, err := profile.GetAll[PullRequest](
-		log.ToContext(cmd.Context()),
-		profile.Current,
-		listOptions.Repository,
-		"pullrequests?state=OPEN",
-	)
-	if err != nil {
-		log.Errorf("Failed to get pullrequests for repository %s", declineOptions.Repository, err)
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	var result []string
-	for _, pullrequest := range pullrequests {
-		result = append(result, fmt.Sprintf("%d", pullrequest.ID))
-	}
-	return result, cobra.ShellCompDirectiveNoFileComp
 }
 
 func declineProcess(cmd *cobra.Command, args []string) (err error) {
