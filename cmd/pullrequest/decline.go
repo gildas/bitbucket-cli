@@ -37,19 +37,12 @@ func declineValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	log.Infof("Getting pullrequests for repository %s", declineOptions.Repository)
-	var pullrequests struct {
-		Values   []PullRequest `json:"values"`
-		PageSize int           `json:"pagelen"`
-		Size     int           `json:"size"`
-		Page     int           `json:"page"`
-	}
-
-	err := profile.Current.Get(
+	log.Infof("Getting open pullrequests for repository %s", approveOptions.Repository)
+	pullrequests, err := profile.GetAll[PullRequest](
 		log.ToContext(cmd.Context()),
-		declineOptions.Repository,
+		profile.Current,
+		listOptions.Repository,
 		"pullrequests?state=OPEN",
-		&pullrequests,
 	)
 	if err != nil {
 		log.Errorf("Failed to get pullrequests for repository %s", declineOptions.Repository, err)
@@ -57,7 +50,7 @@ func declineValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 	}
 
 	var result []string
-	for _, pullrequest := range pullrequests.Values {
+	for _, pullrequest := range pullrequests {
 		result = append(result, fmt.Sprintf("%d", pullrequest.ID))
 	}
 	return result, cobra.ShellCompDirectiveNoFileComp

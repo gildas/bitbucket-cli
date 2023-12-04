@@ -35,19 +35,12 @@ func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	log.Infof("Getting pullrequests for repository %s", approveOptions.Repository)
-	var pullrequests struct {
-		Values   []PullRequest `json:"values"`
-		PageSize int           `json:"pagelen"`
-		Size     int           `json:"size"`
-		Page     int           `json:"page"`
-	}
-
-	err := profile.Current.Get(
+	log.Infof("Getting open pullrequests for repository %s", approveOptions.Repository)
+	pullrequests, err := profile.GetAll[PullRequest](
 		log.ToContext(cmd.Context()),
-		unapproveOptions.Repository,
+		profile.Current,
+		listOptions.Repository,
 		"pullrequests?state=OPEN",
-		&pullrequests,
 	)
 	if err != nil {
 		log.Errorf("Failed to get pullrequests for repository %s", unapproveOptions.Repository, err)
@@ -55,7 +48,7 @@ func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([
 	}
 
 	var result []string
-	for _, pullrequest := range pullrequests.Values {
+	for _, pullrequest := range pullrequests {
 		result = append(result, fmt.Sprintf("%d", pullrequest.ID))
 	}
 	return result, cobra.ShellCompDirectiveNoFileComp
