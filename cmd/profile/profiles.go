@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -90,4 +91,13 @@ func (profiles *profiles) Load() error {
 		return err
 	}
 	return nil
+}
+
+// ValidProfileNames gets the valid profile names
+func ValidProfileNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return Profiles.Names(), cobra.ShellCompDirectiveNoFileComp
 }

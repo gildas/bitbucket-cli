@@ -13,12 +13,11 @@ import (
 )
 
 var updateCmd = &cobra.Command{
-	Use:       "get",
-	Aliases:   []string{"show", "info", "display"},
-	Short:     "get a profile",
-	Args:      cobra.ExactArgs(1),
-	ValidArgs: Profiles.Names(),
-	RunE:      updateProcess,
+	Use:               "update",
+	Short:             "update a profile",
+	Args:              cobra.ExactArgs(1),
+	ValidArgsFunction: ValidProfileNames,
+	RunE:              updateProcess,
 }
 
 var updateOptions Profile
@@ -34,7 +33,6 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.ClientID, "client-id", "", "Client ID of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.ClientSecret, "client-secret", "", "Client Secret of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.AccessToken, "access-token", "", "Access Token of the profile")
-	_ = updateCmd.MarkFlagRequired("name")
 	updateCmd.MarkFlagsRequiredTogether("user", "password")
 	updateCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	updateCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")

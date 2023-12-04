@@ -9,10 +9,10 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:       "delete",
-	Short:     "delete a profile",
-	ValidArgs: Profiles.Names(),
-	RunE:      deleteProcess,
+	Use:               "delete",
+	Short:             "delete a profile",
+	ValidArgsFunction: ValidProfileNames,
+	RunE:              deleteProcess,
 }
 
 var deleteOptions struct {

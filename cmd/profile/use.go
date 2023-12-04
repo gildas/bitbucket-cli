@@ -8,12 +8,12 @@ import (
 )
 
 var useCmd = &cobra.Command{
-	Use:       "use",
-	Aliases:   []string{"default"},
-	Short:     "set the default profile",
-	Args:      cobra.ExactArgs(1),
-	ValidArgs: Profiles.Names(),
-	RunE:      useProcess,
+	Use:               "use",
+	Aliases:           []string{"default"},
+	Short:             "set the default profile",
+	Args:              cobra.ExactArgs(1),
+	ValidArgsFunction: ValidProfileNames,
+	RunE:              useProcess,
 }
 
 func init() {
