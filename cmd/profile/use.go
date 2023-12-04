@@ -9,6 +9,7 @@ import (
 
 var useCmd = &cobra.Command{
 	Use:       "use",
+	Aliases:   []string{"default"},
 	Short:     "set the default profile",
 	Args:      cobra.ExactArgs(1),
 	ValidArgs: Profiles.Names(),

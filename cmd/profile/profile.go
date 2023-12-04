@@ -15,17 +15,17 @@ import (
 
 // Profile describes the configuration needed to connect to BitBucket
 type Profile struct {
-	Name         string    `json:"name"                  mapstructure:"name"`
-	Description  string    `json:"description,omitempty" mapstructure:"description,omitempty" yaml:",omitempty"`
-	Default      bool      `json:"default"               mapstructure:"default"               yaml:",omitempty"`
-	User         string    `json:"user,omitempty"        mapstructure:"user"                  yaml:",omitempty"`
-	Password     string    `json:"-"                     mapstructure:"password"              yaml:",omitempty"`
-	ClientID     string    `json:"clientID,omitempty"    mapstructure:"clientID"              yaml:",omitempty"`
-	ClientSecret string    `json:"-"                     mapstructure:"clientSecret"          yaml:",omitempty"`
-	AccessToken  string    `json:"accessToken,omitempty" mapstructure:"accessToken"           yaml:",omitempty"`
-	RefreshToken string    `json:"-"                     mapstructure:"refreshToken"          yaml:"-"`
-	TokenExpires time.Time `json:"-"                     mapstructure:"tokenExpires"          yaml:"-"`
-	TokenScopes  []string  `json:"-"                     mapstructure:"tokenScopes"           yaml:"-"`
+	Name         string    `json:"name"                   mapstructure:"name"`
+	Description  string    `json:"description,omitempty"  mapstructure:"description,omitempty" yaml:",omitempty"`
+	Default      bool      `json:"default"                mapstructure:"default"               yaml:",omitempty"`
+	User         string    `json:"user,omitempty"         mapstructure:"user"                  yaml:",omitempty"`
+	Password     string    `json:"password,omitempty"     mapstructure:"password"              yaml:",omitempty"`
+	ClientID     string    `json:"clientID,omitempty"     mapstructure:"clientID"              yaml:",omitempty"`
+	ClientSecret string    `json:"clientSecret,omitempty" mapstructure:"clientSecret"          yaml:",omitempty"`
+	AccessToken  string    `json:"accessToken,omitempty"  mapstructure:"accessToken"           yaml:",omitempty"`
+	RefreshToken string    `json:"-"                      mapstructure:"refreshToken"          yaml:"-"`
+	TokenExpires time.Time `json:"-"                      mapstructure:"tokenExpires"          yaml:"-"`
+	TokenScopes  []string  `json:"-"                      mapstructure:"tokenScopes"           yaml:"-"`
 }
 
 // Current is the current profile

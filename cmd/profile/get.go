@@ -11,6 +11,7 @@ import (
 
 var getCmd = &cobra.Command{
 	Use:       "get",
+	Aliases:   []string{"show", "info", "display"},
 	Short:     "get a profile",
 	Args:      cobra.ExactArgs(1),
 	ValidArgs: Profiles.Names(),
