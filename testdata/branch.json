@@ -1,0 +1,112 @@
+{
+  "name": "dev",
+  "target": {
+    "type": "commit",
+    "hash": "3c7d72f40aaaab534ac99826de511023b635878f",
+    "date": "2023-11-06T14:53:55+00:00",
+    "author": {
+      "type": "author",
+      "raw": "Gildas Cherruel <gildas@breizh.org>",
+      "user": {
+        "display_name": "Gildas Cherruel",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/users/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D"
+          },
+          "avatar": {
+            "href": "https://secure.gravatar.com/avatar/30dbb120d3b75aaa0cec44e826c85cd7?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGC-0.png"
+          },
+          "html": {
+            "href": "https://bitbucket.org/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D/"
+          }
+        },
+        "type": "user",
+        "uuid": "{4115785a-a1b9-4887-9af2-ca401bc7f168}",
+        "account_id": "557058:ec46c4b2-f245-496e-8c11-1404869e3346",
+        "nickname": "gildas_cherruel"
+      }
+    },
+    "message": "Merge tag 'v1.0.0' into dev\n\nRelease 1.0.0\n",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/3c7d72f40aaaab534ac99826de511023b635878f"
+      },
+      "html": {
+        "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/3c7d72f40aaaab534ac99826de511023b635878f"
+      },
+      "diff": {
+        "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/diff/3c7d72f40aaaab534ac99826de511023b635878f"
+      },
+      "approve": {
+        "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/3c7d72f40aaaab534ac99826de511023b635878f/approve"
+      },
+      "comments": {
+        "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/3c7d72f40aaaab534ac99826de511023b635878f/comments"
+      },
+      "statuses": {
+        "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/3c7d72f40aaaab534ac99826de511023b635878f/statuses"
+      }
+    },
+    "parents": [
+      {
+        "hash": "01e505e9c1e5112b0c6b7ba7eda42f81b6bccc04",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/01e505e9c1e5112b0c6b7ba7eda42f81b6bccc04"
+          },
+          "html": {
+            "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/01e505e9c1e5112b0c6b7ba7eda42f81b6bccc04"
+          }
+        },
+        "type": "commit"
+      },
+      {
+        "hash": "171be0dd02b1fded551afeea11c9493c542e2534",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/171be0dd02b1fded551afeea11c9493c542e2534"
+          },
+          "html": {
+            "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/171be0dd02b1fded551afeea11c9493c542e2534"
+          }
+        },
+        "type": "commit"
+      }
+    ],
+    "repository": {
+      "type": "repository",
+      "full_name": "gildas_cherruel/gitflow-pr-sandbox",
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox"
+        },
+        "html": {
+          "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox"
+        },
+        "avatar": {
+          "href": "https://bytebucket.org/ravatar/%7Bf12769c1-7465-4a94-b265-8b1b04e07cb5%7D?ts=go"
+        }
+      },
+      "name": "gitflow-pr-sandbox",
+      "uuid": "{f12769c1-7465-4a94-b265-8b1b04e07cb5}"
+    }
+  },
+  "links": {
+    "self": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/refs/branches/dev"
+    },
+    "commits": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commits/dev"
+    },
+    "html": {
+      "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/branch/dev"
+    }
+  },
+  "type": "branch",
+  "merge_strategies": [
+    "merge_commit",
+    "squash",
+    "fast_forward"
+  ],
+  "default_merge_strategy": "merge_commit"
+}

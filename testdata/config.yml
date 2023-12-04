@@ -1,0 +1,7 @@
+profiles:
+    - name: simple
+      user: user1
+      password: s3cr3tP@ssw0rd
+    - name: test
+      default: true
+      accesstoken: s3cr3tT0k3n
