@@ -85,7 +85,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create pullrequest: %s\n", err)
-		return nil
+		os.Exit(1)
 	}
 	ref := struct {
 		Title string `json:"title"`

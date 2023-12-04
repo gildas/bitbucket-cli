@@ -75,7 +75,7 @@ func declineProcess(cmd *cobra.Command, args []string) (err error) {
 	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to decline pullrequest %s: %s\n", args[0], err)
-		return nil
+		os.Exit(1)
 	}
 	data, _ := json.MarshalIndent(participant, "", "  ")
 	fmt.Println(string(data))

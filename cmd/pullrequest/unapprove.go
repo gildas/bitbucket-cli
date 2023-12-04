@@ -70,7 +70,7 @@ func unapproveProcess(cmd *cobra.Command, args []string) (err error) {
 	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to unapprove pullrequest %s: %s\n", args[0], err)
-		return nil
+		os.Exit(1)
 	}
 	return
 }

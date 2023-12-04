@@ -92,7 +92,7 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to merge pullrequest %s: %s\n", args[0], err)
-		return nil
+		os.Exit(1)
 	}
 	data, _ := json.MarshalIndent(pullrequest, "", "  ")
 	fmt.Println(string(data))
