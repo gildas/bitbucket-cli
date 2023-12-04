@@ -16,7 +16,7 @@ var getCmd = &cobra.Command{
 	Aliases:           []string{"show", "info", "display"},
 	Short:             "get a profile",
 	Args:              cobra.ExactArgs(1),
-	ValidArgsFunction: getOpenPullRequests,
+	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
 }
 
@@ -28,6 +28,18 @@ func init() {
 	Command.AddCommand(getCmd)
 
 	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pullrequest from. Defaults to the current repository")
+}
+
+func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return getPullRequests(cmd.Context(), getOptions.Repository, "ALL"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {

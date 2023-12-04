@@ -14,7 +14,7 @@ var unapproveCmd = &cobra.Command{
 	Use:               "unapprove",
 	Short:             "unapprove a pullrequest",
 	Args:              cobra.ExactArgs(1),
-	ValidArgsFunction: getOpenPullRequests,
+	ValidArgsFunction: unapproveValidArgs,
 	RunE:              unapproveProcess,
 }
 
@@ -26,6 +26,18 @@ func init() {
 	Command.AddCommand(unapproveCmd)
 
 	unapproveCmd.Flags().StringVar(&unapproveOptions.Repository, "repository", "", "Repository to unapprove pullrequest from. Defaults to the current repository")
+}
+
+func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return getPullRequests(cmd.Context(), unapproveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func unapproveProcess(cmd *cobra.Command, args []string) (err error) {

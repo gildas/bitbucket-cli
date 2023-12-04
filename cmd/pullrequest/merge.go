@@ -16,7 +16,7 @@ var mergeCmd = &cobra.Command{
 	Use:               "merge",
 	Short:             "merge a pullrequest",
 	Args:              cobra.ExactArgs(1),
-	ValidArgsFunction: getOpenPullRequests,
+	ValidArgsFunction: mergeValidArgs,
 	RunE:              mergeProcess,
 }
 
@@ -35,6 +35,18 @@ func init() {
 	mergeCmd.Flags().StringVar(&mergeOptions.Message, "message", "", "Message of the merge")
 	mergeCmd.Flags().BoolVar(&mergeOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
 	mergeCmd.Flags().Var(&mergeOptions.MergeStrategy, "merge-strategy", "Merge strategy to use. Possible values are \"merge_commit\", \"squash\" or \"fast_forward\"")
+}
+
+func mergeValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return getPullRequests(cmd.Context(), mergeOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func mergeProcess(cmd *cobra.Command, args []string) (err error) {

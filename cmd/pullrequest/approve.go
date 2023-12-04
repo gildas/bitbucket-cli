@@ -16,7 +16,7 @@ var approveCmd = &cobra.Command{
 	Use:               "approve",
 	Short:             "approve a pullrequest",
 	Args:              cobra.ExactArgs(1),
-	ValidArgsFunction: getOpenPullRequests,
+	ValidArgsFunction: approveValidArgs,
 	RunE:              approveProcess,
 }
 
@@ -28,6 +28,18 @@ func init() {
 	Command.AddCommand(approveCmd)
 
 	approveCmd.Flags().StringVar(&approveOptions.Repository, "repository", "", "Repository to approve pullrequest from. Defaults to the current repository")
+}
+
+func approveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return getPullRequests(cmd.Context(), approveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func approveProcess(cmd *cobra.Command, args []string) (err error) {

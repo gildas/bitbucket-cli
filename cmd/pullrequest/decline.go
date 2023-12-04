@@ -16,7 +16,7 @@ var declineCmd = &cobra.Command{
 	Use:               "decline",
 	Short:             "decline a pullrequest",
 	Args:              cobra.ExactArgs(1),
-	ValidArgsFunction: getOpenPullRequests,
+	ValidArgsFunction: declineValidArgs,
 	RunE:              declineProcess,
 }
 
@@ -28,6 +28,18 @@ func init() {
 	Command.AddCommand(declineCmd)
 
 	declineCmd.Flags().StringVar(&declineOptions.Repository, "repository", "", "Repository to decline pullrequest from. Defaults to the current repository")
+}
+
+func declineValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return getPullRequests(cmd.Context(), declineOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func declineProcess(cmd *cobra.Command, args []string) (err error) {

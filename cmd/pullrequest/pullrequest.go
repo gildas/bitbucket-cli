@@ -1,6 +1,7 @@
 package pullrequest
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -86,33 +87,25 @@ func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 	return data, errors.JSONMarshalError.Wrap(err)
 }
 
-// getOpenPullRequests gets the pullrequests for completion
-func getOpenPullRequests(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "validargs")
-
-	if len(args) != 0 {
-		return nil, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
+// getPullRequests gets the pullrequests for completion
+func getPullRequests(context context.Context, repository string, state string) []string {
+	log := logger.Must(logger.FromContext(context)).Child(nil, "getpullrequests")
 
 	log.Infof("Getting open pullrequests for repository %s", approveOptions.Repository)
 	pullrequests, err := profile.GetAll[PullRequest](
-		log.ToContext(cmd.Context()),
+		log.ToContext(context),
 		profile.Current,
-		listOptions.Repository,
-		"pullrequests?state=OPEN",
+		repository,
+		fmt.Sprintf("pullrequests?state=%s", state),
 	)
 	if err != nil {
-		log.Errorf("Failed to get pullrequests for repository %s", unapproveOptions.Repository, err)
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
+		log.Errorf("Failed to get pullrequests for repository %s", repository, err)
+		return []string{}
 	}
 
 	var result []string
 	for _, pullrequest := range pullrequests {
 		result = append(result, fmt.Sprintf("%d", pullrequest.ID))
 	}
-	return result, cobra.ShellCompDirectiveNoFileComp
+	return result
 }
