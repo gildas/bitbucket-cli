@@ -1,0 +1,35 @@
+# Makefile for Linux
+
+# Goodies
+# Creates the parent directory of the target if needed
+MKDIR_PARENT=mkdir -p $(@D)
+MKDIR=@mkdir -p $@
+TOUCH=touch $@
+
+# Stamps
+STAMP != date +%Y%m%d%H%M%S
+NOW   != date -u +%Y-%m-%dT%H:%M:%SZ
+
+# GO
+LDFLAGS    = -ldflags "-X main.commit=$(COMMIT) -X main.branch=$(BRANCH) -X main.stamp=$(STAMP)"
+
+# Docker
+ifeq ($(BRANCH), $(filter release/%, $(BRANCH)))
+DOCKER_IMAGE_VERSION     := $(VERSION)-rc.$(STAMP)
+DOCKER_IMAGE_VERSION_MIN := $(subst $S,.,$(wordlist 1,2,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the last .[0-9]+ part of the version
+DOCKER_IMAGE_VERSION_MAJ := $(subst $S,.,$(wordlist 1,1,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the 2 last .[0-9]+ parts of the version
+else ifneq ($(BRANCH), master)
+DOCKER_IMAGE_VERSION     := $(VERSION)-$(STAMP)-$(COMMIT)
+endif
+DOCKER_FLAGS += --label="org.opencontainers.image.version"="$(DOCKER_IMAGE_VERSION)"
+ifneq ($(GOPROXY),)
+# Check the GOPROXY for localhost, so the docker rule can call the Athens container on the localhost
+ifneq ($(findstring localhost, $(GOPROXY)),)
+DOCKER_FLAGS   += --network=host
+DOCKER_GOPROXY := $(subst localhost,127.0.0.1,$(GOPROXY))
+else
+DOCKER_GOPROXY := $(GOPROXY)
+endif
+DOCKER_FLAGS   += --build-arg=GOPROXY=$(DOCKER_GOPROXY)
+endif
+

@@ -1,0 +1,44 @@
+# Makefile for Windows
+
+# Goodies
+SHELL := pwsh.exe
+# Creates the parent directory of the target if needed
+MKDIR_PARENT =  @pwsh -Command { if (!(Test-Path $(@D))) { New-Item -ItemType Directory -Path $(@D) | Out-Null } }
+MKDIR = pwsh -Command { New-Item -ItemType Directory -Path $@ | Out-Null }
+TOUCH = @pwsh -Command { if (Test-Path $@) { (Get-Item $@).LastWriteTime=(Get-Date) } else { New-Item -Path $@ | Out-Null } }
+M = $(shell Write-Output "`e[34;1m>`e[0m")
+
+# Stamps
+STAMP     != Get-Date -UFormat "%Y%m%d%H%M%S"
+NOW       != Get-Date -UFormat "%Y-%m-%dT%H:%M:%SZ" -AsUTC
+
+# GO
+GO       := go.exe
+LDFLAGS  = -ldflags "-X main.commit=$(COMMIT) -X main.branch=$(BRANCH) -X main.stamp=$(STAMP)"
+
+# Docker
+DOCKER := docker.exe
+ifeq ($(BRANCH), $(filter release/%, $(BRANCH)))
+DOCKER_IMAGE_VERSION     := $(VERSION)-rc.$(STAMP)
+DOCKER_IMAGE_VERSION_MIN := $(subst $S,.,$(wordlist 1,2,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the last .[0-9]+ part of the version
+DOCKER_IMAGE_VERSION_MAJ := $(subst $S,.,$(wordlist 1,1,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the 2 last .[0-9]+ parts of the version
+else ifneq ($(BRANCH), master)
+DOCKER_IMAGE_VERSION     := $(VERSION)-$(STAMP)-$(COMMIT)
+endif
+DOCKER_FLAGS += --label="org.opencontainers.image.version"="$(DOCKER_IMAGE_VERSION)"
+# Check the GOPROXY for localhost, so the docker rule can call the Athens container on the localhost
+ifneq ($(findstring localhost, $(GOPROXY)),)
+# Docker for Windows, Docker for Mac
+DOCKER_GOPROXY := $(subst localhost, host.docker.internal,$(GOPROXY))
+endif
+ifneq ($(GOPROXY),)
+# Check the GOPROXY for localhost, so the docker rule can call the Athens container on the localhost
+ifneq ($(findstring localhost, $(GOPROXY)),)
+# Docker for Windows, Docker for Mac
+DOCKER_GOPROXY := $(subst localhost, host.docker.internal,$(GOPROXY))
+else
+DOCKER_GOPROXY := $(GOPROXY)
+endif
+DOCKER_FLAGS   += --build-arg=GOPROXY=$(DOCKER_GOPROXY)
+endif
+
