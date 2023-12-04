@@ -44,7 +44,7 @@ type PullRequestSummary struct {
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:     "pullrequest",
-	Aliases: []string{"pr"},
+	Aliases: []string{"pr", "pull-request"},
 	Short:   "Manage pull requests",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Pullrequest requires a subcommand:")
