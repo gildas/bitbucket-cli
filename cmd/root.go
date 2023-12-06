@@ -11,6 +11,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -56,6 +57,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
 
 	rootCmd.AddCommand(profile.Command)
+	rootCmd.AddCommand(project.Command)
 	rootCmd.AddCommand(branch.Command)
 	rootCmd.AddCommand(commit.Command)
 	rootCmd.AddCommand(pullrequest.Command)
