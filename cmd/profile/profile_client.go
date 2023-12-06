@@ -143,7 +143,9 @@ func (profile *Profile) send(context context.Context, method, repository, uripat
 		return err
 	}
 
-	if !strings.HasPrefix(uripath, "http") {
+	if strings.HasPrefix(uripath, "/") {
+		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
+	} else if !strings.HasPrefix(uripath, "http") {
 		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath)
 	}
 
