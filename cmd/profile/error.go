@@ -10,8 +10,7 @@ import (
 type BitBucketError struct {
 	Type    string              `json:"type"`
 	Message string              `json:"-"`
-	Detail  string              `json:"-"`
-	Fields  map[string][]string `json:"fields"`
+	Detail  map[string][]string `json:"fields"`
 }
 
 func (bberr *BitBucketError) Error() string {
@@ -19,15 +18,12 @@ func (bberr *BitBucketError) Error() string {
 
 	buffer.WriteString(bberr.Message)
 	if len(bberr.Detail) > 0 {
-		buffer.WriteString(": ")
-		buffer.WriteString(bberr.Detail)
-	}
-	if len(bberr.Fields) > 0 {
 		buffer.WriteString(" (")
-		for field, messages := range bberr.Fields {
+		for field, messages := range bberr.Detail {
 			buffer.WriteString(field)
 			buffer.WriteString(": ")
 			buffer.WriteString(strings.Join(messages, ", "))
+			buffer.WriteString("; ")
 		}
 		buffer.WriteString(")")
 	}
@@ -41,9 +37,9 @@ func (bberr *BitBucketError) UnmarshalJSON(data []byte) (err error) {
 		surrogate
 		Error struct {
 			Message string              `json:"message"`
-			Detail  string              `json:"detail"`
+			Detail  map[string][]string `json:"detail"`
 			Fields  map[string][]string `json:"fields"`
-		}
+		} `json:"error"`
 	}
 	if err = json.Unmarshal(data, &inner); err != nil {
 		return errors.JSONUnmarshalError.Wrap(err)
@@ -51,6 +47,5 @@ func (bberr *BitBucketError) UnmarshalJSON(data []byte) (err error) {
 	*bberr = BitBucketError(inner.surrogate)
 	bberr.Message = inner.Error.Message
 	bberr.Detail = inner.Error.Detail
-	bberr.Fields = inner.Error.Fields
 	return
 }

@@ -1,0 +1,18 @@
+{
+  "type": "error",
+  "error": {
+    "message": "Your credentials lack one or more required privilege scopes.",
+    "detail": {
+      "required": [
+        "project"
+      ],
+      "granted": [
+        "runner:write",
+        "pipeline:variable",
+        "issue:write",
+        "pullrequest:write",
+        "account"
+      ]
+    }
+  }
+}
