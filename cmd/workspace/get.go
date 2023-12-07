@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -22,9 +21,8 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Member       string
-	WithProjects bool
-	WithMembers  bool
+	Member      string
+	WithMembers bool
 }
 
 func init() {
@@ -32,8 +30,7 @@ func init() {
 
 	getCmd.Flags().StringVar(&getOptions.Member, "member", "", "Get a workspace member")
 	getCmd.Flags().BoolVar(&getOptions.WithMembers, "members", false, "List the workspace members")
-	getCmd.Flags().BoolVar(&getOptions.WithProjects, "projects", false, "List the workspace projects")
-	getCmd.MarkFlagsMutuallyExclusive("member", "members", "projects")
+	getCmd.MarkFlagsMutuallyExclusive("member", "members")
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
@@ -59,27 +56,6 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 		payload, _ := json.MarshalIndent(members, "", "  ")
-		fmt.Println(string(payload))
-		return nil
-	}
-
-	if getOptions.WithProjects {
-		log.Infof("Displaying workspace %s projects", args[0])
-		projects, err := profile.GetAll[project.Project](
-			cmd.Context(),
-			profile.Current,
-			"",
-			fmt.Sprintf("/workspaces/%s/projects", args[0]),
-		)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to get workspace projects: %s\n", err)
-			os.Exit(1)
-		}
-		if len(projects) == 0 {
-			log.Infof("No project found")
-			return nil
-		}
-		payload, _ := json.MarshalIndent(projects, "", "  ")
 		fmt.Println(string(payload))
 		return nil
 	}
