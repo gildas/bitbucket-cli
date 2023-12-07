@@ -1,0 +1,9 @@
+{
+  "type": "error",
+  "error": {
+    "message": "Bad request",
+    "fields": {
+      "links.avatar": "required key not provided"
+    }
+  }
+}
