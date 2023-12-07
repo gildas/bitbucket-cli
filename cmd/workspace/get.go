@@ -31,7 +31,7 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pullrequest from. Defaults to the current repository")
+	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get projects from. Defaults to the current repository")
 	getCmd.Flags().StringVar(&getOptions.Member, "member", "", "Get a workspace member")
 	getCmd.Flags().BoolVar(&getOptions.WithMembers, "members", false, "List the workspace members")
 	getCmd.Flags().BoolVar(&getOptions.WithProjects, "projects", false, "List the workspace projects")

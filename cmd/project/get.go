@@ -27,8 +27,8 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pullrequest from. Defaults to the current repository")
-	getCmd.Flags().StringVar(&getOptions.Workspace, "workspace", "", "Workspace to get pullrequest from. Defaults to the current workspace")
+	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get project from. Defaults to the current repository")
+	getCmd.Flags().StringVar(&getOptions.Workspace, "workspace", "", "Workspace to get project from")
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
