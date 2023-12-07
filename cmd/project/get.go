@@ -20,14 +20,12 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Repository string
 	Workspace  string
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get project from. Defaults to the current repository")
 	getCmd.Flags().StringVar(&getOptions.Workspace, "workspace", "", "Workspace to get project from")
 }
 
@@ -43,7 +41,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	err := profile.Current.Get(
 		log.ToContext(cmd.Context()),
-		getOptions.Repository,
+		"",
 		fmt.Sprintf("/workspaces/%s/projects/%s", getOptions.Workspace, args[0]),
 		&project,
 	)

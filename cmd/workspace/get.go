@@ -22,7 +22,6 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Repository   string
 	Member       string
 	WithProjects bool
 	WithMembers  bool
@@ -31,7 +30,6 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get projects from. Defaults to the current repository")
 	getCmd.Flags().StringVar(&getOptions.Member, "member", "", "Get a workspace member")
 	getCmd.Flags().BoolVar(&getOptions.WithMembers, "members", false, "List the workspace members")
 	getCmd.Flags().BoolVar(&getOptions.WithProjects, "projects", false, "List the workspace projects")
@@ -88,7 +86,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	if len(getOptions.Member) != 0 {
 		log.Infof("Displaying workspace %s member %s", args[0], getOptions.Member)
-		member, err := getWorkspaceMember(cmd.Context(), profile.Current, getOptions.Repository, args[0], getOptions.Member)
+		member, err := getWorkspaceMember(cmd.Context(), profile.Current, args[0], getOptions.Member)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get workspace member %s: %s\n", getOptions.Member, err)
 			os.Exit(1)
@@ -100,7 +98,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying workspace %s", args[0])
-	workspace, err := getWorkspace(cmd.Context(), profile.Current, getOptions.Repository, args[0])
+	workspace, err := getWorkspace(cmd.Context(), profile.Current, args[0])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get workspace %s: %s\n", args[0], err)
 		os.Exit(1)
@@ -111,7 +109,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func getWorkspaceMember(context context.Context, profile *profile.Profile, repository string, workspace string, member string) (*Member, error) {
+func getWorkspaceMember(context context.Context, profile *profile.Profile, workspace string, member string) (*Member, error) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "get")
 
 	if profile == nil {
@@ -123,7 +121,7 @@ func getWorkspaceMember(context context.Context, profile *profile.Profile, repos
 
 	err := profile.Get(
 		log.ToContext(context),
-		repository,
+		"",
 		fmt.Sprintf("/workspaces/%s/members/%s", workspace, member),
 		&result,
 	)
@@ -134,7 +132,7 @@ func getWorkspaceMember(context context.Context, profile *profile.Profile, repos
 	return &result, nil
 }
 
-func getWorkspace(context context.Context, profile *profile.Profile, repository string, workspace string) (*Workspace, error) {
+func getWorkspace(context context.Context, profile *profile.Profile, workspace string) (*Workspace, error) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "get")
 
 	if profile == nil {
@@ -146,7 +144,7 @@ func getWorkspace(context context.Context, profile *profile.Profile, repository 
 
 	err := profile.Get(
 		log.ToContext(context),
-		repository,
+		"",
 		fmt.Sprintf("/workspaces/%s", workspace),
 		&result,
 	)
