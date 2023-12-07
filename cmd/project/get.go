@@ -14,19 +14,20 @@ import (
 var getCmd = &cobra.Command{
 	Use:     "get",
 	Aliases: []string{"show", "info", "display"},
-	Short:   "get a profile",
+	Short:   "get a project",
 	Args:    cobra.ExactArgs(1),
 	RunE:    getProcess,
 }
 
 var getOptions struct {
-	Workspace  string
+	Workspace string
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
 	getCmd.Flags().StringVar(&getOptions.Workspace, "workspace", "", "Workspace to get project from")
+	_ = getCmd.MarkFlagRequired("workspace")
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {

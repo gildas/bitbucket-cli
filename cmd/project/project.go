@@ -7,22 +7,24 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
 	"github.com/spf13/cobra"
 )
 
 type Project struct {
-	Type                           string     `json:"type"                       mapstructure:"type"`
-	ID                             uint64     `json:"uuid"                       mapstructure:"uuid"`
-	Name                           string     `json:"name"                       mapstructure:"name"`
-	Description                    string     `json:"description"                mapstructure:"description"`
-	Key                            string     `json:"key"                        mapstructure:"key"`
-	Owner                          user.User  `json:"owner"                      mapstructure:"owner"`
-	Links                          link.Links `json:"links"                      mapstructure:"links"`
-	IsPrivate                      bool       `json:"is_private"                 mapstructure:"is_private"`
-	HasPubliclyVisibleRepositories bool       `json:"has_publicly_visible_repos" mapstructure:"has_publicly_visible_repos"`
-	CreatedOn                      time.Time  `json:"created_on"                 mapstructure:"created_on"`
-	UpdatedOn                      time.Time  `json:"updated_on"                 mapstructure:"updated_on"`
+	Type                           string              `json:"type"                       mapstructure:"type"`
+	ID                             string              `json:"uuid"                       mapstructure:"uuid"`
+	Name                           string              `json:"name"                       mapstructure:"name"`
+	Description                    string              `json:"description,omitempty"      mapstructure:"description"`
+	Key                            string              `json:"key"                        mapstructure:"key"`
+	Owner                          user.User           `json:"owner"                      mapstructure:"owner"`
+	Workspace                      workspace.Workspace `json:"workspace"                  mapstructure:"workspace"`
+	Links                          link.Links          `json:"links"                      mapstructure:"links"`
+	IsPrivate                      bool                `json:"is_private"                 mapstructure:"is_private"`
+	HasPubliclyVisibleRepositories bool                `json:"has_publicly_visible_repos" mapstructure:"has_publicly_visible_repos"`
+	CreatedOn                      time.Time           `json:"created_on"                 mapstructure:"created_on"`
+	UpdatedOn                      time.Time           `json:"updated_on"                 mapstructure:"updated_on"`
 }
 
 // Command represents this folder's command

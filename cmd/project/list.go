@@ -25,7 +25,7 @@ func init() {
 	Command.AddCommand(listCmd)
 
 	listCmd.Flags().StringVar(&listOptions.Workspace, "workspace", "", "Workspace to list projects from")
-	listCmd.MarkFlagRequired("workspace")
+	_ = listCmd.MarkFlagRequired("workspace")
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
