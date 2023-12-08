@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/gildas/go-errors"
+	"github.com/spf13/cobra"
 )
 
 type EnumFlag struct {
@@ -30,4 +31,11 @@ func (flag *EnumFlag) Set(value string) error {
 		}
 	}
 	return errors.ArgumentInvalid.With("value", value, strings.Join(flag.Allowed, ", "))
+}
+
+// CompletionFunc returns the completion function of the flag
+func (flag EnumFlag) CompletionFunc() func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
+	return func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
+		return flag.Allowed, cobra.ShellCompDirectiveNoFileComp
+	}
 }

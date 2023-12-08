@@ -29,6 +29,7 @@ func init() {
 	listOptions.State = common.EnumFlag{Allowed: []string{"all", "open", "closed", "merged", "declined"}, Value: "all"}
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequests from. Defaults to the current repository")
 	listCmd.Flags().Var(&listOptions.State, "state", "Pull request state to fetch. Defaults to \"all\"")
+	_ = listCmd.RegisterFlagCompletionFunc("state", listOptions.State.CompletionFunc())
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
