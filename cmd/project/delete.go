@@ -10,12 +10,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 var deleteCmd = &cobra.Command{
-	Use:     "delete",
-	Short:   "delete a project by its key",
-	Args:    cobra.ExactArgs(1),
-	RunE:    deleteProcess,
+	Use:               "delete",
+	Short:             "delete a project by its key",
+	Args:              cobra.ExactArgs(1),
+	ValidArgsFunction: deleteValidArgs,
+	RunE:              deleteProcess,
 }
 
 var deleteOptions struct {
@@ -29,6 +29,25 @@ func init() {
 	_ = deleteCmd.MarkFlagRequired("workspace")
 }
 
+func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "validargs", "command", cmd.Name())
+
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+	keys, err := GetProjectKeys(cmd.Context(), deleteOptions.Workspace)
+	if err != nil {
+		log.Errorf("Failed to get projects", err)
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return keys, cobra.ShellCompDirectiveNoFileComp
+}
+
 func deleteProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
 
@@ -36,7 +55,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Displaying project %s", args[0])
+	log.Infof("Deleting project %s", args[0])
 	err := profile.Current.Delete(
 		log.ToContext(cmd.Context()),
 		"",

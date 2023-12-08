@@ -17,7 +17,7 @@ import (
 
 type ProjectCreator struct {
 	Name        string      `json:"name"`
-	Description string      `json:"description"`
+	Description string      `json:"description,omitempty"`
 	Key         string      `json:"key"`
 	Links       *link.Links `json:"links,omitempty"`
 	IsPrivate   bool        `json:"is_private"`

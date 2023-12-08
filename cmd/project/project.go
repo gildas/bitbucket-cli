@@ -1,11 +1,13 @@
 package project
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
+	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
@@ -67,4 +69,21 @@ func (project Project) MarshalJSON() (data []byte, err error) {
 		UpdatedOn: project.UpdatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
+}
+
+// GetProjectKeys gets the keys of the projects in the given workspace
+func GetProjectKeys(context context.Context, workspace string) (keys []string, err error) {
+	projects, err := profile.GetAll[Project](
+		context,
+		profile.Current,
+		"",
+		fmt.Sprintf("/workspaces/%s/projects", workspace),
+	)
+	if err != nil {
+		return nil, errors.JSONUnmarshalError.Wrap(err)
+	}
+	for _, project := range projects {
+		keys = append(keys, project.Key)
+	}
+	return keys, nil
 }

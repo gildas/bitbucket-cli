@@ -12,11 +12,12 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:     "get",
-	Aliases: []string{"show", "info", "display"},
-	Short:   "get a project",
-	Args:    cobra.ExactArgs(1),
-	RunE:    getProcess,
+	Use:               "get",
+	Aliases:           []string{"show", "info", "display"},
+	Short:             "get a project",
+	Args:              cobra.ExactArgs(1),
+	ValidArgsFunction: getValidArgs,
+	RunE:              getProcess,
 }
 
 var getOptions struct {
@@ -28,6 +29,25 @@ func init() {
 
 	getCmd.Flags().StringVar(&getOptions.Workspace, "workspace", "", "Workspace to get project from")
 	_ = getCmd.MarkFlagRequired("workspace")
+}
+
+func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "validargs", "command", cmd.Name())
+
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+	keys, err := GetProjectKeys(cmd.Context(), getOptions.Workspace)
+	if err != nil {
+		log.Errorf("Failed to get projects", err)
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return keys, cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
