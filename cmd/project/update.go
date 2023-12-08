@@ -56,8 +56,6 @@ func init() {
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "validargs", "command", cmd.Name())
-
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
@@ -65,13 +63,7 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	keys, err := GetProjectKeys(cmd.Context(), updateOptions.Workspace)
-	if err != nil {
-		log.Errorf("Failed to get projects", err)
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	return keys, cobra.ShellCompDirectiveNoFileComp
+	return GetProjectKeys(cmd.Context(), profile.Current, deleteOptions.Workspace), cobra.ShellCompDirectiveNoFileComp
 }
 
 func updateProcess(cmd *cobra.Command, args []string) error {

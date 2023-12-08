@@ -10,7 +10,9 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -72,18 +74,20 @@ func (project Project) MarshalJSON() (data []byte, err error) {
 }
 
 // GetProjectKeys gets the keys of the projects in the given workspace
-func GetProjectKeys(context context.Context, workspace string) (keys []string, err error) {
+func GetProjectKeys(context context.Context, p *profile.Profile, workspace string) (keys []string) {
+	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
+
 	projects, err := profile.GetAll[Project](
 		context,
-		profile.Current,
+		p,
 		"",
 		fmt.Sprintf("/workspaces/%s/projects", workspace),
 	)
 	if err != nil {
-		return nil, errors.JSONUnmarshalError.Wrap(err)
+		log.Errorf("Failed to get projects", err)
+		return
 	}
-	for _, project := range projects {
-		keys = append(keys, project.Key)
-	}
-	return keys, nil
+	return core.Map(projects, func(project Project) string {
+		return project.Key
+	})
 }
