@@ -8,8 +8,10 @@ import (
 	"os"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -32,7 +34,7 @@ var updateCmd = &cobra.Command{
 }
 
 var updateOptions struct {
-	Workspace   string
+	Workspace common.RemoteValueFlag
 	Name        string
 	Key         string
 	Description string
@@ -44,7 +46,8 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateCmd.Flags().StringVar(&updateOptions.Workspace, "workspace", "", "Workspace to update project from")
+	updateOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
+	updateCmd.Flags().Var(&updateOptions.Workspace, "workspace", "Workspace to update projects from")
 	updateCmd.Flags().StringVar(&updateOptions.Name, "name", "", "Name of the project")
 	updateCmd.Flags().StringVar(&updateOptions.Key, "key", "", "Key of the project")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the project")
@@ -53,6 +56,7 @@ func init() {
 	updateCmd.Flags().BoolVar(&updateOptions.IsPrivate, "is-private", false, "Is the project private")
 	_ = updateCmd.MarkFlagRequired("workspace")
 	updateCmd.MarkFlagsMutuallyExclusive("avatar-url", "avatar-file")
+	_ = updateCmd.RegisterFlagCompletionFunc("workspace", updateOptions.Workspace.CompletionFunc())
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -63,7 +67,7 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetProjectKeys(cmd.Context(), profile.Current, deleteOptions.Workspace), cobra.ShellCompDirectiveNoFileComp
+	return GetProjectKeys(cmd.Context(), profile.Current, deleteOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
 }
 
 func updateProcess(cmd *cobra.Command, args []string) error {

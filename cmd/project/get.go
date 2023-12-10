@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -21,14 +23,16 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Workspace string
+	Workspace common.RemoteValueFlag
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
-	getCmd.Flags().StringVar(&getOptions.Workspace, "workspace", "", "Workspace to get project from")
+	getOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
+	getCmd.Flags().Var(&getOptions.Workspace, "workspace", "Workspace to get projects from")
 	_ = getCmd.MarkFlagRequired("workspace")
+	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc())
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -39,7 +43,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetProjectKeys(cmd.Context(), profile.Current, deleteOptions.Workspace), cobra.ShellCompDirectiveNoFileComp
+	return GetProjectKeys(cmd.Context(), profile.Current, deleteOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {

@@ -1,9 +1,13 @@
 package workspace
 
 import (
+	"context"
 	"fmt"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
+	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/go-core"
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -25,4 +29,24 @@ var Command = &cobra.Command{
 			fmt.Println(command.Name())
 		}
 	},
+}
+
+// GetWorkspaceSlugs gets the slugs of all workspaces
+func GetWorkspaceSlugs(context context.Context) (slugs []string) {
+	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
+
+	log.Debugf("Getting all workspaces")
+	workspaces, err := profile.GetAll[Workspace](
+		context,
+		profile.Current,
+		"",
+		"/workspaces",
+	)
+	if err != nil {
+		log.Errorf("Failed to get workspaces", err)
+		return
+	}
+	return core.Map(workspaces, func(workspace Workspace) string {
+		return workspace.Slug
+	})
 }

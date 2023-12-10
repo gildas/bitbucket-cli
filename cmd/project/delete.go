@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -19,13 +21,14 @@ var deleteCmd = &cobra.Command{
 }
 
 var deleteOptions struct {
-	Workspace string
+	Workspace common.RemoteValueFlag
 }
 
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteCmd.Flags().StringVar(&deleteOptions.Workspace, "workspace", "", "Workspace to delete project from")
+	deleteOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
+	deleteCmd.Flags().Var(&deleteOptions.Workspace, "workspace", "Workspace to delete projects from")
 	_ = deleteCmd.MarkFlagRequired("workspace")
 }
 
@@ -37,7 +40,7 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetProjectKeys(cmd.Context(), profile.Current, deleteOptions.Workspace), cobra.ShellCompDirectiveNoFileComp
+	return GetProjectKeys(cmd.Context(), profile.Current, deleteOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {

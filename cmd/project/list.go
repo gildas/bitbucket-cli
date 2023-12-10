@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -18,14 +20,16 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Workspace string
+	Workspace common.RemoteValueFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listCmd.Flags().StringVar(&listOptions.Workspace, "workspace", "", "Workspace to list projects from")
+	listOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
+	listCmd.Flags().Var(&listOptions.Workspace, "workspace", "Workspace to list projects from")
 	_ = listCmd.MarkFlagRequired("workspace")
+	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc())
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

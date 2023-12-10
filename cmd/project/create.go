@@ -8,8 +8,10 @@ import (
 	"os"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -31,7 +33,7 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
-	Workspace   string
+	Workspace common.RemoteValueFlag
 	Name        string
 	Key         string
 	Description string
@@ -43,7 +45,8 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createCmd.Flags().StringVar(&createOptions.Workspace, "workspace", "", "Workspace to create project in")
+	createOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
+	createCmd.Flags().Var(&createOptions.Workspace, "workspace", "Workspace to create projects from")
 	createCmd.Flags().StringVar(&createOptions.Name, "name", "", "Name of the project")
 	createCmd.Flags().StringVar(&createOptions.Key, "key", "", "Key of the project")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the project")

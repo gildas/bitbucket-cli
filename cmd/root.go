@@ -56,6 +56,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&CmdOptions.LogDestination, "log", "l", "", "Log destination (stdout, stderr, file, none), overrides LOG_DESTINATION environment variable")
 	rootCmd.PersistentFlags().BoolVar(&CmdOptions.Debug, "debug", false, "logs are written at DEBUG level, overrides DEBUG environment variable")
 	rootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
+	_ = rootCmd.MarkFlagFilename("config")
+	_ = rootCmd.MarkFlagFilename("log")
 
 	rootCmd.AddCommand(profile.Command)
 	rootCmd.AddCommand(project.Command)
