@@ -12,7 +12,7 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "list all pullrequests",
+	Short: "list all workspaces for the current user",
 	Args:  cobra.NoArgs,
 	RunE:  listProcess,
 }

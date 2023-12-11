@@ -34,7 +34,7 @@ var updateCmd = &cobra.Command{
 }
 
 var updateOptions struct {
-	Workspace common.RemoteValueFlag
+	Workspace   common.RemoteValueFlag
 	Name        string
 	Key         string
 	Description string

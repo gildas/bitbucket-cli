@@ -15,7 +15,7 @@ import (
 var getCmd = &cobra.Command{
 	Use:     "get",
 	Aliases: []string{"show", "info", "display"},
-	Short:   "get a profile",
+	Short:   "get a workspace",
 	Args:    cobra.ExactArgs(1),
 	RunE:    getProcess,
 }

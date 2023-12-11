@@ -33,7 +33,7 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
-	Workspace common.RemoteValueFlag
+	Workspace   common.RemoteValueFlag
 	Name        string
 	Key         string
 	Description string
