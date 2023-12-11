@@ -11,7 +11,9 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -29,11 +31,9 @@ type RootOptions struct {
 // CmdOptions contains the options for the application
 var CmdOptions RootOptions
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:     APP,
-	Version: Version(),
-	Short:   "BitBucket Command Line Interface",
+// RootCmd represents the base command when called without any subcommands
+var RootCmd = &cobra.Command{
+	Short: "BitBucket Command Line Interface",
 	Long: `BitBucket Command Line Interface is a tool to manage your BitBucket.
 You can manage your pull requests, issues, profiles, etc.`,
 }
@@ -41,7 +41,7 @@ You can manage your pull requests, issues, profiles, etc.`,
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute(context context.Context) error {
-	return rootCmd.ExecuteContext(context)
+	return RootCmd.ExecuteContext(context)
 }
 
 func init() {
@@ -49,24 +49,28 @@ func init() {
 	cobra.CheckErr(err)
 
 	// Global flags
-	rootCmd.PersistentFlags().StringVar(&CmdOptions.ConfigFile, "config", "", "config file (default is .env, "+filepath.Join(configDir, "bitbucket", "config-cli.yml"))
-	rootCmd.PersistentFlags().StringVarP(&CmdOptions.ProfileName, "profile", "p", "", "Profile to use. Overrides TSGGLOBAL_PROFILE environment variable")
-	rootCmd.PersistentFlags().StringVarP(&CmdOptions.LogDestination, "log", "l", "", "Log destination (stdout, stderr, file, none), overrides LOG_DESTINATION environment variable")
-	rootCmd.PersistentFlags().BoolVar(&CmdOptions.Debug, "debug", false, "logs are written at DEBUG level, overrides DEBUG environment variable")
-	rootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
+	RootCmd.PersistentFlags().StringVar(&CmdOptions.ConfigFile, "config", "", "config file (default is .env, "+filepath.Join(configDir, "bitbucket", "config-cli.yml"))
+	RootCmd.PersistentFlags().StringVarP(&CmdOptions.ProfileName, "profile", "p", "", "Profile to use. Overrides the default profile")
+	RootCmd.PersistentFlags().StringVarP(&CmdOptions.LogDestination, "log", "l", "", "Log destination (stdout, stderr, file, none), overrides LOG_DESTINATION environment variable")
+	RootCmd.PersistentFlags().BoolVar(&CmdOptions.Debug, "debug", false, "logs are written at DEBUG level, overrides DEBUG environment variable")
+	RootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
+	_ = RootCmd.MarkFlagFilename("config")
+	_ = RootCmd.MarkFlagFilename("log")
 
-	rootCmd.AddCommand(profile.Command)
-	rootCmd.AddCommand(branch.Command)
-	rootCmd.AddCommand(commit.Command)
-	rootCmd.AddCommand(pullrequest.Command)
+	RootCmd.AddCommand(profile.Command)
+	RootCmd.AddCommand(project.Command)
+	RootCmd.AddCommand(branch.Command)
+	RootCmd.AddCommand(commit.Command)
+	RootCmd.AddCommand(pullrequest.Command)
+	RootCmd.AddCommand(workspace.Command)
 
-	rootCmd.SilenceUsage = true // Do not show usage when an error occurs
+	RootCmd.SilenceUsage = true // Do not show usage when an error occurs
 	cobra.OnInitialize(initConfig)
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	log := logger.Must(logger.FromContext(rootCmd.Context()))
+	log := logger.Must(logger.FromContext(RootCmd.Context()))
 
 	if len(CmdOptions.LogDestination) > 0 {
 		log.ResetDestinations(CmdOptions.LogDestination)
@@ -76,7 +80,7 @@ func initConfig() {
 	}
 
 	log.Infof(strings.Repeat("-", 80))
-	log.Infof("Starting %s v%s (%s)", APP, Version(), runtime.GOARCH)
+	log.Infof("Starting %s v%s (%s)", RootCmd.Name(), RootCmd.Version, runtime.GOARCH)
 	log.Infof("Log Destination: %s", log)
 
 	viper.SetConfigType("yaml")

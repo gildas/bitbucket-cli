@@ -67,6 +67,77 @@ You can set the default profile with the `bb profile use` command:
 bb profile use myprofile
 ```
 
+### Workspaces
+
+You can list workspaces with the `bb workspace list` command:
+
+```bash
+bb workspace list
+```
+
+With the `--membership` flag, you can see the kind of membership you have in each workspace:
+
+```bash
+bb workspace list --membership
+```
+
+You can also get the details of a workspace with the `bb workspace get` or `bb workspace show` command:
+
+```bash
+bb workspace get myworkspace
+```
+
+Additionally, you can get the members of a workspace with the flag `--members`:
+
+```bash
+bb workspace get myworkspace --members
+```
+
+Or, even, a specific member with the flag `--member`:
+
+```bash
+bb workspace get myworkspace --member mymember
+```
+
+### Projects
+
+You can list projects with the `bb project list` command, the `--workspace` flag is required for all project commands:
+
+```bash
+bb project list --workspace myworkspace
+```
+
+The `--workspace` flag is also dynamically auto-completed with the workspaces you have access to.
+
+You can also get the details of a project with the `bb project get` or `bb project show` command:
+
+```bash
+bb project get myproject --workspace myworkspace
+```
+
+You can create a project with the `bb project create` command:
+
+```bash
+bb project create \
+  --name myproject \
+  --key MYPROJECT \
+  --workspace myworkspace
+```
+
+You can update a project with the `bb project update` command:
+
+```bash
+bb project update myproject \
+  --name myproject \
+  --workspace myworkspace
+```
+
+You can delete a project with the `bb project delete` command:
+
+```bash
+bb project delete myproject --workspace myworkspace
+```
+
 ### Pull Requests
 
 You can list pull requests with the `bb pullrequest list` command:

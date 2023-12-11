@@ -19,6 +19,8 @@ func main() {
 	}
 	log := logger.Create(APP)
 	defer log.Flush()
+	cmd.RootCmd.Use = APP
+	cmd.RootCmd.Version = Version()
 	err := cmd.Execute(log.ToContext(context.Background()))
 	if err != nil {
 		log.Fatalf("Error: %s", err)

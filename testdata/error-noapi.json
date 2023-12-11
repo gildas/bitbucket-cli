@@ -1,0 +1,7 @@
+{
+  "type": "error",
+  "error": {
+    "message": "Resource not found",
+    "detail": "There is no API hosted at this URL"
+  }
+}

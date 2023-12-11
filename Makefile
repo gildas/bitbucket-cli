@@ -17,17 +17,16 @@ COV_DIR ?= tmp/coverage
 # Version, branch, and project
 BRANCH    != git symbolic-ref --short HEAD
 COMMIT    != git rev-parse --short HEAD
-STAMP     != date +%Y%m%d%H%M%S
 BUILD     := "$(STAMP).$(COMMIT)"
-VERSION   != awk '/^var +VERSION +=/{gsub("\"", "", $$4) ; print $$4}' version.go
+VERSION   != awk '/^var +VERSION +=/{gsub("\"", "", $$4) ; print $$4}' cmd/version.go
 ifeq ($VERSION,)
 VERSION   != git describe --tags --always --dirty="-dev"
 endif
-PROJECT   != awk '/^const +APP += +/{gsub("\"", "", $$4); print $$4}' version.go
+PROJECT   != awk '/^const +APP += +/{gsub("\"", "", $$4); print $$4}' cmd/version.go
 ifeq (${PROJECT},)
 PROJECT   != basename "$(PWD)"
 endif
-PLATFORMS ?= darwin linux windows pi
+PLATFORMS ?= darwin-amd64 darwin-arm64 linux windows pi
 
 # Files
 GOTESTS   := $(call rwildcard,,*_test.go)
@@ -44,6 +43,7 @@ COVERAGE_HTML := $(COV_DIR)/index.html
 # Tools
 GO      ?= go
 GOOS    != $(GO) env GOOS
+HTTPIE  ?= http
 LOGGER   =  bunyan -L -o short
 GOBIN    = $(BIN_DIR)
 GOLINT  ?= golangci-lint
@@ -51,12 +51,14 @@ YOLO     = $(BIN_DIR)/yolo
 GOCOV    = $(BIN_DIR)/gocov
 GOCOVXML = $(BIN_DIR)/gocov-xml
 DOCKER  ?= docker
+KUBECTL ?= kubectl
 PANDOC  ?= pandoc
 
 # Flags
 #MAKEFLAGS += --silent
 # GO
-LDFLAGS = -ldflags "-X main.app_commit=$(COMMIT) -X main.app_branch=$(BRANCH) -X main.app_stamp=$(STAMP)"
+export GOPRIVATE   ?= bitbucket.org/genesyscsp/*
+export CGO_ENABLED  = 0
 ifneq ($(what),)
 TEST_ARG := -run '$(what)'
 else
@@ -64,49 +66,55 @@ TEST_ARG :=
 endif
 
 # Docker
-DOCKER_FILE         ?= Dockerfile
-ifneq ("$(wildcard chart/values.yaml)", "")
-DOCKER_REGISTRY     != awk '/^  registry:/{print $$2}'   chart/values.yaml
-DOCKER_REPOSITORY   != awk '/^  repository:/{print $$2}' chart/values.yaml
-else
-DOCKER_REGISTRY     ?= gildas
-DOCKER_REPOSITORY   ?= cantina
-endif
+export DOCKER_BUILDKIT = 1
+DOCKER_REGISTRY     ?= registry.genesys-services.com
+DOCKER_REPOSITORY    = gum/$(PROJECT)
 DOCKER_IMAGE         = $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)
-ifneq ($(BRANCH), master)
-ifneq ("$(wildcard Dockerfile.$(BRANCH))", "")
-DOCKER_FILE              ?= Dockerfile.$(BRANCH)
+DOCKER_BRANCH       := $(subst /,_,$(shell git symbolic-ref --short HEAD))
+ifeq ($(BRANCH), master)
+DOCKER_BUILD_TYPE        := production
+DOCKER_FILE              ?= Dockerfile
+DOCKER_IMAGE_VERSION     := $(VERSION)
+DOCKER_IMAGE_VERSION_MIN := $(subst $S,.,$(wordlist 1,2,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the last .[0-9]+ part of the version
+DOCKER_IMAGE_VERSION_MAJ := $(subst $S,.,$(wordlist 1,1,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the 2 last .[0-9]+ parts of the version
+DOCKER_IMAGE_TAG         := latest
+else ifeq ($(BRANCH), $(filter release/%, $(BRANCH)))
+DOCKER_BUILD_TYPE        := production
+DOCKER_FILE              ?= Dockerfile
+DOCKER_IMAGE_VERSION     := $(VERSION)-rc.$(STAMP)
+DOCKER_IMAGE_VERSION_MIN := $(subst $S,.,$(wordlist 1,2,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the last .[0-9]+ part of the version
+DOCKER_IMAGE_VERSION_MAJ := $(subst $S,.,$(wordlist 1,1,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the 2 last .[0-9]+ parts of the version
+DOCKER_IMAGE_TAG         := rc
+else
+DOCKER_BUILD_TYPE        := dev
+ifneq ("$(wildcard Dockerfile.$(DOCKER_BRANCH))", "")
+DOCKER_FILE              ?= Dockerfile.$(DOCKER_BRANCH)
 else ifneq ("$(wildcard Dockerfile.dev)", "")
 DOCKER_FILE              ?= Dockerfile.dev
 endif
 DOCKER_IMAGE_VERSION     := $(VERSION)-$(STAMP)-$(COMMIT)
 DOCKER_IMAGE_TAG         := dev
-else
-DOCKER_IMAGE_VERSION     := $(VERSION)
-DOCKER_IMAGE_VERSION_MIN := $(subst $S,.,$(wordlist 1,2,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the last .[0-9]+ part of the version
-DOCKER_IMAGE_VERSION_MAJ := $(subst $S,.,$(wordlist 1,1,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the 2 last .[0-9]+ parts of the version
-DOCKER_IMAGE_TAG         := latest
 endif
-# Check the GOPROXY for localhost, so the docker rule can call the Athens container on the localhost
-ifneq ($(findstring localhost, $(GOPROXY)),)
-ifeq ($(GOOS), linux)
-DOCKER_FLAGS += --network=host
-DOCKER_GOPROXY := $(subst localhost,127.0.0.1,$(GOPROXY))
-else
-  # Docker for Windows, Docker for Mac
-DOCKER_GOPROXY := $(subst localhost, host.docker.internal,$(GOPROXY))
-endif
-endif
+DOCKER_FLAGS += --build-arg=GOPRIVATE="$(GOPRIVATE)"
+DOCKER_FLAGS += --label="org.opencontainers.image.revision"="$(COMMIT)"
+DOCKER_FLAGS += --label="org.opencontainers.image.created"="$(NOW)"
 
-# Kubernetes
-#K8S_NAMESPACE =
-K8S_APP = $(subst _,-,$(PROJECT))
-ifneq ($(K8S_NAMESPACE),)
-K8S_FLAGS += --namespace $(K8S_NAMESPACE)
+# Artifacts
+ARTIFACTS_URL ?= https://bitbucket.org/gildas_cherruel/bb/downloads
+ARTIFACTS_KEY ?=
+
+ifeq ($(OS), Windows_NT)
+  include Makefile.windows
+else ifeq ($(OS_TYPE), linux-gnu)
+  include Makefile.linux
+else ifeq ($(findstring darwin, $(OS_TYPE)),)
+  include Makefile.linux
+else
+  $(error Unsupported Operating System)
 endif
 
 # Main Recipes
-.PHONY: all build dep deploy docker fmt gendoc help lint logview publish run start stop test version vet watch
+.PHONY: all archive build dep docker fmt gendoc help lint logview publish run start stop test version vet watch
 
 help: Makefile; ## Display this help
 	@echo
@@ -121,11 +129,7 @@ all: test build; ## Test and Build the application
 
 gendoc: __gendoc_init__ $(BIN_DIR)/$(PROJECT).pdf; @ ## Generate the PDF documentation
 
-ifneq ("$(wildcard chart/values.yaml)", "")
-deploy: __k8s_deploy_init__ __k8s_deploy__ __k8s_refresh_pods__; @ ## Deploy to a Kubernetes Cluster
-endif
-
-publish: docker __publish_init__; @ ## Publish the Docker image to the Repository
+publish: __publish_init__ __publish_binaries__ docker; @ ## Publish the binaries and the Docker image to the Repository
 ifeq ($(DOCKER_REGISTRY),)
 	$(error     DOCKER_REGISTRY is undefined, we cannot push the Docker image $(DOCKER_REPOSITORY))
 else
@@ -139,19 +143,24 @@ endif
 	$Q $(DOCKER) push $(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)
 endif
 
-docker: $(TMP_DIR)/__docker_$(BRANCH)__; @ ## Build the Docker image
+scan: docker ; @ ## Scan the docker images with Trivy
+	$Q $(DOCKER) run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/.cache/:/root/.cache/ aquasec/trivy:0.18.3 $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION)
+
+docker: $(TMP_DIR)/__docker_$(DOCKER_BRANCH)__; @ ## Build the Docker image
+
+archive: __archive_init__ __archive_all__; @ ## Archive the binaries
 
 build: __build_init__ __build_all__; @ ## Build the application for all platforms
 
 dep:; $(info $(M) Updating Modules...) @ ## Updates the GO Modules
-	$Q $(GO) get -u -t ./...
+	$Q $(GO) get -u ./...
 	$Q $(GO) mod tidy
 
 lint:;  $(info $(M) Linting application...) @ ## Lint Golang files
 	$Q $(GOLINT) run *.go
 
 fmt:; $(info $(M) Formatting the code...) @ ## Format the code following the go-fmt rules
-	$Q $(GO) fmt -n *.go
+	$Q $(GO) fmt *.go
 
 vet:; $(info $(M) Vetting application...) @ ## Run go vet
 	$Q $(GO) vet *.go
@@ -160,7 +169,7 @@ run:; $(info $(M) Running application...) @  ## Execute the application
 	$Q $(GO) run . | $(LOGGER)
 
 logview:; @ ## Open the project log and follows it
-	$Q tail -F $(LOG_DIR)/$(PROJECT).log | $(LOGGER)
+	$Q tail -f $(LOG_DIR)/$(PROJECT).log | $(LOGGER)
 
 clean:; $(info $(M) Cleaning up folders and files...) @ ## Clean up
 	$Q rm -rf $(BIN_DIR)  2> /dev/null
@@ -206,10 +215,10 @@ test-view:; @ ## Open the Coverage results in a web browser
 	$Q xdg-open $(COV_DIR)/index.html
 
 # Folder recipes
-$(BIN_DIR): ; @mkdir -p $@
-$(TMP_DIR): ; @mkdir -p $@
-$(LOG_DIR): ; @mkdir -p $@
-$(COV_DIR): ; @mkdir -p $@
+$(BIN_DIR): ; $(MKDIR)
+$(TMP_DIR): ; $(MKDIR)
+$(LOG_DIR): ; $(MKDIR)
+$(COV_DIR): ; $(MKDIR)
 
 # Documentation recipes
 __gendoc_init__:; $(info $(M) Building the documentation...)
@@ -226,93 +235,103 @@ __start__: stop $(BIN_DIR)/$(GOOS)/$(PROJECT) | $(TMP_DIR) $(LOG_DIR); $(info $(
 # Docker recipes
 # @see https://www.gnu.org/software/make/manual/html_node/Empty-Targets.html
 # TODO: Pass LDFLAGS!!!
-ifeq ($(BRANCH), master)
-$(TMP_DIR)/__docker_$(BRANCH)__: $(GOFILES) $(ASSETS) $(DOCKER_FILE) | $(TMP_DIR); $(info $(M) Building the Docker Image...)
+ifeq ($(DOCKER_BUILD_TYPE), production)
+$(TMP_DIR)/__docker_$(DOCKER_BRANCH)__: $(GOFILES) $(ASSETS) $(DOCKER_FILE) | $(TMP_DIR); $(info $(M) Building the Docker Image...)
 	$(info $(M)  Image: $(DOCKER_IMAGE), Version: $(DOCKER_IMAGE_VERSION), Tag: $(DOCKER_IMAGE_TAG), Branch: $(BRANCH))
-	$Q DOCKER_BUILDKIT=1 $(DOCKER) build \
-		$(DOCKER_FLAGS) \
-		--build-arg GOPROXY=$(DOCKER_GOPROXY) \
-		--label "org.opencontainers.image.version"="$(DOCKER_IMAGE_VERSION)" \
-		--label "org.opencontainers.image.revision"="$(COMMIT)" \
-		--label "org.opencontainers.image.created"="$(NOW)" \
-		-t $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) .
+	$Q $(DOCKER) build $(DOCKER_FLAGS) --ssh default --progress plain -t $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) .
 	$Q $(DOCKER) tag $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION_MIN)
 	$Q $(DOCKER) tag $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION_MAJ)
 	$Q $(DOCKER) tag $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) $(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)
-	$Q touch $@
-else
-$(TMP_DIR)/__docker_$(BRANCH)__: $(GOFILES) $(ASSETS) $(DOCKER_FILE) build | $(TMP_DIR); $(info $(M) Building the Docker Image...)
+	$Q $(TOUCH)
+else ifeq ($(DOCKER_BUILD_TYPE), candidate)
+$(TMP_DIR)/__docker_$(DOCKER_BRANCH)__: $(GOFILES) $(ASSETS) $(DOCKER_FILE) | $(TMP_DIR); $(info $(M) Building the Docker Image...)
 	$(info $(M)  Image: $(DOCKER_IMAGE), Version: $(DOCKER_IMAGE_VERSION), Tag: $(DOCKER_IMAGE_TAG), Branch: $(BRANCH))
-	$Q DOCKER_BUILDKIT=1 $(DOCKER) build \
-		$(DOCKER_FLAGS) \
-		-f $(DOCKER_FILE) \
-		-f "$(DOCKER_FILE)" \
-		--label "org.opencontainers.image.version"="$(DOCKER_IMAGE_VERSION)" \
-		--label "org.opencontainers.image.revision"="$(COMMIT)" \
-		--label "org.opencontainers.image.created"="$(NOW)" \
-		-t $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) .
+	$Q $(DOCKER) build $(DOCKER_FLAGS) --ssh default --progress plain -t $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) .
 	$Q $(DOCKER) tag $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) $(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)
-	$Q touch $@
+	$Q $(TOUCH)
+else
+$(TMP_DIR)/__docker_$(DOCKER_BRANCH)__: $(GOFILES) $(ASSETS) $(DOCKER_FILE) $(BIN_DIR)/linux/$(PROJECT) | $(TMP_DIR); $(info $(M) Building the Docker Image...)
+	$(info $(M)  Image: $(DOCKER_IMAGE), Version: $(DOCKER_IMAGE_VERSION), Tag: $(DOCKER_IMAGE_TAG), Branch: $(BRANCH))
+	$(info   Dockerfile: $(DOCKER_FILE))
+ifeq ($(OS), Windows_NT)
+	$Q $(DOCKER) build $(DOCKER_FLAGS) -f "$(DOCKER_FILE)" -t $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) .
+else
+	$Q $(DOCKER) build $(DOCKER_FLAGS) -f "$(DOCKER_FILE)" --ssh default -t $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) .
+endif
+	$Q $(DOCKER) tag $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) $(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)
+	$Q $(TOUCH)
 endif
 
-__publish_init__:; $(info $(M) Pushing the Docker Image $(DOCKER_IMAGE) to $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)...)
+# publish recipes
+.PHONY: __publish_init__ __publish_binaries__
+__publish_init__:; $(info $(M) Pushing the Docker Image $(DOCKER_IMAGE)...)
+__publish_binaries__: archive
+#$Q $(foreach platform, $(PLATFORMS), $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z)
+	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/darwin-amd64/$(PROJECT)-$(VERSION).darwin-amd64.7z
+	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/darwin-arm64/$(PROJECT)-$(VERSION).darwin-arm64.7z
+	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/linux/$(PROJECT)-$(VERSION).linux.7z
+	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/windows/$(PROJECT)-$(VERSION).windows.7z
 
 .PHONY: __docker_save__
-__docker_save__: $(TMP_DIR)/image.$(BRANCH).$(COMMIT).tar
+__docker_save__: $(TMP_DIR)/image.$(DOCKER_BRANCH).$(COMMIT).tar
 
-$(TMP_DIR)/image.$(BRANCH).$(COMMIT).tar: $(TMP_DIR)/__docker_$(BRANCH)__ | $(TMP_DIR); $(info $(M)   Saving Docker image)
-	$Q $(DOCKER) save $(DOCKER_IMAGE) > $(TMP_DIR)/image.$(BRANCH).$(COMMIT).tar
-
-# Kubernetes recipes
-.PHONY: __k8s_deploy_init__ __k8s_deploy__ __microk8s_import__ __remote_docker__
-__k8s_deploy_init__:;  $(info $(M) Deploying to Kubernetes)
-
-ifeq ($(K8S_TYPE), microk8s)
-ifeq ($(K8S_REMOTE), 1)
-__k8s_deploy__:; $(info (M) Error: Not implemented)
-else
-__k8s_deploy__: __docker_save__; $(info $(M)   Importing Image to MicroK8s)
-	$Q microk8s.ctr image import $(TMP_DIR)/image.$(BRANCH).$(COMMIT).tar
-endif
-else ifeq ($(K8S_TYPE), docker)
-ifeq ($(K8S_REMOTE), 1)
-__k8s_deploy__: $(TMP_DIR)/__docker_$(BRANCH)__ | $(TMP_DIR); $(info $(M)    Sending Docker image to $(DOCKER_HOST))
-	$Q $(DOCKER) save $(DOCKER_IMAGE) | ssh $(DOCKER_USER)@$(DOCKER_HOST) docker load
-else
-__k8s_deploy__:;
-endif
-else
-__k8s_deploy__:; $(info $(M) K8S import is not set up) # Let's pretend there is nothing to do
-endif
-
-__k8s_refresh_pods__:; $(info $(M)   Restarting Pods for application $(K8S_APP))
-	$Q $(KUBECTL) delete pod $(K8S_FLAGS) --selector app.kubernetes.io/name=$(K8S_APP)
-	$Q $(KUBECTL) rollout status $(K8S_FLAGS) \
-		`$(KUBECTL) get deployments $(K8S_FLAGS) --selector app.kubernetes.io/name=$(K8S_APP) --output name`
+$(TMP_DIR)/image.$(DOCKER_BRANCH).$(COMMIT).tar: $(TMP_DIR)/__docker_$(DOCKER_BRANCH)__ | $(TMP_DIR); $(info $(M)   Saving Docker image)
+	$Q $(DOCKER) save --output=$(TMP_DIR)/image.$(DOCKER_BRANCH).$(COMMIT).tar $(DOCKER_IMAGE)
 
 # build recipes for various platforms
 .PHONY: __build_all__ __build_init__ __fetch_modules__
 __build_init__:;     $(info $(M) Building application $(PROJECT))
-__build_all__:       __fetch_modules__ $(foreach platform, $(PLATFORMS), $(BIN_DIR)/$(platform)/$(PROJECT));
+__build_all__:       $(foreach platform, $(PLATFORMS), $(BIN_DIR)/$(platform)/$(PROJECT));
 __fetch_modules__: ; $(info $(M) Fetching Modules...)
 	$Q $(GO) mod download
 
-$(BIN_DIR)/darwin: $(BIN_DIR) ; @mkdir -p $@
-$(BIN_DIR)/darwin/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin; $(info $(M) building application for darwin)
-	$Q CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
+$(BIN_DIR)/darwin-amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/darwin-amd64/$(PROJECT): export GOOS=darwin
+$(BIN_DIR)/darwin-amd64/$(PROJECT): export GOARCH=amd64
+$(BIN_DIR)/darwin-amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin-amd64; $(info $(M) building application for darwin Intel)
+	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/linux:   $(BIN_DIR) ; @mkdir -p $@
+$(BIN_DIR)/darwin-arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/darwin-arm64/$(PROJECT): export GOOS=darwin
+$(BIN_DIR)/darwin-arm64/$(PROJECT): export GOARCH=arm64
+$(BIN_DIR)/darwin-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin-arm64; $(info $(M) building application for darwin M1)
+	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
+
+$(BIN_DIR)/linux:   $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/linux/$(PROJECT): export GOOS=linux
+$(BIN_DIR)/linux/$(PROJECT): export GOARCH=amd64
 $(BIN_DIR)/linux/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux; $(info $(M) building application for linux)
-	$Q CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
+	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/windows: $(BIN_DIR) ; @mkdir -p $@
+$(BIN_DIR)/windows: $(BIN_DIR) ; $(MKDIR)
 $(BIN_DIR)/windows/$(PROJECT): $(BIN_DIR)/windows/$(PROJECT).exe;
+$(BIN_DIR)/windows/$(PROJECT).exe: export GOOS=windows
+$(BIN_DIR)/windows/$(PROJECT).exe: export GOARCH=amd64
 $(BIN_DIR)/windows/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows; $(info $(M) building application for windows)
-	$Q CGO_ENABLED=0 GOOS=windows GOARCH=amd64 $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
+	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/pi:   $(BIN_DIR) ; @mkdir -p $@
+$(BIN_DIR)/pi:   $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/pi/$(PROJECT): export GOOS=linux
+$(BIN_DIR)/pi/$(PROJECT): export GOARCH=arm
+$(BIN_DIR)/pi/$(PROJECT): export GOARM=6
 $(BIN_DIR)/pi/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/pi; $(info $(M) building application for pi)
-	$Q CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
+	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
+
+# archive recipes
+.PHONY: __archive_all__ __archive_init__
+__archive_init__:;     $(info $(M) Archiving binaries for application $(PROJECT))
+__archive_all__:       $(foreach platform, $(PLATFORMS), $(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z);
+
+$(BIN_DIR)/darwin-amd64/$(PROJECT)-$(VERSION).darwin-amd64.7z: $(BIN_DIR)/darwin-amd64/$(PROJECT)
+	7z a -r $@ $<
+$(BIN_DIR)/darwin-arm64/$(PROJECT)-$(VERSION).darwin-arm64.7z: $(BIN_DIR)/darwin-arm64/$(PROJECT)
+	7z a -r $@ $<
+$(BIN_DIR)/linux/$(PROJECT)-$(VERSION).linux.7z: $(BIN_DIR)/linux/$(PROJECT)
+	7z a -r $@ $<
+$(BIN_DIR)/windows/$(PROJECT)-$(VERSION).windows.7z: $(BIN_DIR)/windows/$(PROJECT).exe
+	7z a -r $@ $<
+$(BIN_DIR)/pi/$(PROJECT)-$(VERSION).pi.7z: $(BIN_DIR)/pi/$(PROJECT)
+	7z a -r $@ $<
 
 # Watch recipes
 watch: watch-tools | $(TMP_DIR); @ ## Run a command continuously: make watch run="go test"
