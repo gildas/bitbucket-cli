@@ -298,17 +298,16 @@ $(BIN_DIR)/darwin-arm64/$(PROJECT): export GOARCH=arm64
 $(BIN_DIR)/darwin-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin-arm64; $(info $(M) building application for darwin M1)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/linux:   $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/linux/amd64:   $(BIN_DIR)/linux ; $(MKDIR)
-$(BIN_DIR)/linux/amd64/$(PROJECT): export GOOS=linux
-$(BIN_DIR)/linux/amd64/$(PROJECT): export GOARCH=amd64
-$(BIN_DIR)/linux/amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/amd64; $(info $(M) building application for linux amd64)
+$(BIN_DIR)/linux-amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/linux-amd64/$(PROJECT): export GOOS=linux
+$(BIN_DIR)/linux-amd64/$(PROJECT): export GOARCH=amd64
+$(BIN_DIR)/linux-amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/amd64; $(info $(M) building application for linux amd64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/linux/arm64:   $(BIN_DIR)/linux ; $(MKDIR)
-$(BIN_DIR)/linux/arm64/$(PROJECT): export GOOS=linux
-$(BIN_DIR)/linux/arm64/$(PROJECT): export GOARCH=arm64
-$(BIN_DIR)/linux/arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/arm64; $(info $(M) building application for linux arm64)
+$(BIN_DIR)/linux-arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/linux-arm64/$(PROJECT): export GOOS=linux
+$(BIN_DIR)/linux-arm64/$(PROJECT): export GOARCH=arm64
+$(BIN_DIR)/linux-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/arm64; $(info $(M) building application for linux arm64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 $(BIN_DIR)/windows: $(BIN_DIR) ; $(MKDIR)
