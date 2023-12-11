@@ -18,15 +18,15 @@ COV_DIR ?= tmp/coverage
 BRANCH    != git symbolic-ref --short HEAD
 COMMIT    != git rev-parse --short HEAD
 BUILD     := "$(STAMP).$(COMMIT)"
-VERSION   != awk '/^var +VERSION +=/{gsub("\"", "", $$4) ; print $$4}' cmd/version.go
+VERSION   != awk '/^var +VERSION +=/{gsub("\"", "", $$4) ; print $$4}' version.go
 ifeq ($VERSION,)
 VERSION   != git describe --tags --always --dirty="-dev"
 endif
-PROJECT   != awk '/^const +APP += +/{gsub("\"", "", $$4); print $$4}' cmd/version.go
+PROJECT   != awk '/^const +APP += +/{gsub("\"", "", $$4); print $$4}' version.go
 ifeq (${PROJECT},)
 PROJECT   != basename "$(PWD)"
 endif
-PLATFORMS ?= darwin-amd64 darwin-arm64 linux windows pi
+PLATFORMS ?= darwin-amd64 darwin-arm64 linux-amd64 linux-arm64 windows pi
 
 # Files
 GOTESTS   := $(call rwildcard,,*_test.go)
@@ -57,7 +57,7 @@ PANDOC  ?= pandoc
 # Flags
 #MAKEFLAGS += --silent
 # GO
-export GOPRIVATE   ?= bitbucket.org/genesyscsp/*
+export GOPRIVATE   ?= bitbucket.org/gildas_cherruel/*
 export CGO_ENABLED  = 0
 ifneq ($(what),)
 TEST_ARG := -run '$(what)'
@@ -67,8 +67,8 @@ endif
 
 # Docker
 export DOCKER_BUILDKIT = 1
-DOCKER_REGISTRY     ?= registry.genesys-services.com
-DOCKER_REPOSITORY    = gum/$(PROJECT)
+DOCKER_REGISTRY     ?= registry.breizh.org
+DOCKER_REPOSITORY    = $(PROJECT)
 DOCKER_IMAGE         = $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)
 DOCKER_BRANCH       := $(subst /,_,$(shell git symbolic-ref --short HEAD))
 ifeq ($(BRANCH), master)
@@ -269,7 +269,8 @@ __publish_binaries__: archive
 #$Q $(foreach platform, $(PLATFORMS), $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z)
 	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/darwin-amd64/$(PROJECT)-$(VERSION).darwin-amd64.7z
 	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/darwin-arm64/$(PROJECT)-$(VERSION).darwin-arm64.7z
-	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/linux/$(PROJECT)-$(VERSION).linux.7z
+	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/linux-amd64/$(PROJECT)-$(VERSION).linux-amd64.7z
+	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/linux-arm64/$(PROJECT)-$(VERSION).linux-arm64.7z
 	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/windows/$(PROJECT)-$(VERSION).windows.7z
 
 .PHONY: __docker_save__
@@ -298,9 +299,16 @@ $(BIN_DIR)/darwin-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin-arm
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 $(BIN_DIR)/linux:   $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/linux/$(PROJECT): export GOOS=linux
-$(BIN_DIR)/linux/$(PROJECT): export GOARCH=amd64
-$(BIN_DIR)/linux/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux; $(info $(M) building application for linux)
+$(BIN_DIR)/linux/amd64:   $(BIN_DIR)/linux ; $(MKDIR)
+$(BIN_DIR)/linux/amd64/$(PROJECT): export GOOS=linux
+$(BIN_DIR)/linux/amd64/$(PROJECT): export GOARCH=amd64
+$(BIN_DIR)/linux/amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/amd64; $(info $(M) building application for linux amd64)
+	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
+
+$(BIN_DIR)/linux/arm64:   $(BIN_DIR)/linux ; $(MKDIR)
+$(BIN_DIR)/linux/arm64/$(PROJECT): export GOOS=linux
+$(BIN_DIR)/linux/arm64/$(PROJECT): export GOARCH=arm64
+$(BIN_DIR)/linux/arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/arm64; $(info $(M) building application for linux arm64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 $(BIN_DIR)/windows: $(BIN_DIR) ; $(MKDIR)
@@ -326,7 +334,9 @@ $(BIN_DIR)/darwin-amd64/$(PROJECT)-$(VERSION).darwin-amd64.7z: $(BIN_DIR)/darwin
 	7z a -r $@ $<
 $(BIN_DIR)/darwin-arm64/$(PROJECT)-$(VERSION).darwin-arm64.7z: $(BIN_DIR)/darwin-arm64/$(PROJECT)
 	7z a -r $@ $<
-$(BIN_DIR)/linux/$(PROJECT)-$(VERSION).linux.7z: $(BIN_DIR)/linux/$(PROJECT)
+$(BIN_DIR)/linux-amd64/$(PROJECT)-$(VERSION).linux-amd64.7z: $(BIN_DIR)/linux-amd64/$(PROJECT)
+	7z a -r $@ $<
+$(BIN_DIR)/linux-arm64/$(PROJECT)-$(VERSION).linux-arm64.7z: $(BIN_DIR)/linux-arm64/$(PROJECT)
 	7z a -r $@ $<
 $(BIN_DIR)/windows/$(PROJECT)-$(VERSION).windows.7z: $(BIN_DIR)/windows/$(PROJECT).exe
 	7z a -r $@ $<
