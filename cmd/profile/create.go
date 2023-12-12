@@ -42,6 +42,9 @@ func createProcess(cmd *cobra.Command, args []string) error {
 	if err := createOptions.Validate(); err != nil {
 		return err
 	}
+	if _, found := Profiles.Find(createOptions.Name); found {
+		return errors.DuplicateFound.With("name", createOptions.Name)
+	}
 
 	Profiles.Add(&createOptions)
 	viper.Set("profiles", Profiles)

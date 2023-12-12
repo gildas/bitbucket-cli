@@ -50,9 +50,6 @@ func (profile *Profile) Validate() error {
 	if len(profile.Name) == 0 {
 		merr.Append(errors.ArgumentMissing.With("name"))
 	}
-	if _, found := Profiles.Find(profile.Name); found {
-		merr.Append(errors.DuplicateFound.With("name", profile.Name))
-	}
 	// We must have either an access token or a user/password or a clientID/clientSecret
 	if len(profile.AccessToken) == 0 && len(profile.ClientID) == 0 && len(profile.User) == 0 {
 		merr.Append(errors.ArgumentMissing.With("accessToken, or user/password, or clientID/clientSecret"))
