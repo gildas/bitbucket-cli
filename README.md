@@ -16,6 +16,28 @@ General help is also available by running `bb --help` or `bb help`.
 
 By default `bb` works in the current git repository. You can specify a Bitbucket repository with the `--repository` flag.
 
+### Output
+
+`bb` outputs a table by default and get be set per profile. You can also use the `--output` flag to change the output format manually. The following formats are supported:
+
+- `csv`: CSV
+- `json`: JSON
+- `yaml`: YAML
+- `tsv`: TSV
+- `table`: Table
+
+For example:
+
+```bash
+bb --output json workspace list
+```
+
+Or
+
+```bash
+bb workspace list --output json
+```
+
 ### Profiles
 
 `bb` uses profiles to store your Bitbucket credentials. You can create a profile with the `bb profile create` command:
@@ -27,7 +49,7 @@ bb profile create \
   --client-secret <your-client-secret>
 ```
 
-You can also pass the `--default` flag to make this profile the default one.
+You can also pass the `--default` flag to make this profile the default one, or pass a `--output` flag to change the profile output format.
 
 Profiles support the following authentications:
 
