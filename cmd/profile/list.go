@@ -12,14 +12,14 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "list all profiles",
 	Args:  cobra.NoArgs,
-	Run:   listProcess,
+	RunE:  listProcess,
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 }
 
-func listProcess(cmd *cobra.Command, args []string) {
+func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(Command.Name(), "list")
 
 	log.Infof("Listing all profiles")

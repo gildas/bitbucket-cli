@@ -39,19 +39,16 @@ func init() {
 }
 
 func updateProcess(cmd *cobra.Command, args []string) error {
-	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
-	log.Infof("Updating profile %s", createOptions.Name)
 	if err := createOptions.Validate(); err != nil {
 		return err
 	}
-
-	log.Warnf("Valid names: %s", Profiles.Names())
-
 	if _, found := Profiles.Find(args[0]); !found {
 		return errors.NotFound.With("profile", args[0])
 	}
 
+	log.Record("profile", profile).Debugf("Updating profile %s", profile.Name)
 	Profiles.Add(&updateOptions)
 	_ = Profiles.Delete(args[0])
 
