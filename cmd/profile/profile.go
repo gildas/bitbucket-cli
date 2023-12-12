@@ -1,6 +1,8 @@
 package profile
 
 import (
+	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -8,24 +10,29 @@ import (
 	"strings"
 	"time"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
+	"github.com/kataras/tablewriter"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 // Profile describes the configuration needed to connect to BitBucket
 type Profile struct {
 	Name         string    `json:"name"                   mapstructure:"name"`
-	Description  string    `json:"description,omitempty"  mapstructure:"description,omitempty" yaml:",omitempty"`
-	Default      bool      `json:"default"                mapstructure:"default"               yaml:",omitempty"`
-	User         string    `json:"user,omitempty"         mapstructure:"user"                  yaml:",omitempty"`
-	Password     string    `json:"password,omitempty"     mapstructure:"password"              yaml:",omitempty"`
-	ClientID     string    `json:"clientID,omitempty"     mapstructure:"clientID"              yaml:",omitempty"`
-	ClientSecret string    `json:"clientSecret,omitempty" mapstructure:"clientSecret"          yaml:",omitempty"`
-	AccessToken  string    `json:"accessToken,omitempty"  mapstructure:"accessToken"           yaml:",omitempty"`
-	RefreshToken string    `json:"-"                      mapstructure:"refreshToken"          yaml:"-"`
-	TokenExpires time.Time `json:"-"                      mapstructure:"tokenExpires"          yaml:"-"`
-	TokenScopes  []string  `json:"-"                      mapstructure:"tokenScopes"           yaml:"-"`
+	Description  string    `json:"description,omitempty"  mapstructure:"description,omitempty"  yaml:",omitempty"`
+	Default      bool      `json:"default"                mapstructure:"default"                yaml:",omitempty"`
+	OutputFormat string    `json:"outputFormat,omitempty" mapstructure:"outputFormat,omitempty" yaml:",omitempty"`
+	User         string    `json:"user,omitempty"         mapstructure:"user"                   yaml:",omitempty"`
+	Password     string    `json:"password,omitempty"     mapstructure:"password"               yaml:",omitempty"`
+	ClientID     string    `json:"clientID,omitempty"     mapstructure:"clientID"               yaml:",omitempty"`
+	ClientSecret string    `json:"clientSecret,omitempty" mapstructure:"clientSecret"           yaml:",omitempty"`
+	AccessToken  string    `json:"accessToken,omitempty"  mapstructure:"accessToken"            yaml:",omitempty"`
+	RefreshToken string    `json:"-"                      mapstructure:"refreshToken"           yaml:"-"`
+	TokenExpires time.Time `json:"-"                      mapstructure:"tokenExpires"           yaml:"-"`
+	TokenScopes  []string  `json:"-"                      mapstructure:"tokenScopes"            yaml:"-"`
 }
 
 // Current is the current profile
@@ -41,6 +48,78 @@ var Command = &cobra.Command{
 			fmt.Println(command.Name())
 		}
 	},
+}
+
+// GetHeader gets the header for a table
+//
+// implements common.Tableable
+func (profile Profile) GetHeader(short bool) []string {
+	if short {
+		headers := []string{"Name", "Description", "Default"}
+		if len(profile.User) > 0 {
+			headers = append(headers, "User")
+		} else if len(profile.ClientID) > 0 {
+			headers = append(headers, "ClientID")
+		}
+		return headers
+	}
+	return []string{"Name", "Description", "Default", "User", "ClientID", "AccessToken"}
+}
+
+// GetRow gets the row for a table
+//
+// implements common.Tableable
+func (profile Profile) GetRow(headers []string) []string {
+	row := []string{
+		profile.Name,
+		profile.Description,
+		fmt.Sprintf("%v", profile.Default),
+	}
+	if core.Contains(headers, "User") {
+		row = append(row, profile.User)
+	}
+	if core.Contains(headers, "ClientID") {
+		row = append(row, profile.ClientID)
+	}
+	return row
+}
+
+// Update updates this profile with the given one
+func (profile *Profile) Update(other Profile) error {
+	if len(other.Name) > 0 {
+		profile.Name = other.Name
+	}
+	if len(other.Description) > 0 {
+		profile.Description = other.Description
+	}
+	if other.Default {
+		profile.Default = other.Default
+	}
+	if len(other.OutputFormat) > 0 {
+		profile.OutputFormat = other.OutputFormat
+	}
+	if len(other.User) > 0 {
+		profile.User = other.User
+	}
+	if len(other.Password) > 0 {
+		profile.Password = other.Password
+	}
+	if len(other.ClientID) > 0 {
+		profile.ClientID = other.ClientID
+		profile.RefreshToken = ""
+		profile.TokenExpires = time.Time{}
+		profile.TokenScopes = []string{}
+	}
+	if len(other.ClientSecret) > 0 {
+		profile.ClientSecret = other.ClientSecret
+	}
+	if len(other.AccessToken) > 0 {
+		profile.AccessToken = other.AccessToken
+		profile.RefreshToken = ""
+		profile.TokenExpires = time.Time{}
+		profile.TokenScopes = []string{}
+	}
+	return profile.Validate()
 }
 
 // Validate validates a Profile
@@ -72,6 +151,110 @@ func (profile *Profile) Validate() error {
 // implements fmt.Stringer
 func (profile Profile) String() string {
 	return profile.Name
+}
+
+// Print prints the given payload to the console
+func (profile Profile) Print(context context.Context, payload any) error {
+	log := logger.Must(logger.FromContext(context)).Child("profile", "print", "format", profile.OutputFormat)
+
+	switch profile.OutputFormat {
+	case "json":
+		log.Debugf("Printing payload as JSON")
+		data, err := json.MarshalIndent(payload, "", "  ")
+		if err != nil {
+			return errors.JSONMarshalError.Wrap(err)
+		}
+		fmt.Println(string(data))
+	case "yaml":
+		log.Debugf("Printing payload as YAML")
+		data, err := yaml.Marshal(payload)
+		if err != nil {
+			return errors.JSONMarshalError.Wrap(err)
+		}
+		fmt.Println(string(data))
+	case "csv":
+		log.Debugf("Printing payload as csv")
+		writer := csv.NewWriter(os.Stdout)
+		defer writer.Flush()
+
+		switch actual := payload.(type) {
+		case common.Tableable:
+			headers := actual.GetHeader(true)
+			_ = writer.Write(headers)
+			_ = writer.Write(actual.GetRow(headers))
+		case common.Tableables:
+			log.Debugf("Payload is a slice of %d elements", actual.Size())
+			if actual.Size() > 0 {
+				headers := actual.GetHeader()
+				_ = writer.Write(headers)
+				for i := 0; i < actual.Size(); i++ {
+					_ = writer.Write(actual.GetRowAt(i))
+				}
+			}
+		default:
+			return errors.ArgumentInvalid.With("payload", "not a tableable")
+		}
+	case "table":
+		fallthrough
+	default:
+		log.Debugf("Printing payload as table")
+		table := tablewriter.NewWriter(os.Stdout)
+
+		switch actual := payload.(type) {
+		case common.Tableable:
+			headers := actual.GetHeader(true)
+			table.SetHeader(headers)
+			table.Append(actual.GetRow(headers))
+		case common.Tableables:
+			log.Debugf("Payload is a slice of %d elements", actual.Size())
+			if actual.Size() > 0 {
+				headers := actual.GetHeader()
+				table.SetHeader(headers)
+				for i := 0; i < actual.Size(); i++ {
+					table.Append(actual.GetRowAt(i))
+				}
+			}
+		default:
+			return errors.ArgumentInvalid.With("payload", "not a tableable")
+		}
+		table.Render()
+	}
+	return nil
+}
+
+// MarshalJSON marshals this profile to JSON
+//
+// implements json.Marshaler
+func (profile Profile) MarshalJSON() ([]byte, error) {
+	type surrogate Profile
+	outputFormat := profile.OutputFormat
+	if outputFormat == "table" {
+		outputFormat = ""
+	}
+	data, err := json.Marshal(struct {
+		surrogate
+		OutputFormat string `json:"outputFormat,omitempty"`
+	}{
+		surrogate:    surrogate(profile),
+		OutputFormat: outputFormat,
+	})
+	return data, errors.JSONMarshalError.Wrap(err)
+}
+
+// UnmarshalJSON unmarshals this profile from JSON
+//
+// implements json.Unmarshaler
+func (profile *Profile) UnmarshalJSON(data []byte) error {
+	type surrogate Profile
+	var inner surrogate
+	if err := json.Unmarshal(data, &inner); err != nil {
+		return errors.JSONUnmarshalError.Wrap(err)
+	}
+	*profile = Profile(inner)
+	if len(profile.OutputFormat) == 0 {
+		profile.OutputFormat = "table"
+	}
+	return nil
 }
 
 // loadAccessToken loads the access token from the cache

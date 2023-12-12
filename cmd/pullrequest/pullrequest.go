@@ -57,6 +57,27 @@ var Command = &cobra.Command{
 	},
 }
 
+// GetHeader gets the header for a table
+//
+// implements common.Tableable
+func (pullrequest PullRequest) GetHeader(short bool) []string {
+	return []string{"ID", "Title", "Description", "source", "destination", "state"}
+}
+
+// GetRow gets the row for a table
+//
+// implements common.Tableable
+func (pullrequest PullRequest) GetRow(headers []string) []string {
+	return []string{
+		fmt.Sprintf("%d", pullrequest.ID),
+		pullrequest.Title,
+		pullrequest.Description,
+		pullrequest.Source.Branch.Name,
+		pullrequest.Destination.Branch.Name,
+		pullrequest.State,
+	}
+}
+
 // Validate validates a PullRequest
 func (pullrequest *PullRequest) Validate() error {
 	var merr errors.MultiError

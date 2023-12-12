@@ -1,7 +1,6 @@
 package pullrequest
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -87,15 +86,5 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to create pullrequest: %s\n", err)
 		os.Exit(1)
 	}
-	ref := struct {
-		Title string `json:"title"`
-		ID    uint64 `json:"id"`
-	}{
-		Title: pullrequest.Title,
-		ID:    pullrequest.ID,
-	}
-	data, _ := json.MarshalIndent(ref, "", "  ")
-	fmt.Println(string(data))
-
-	return
+	return profile.Current.Print(cmd.Context(), pullrequest)
 }

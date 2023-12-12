@@ -1,8 +1,7 @@
 package pullrequest
 
 import (
-	"encoding/json"
-	"fmt"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -26,7 +25,7 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.State = common.EnumFlag{Allowed: []string{"all", "open", "closed", "merged", "declined"}, Value: "all"}
+	listOptions.State = common.EnumFlag{Allowed: []string{"all", "declined", "merged", "open", "superseded"}, Value: "open"}
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequests from. Defaults to the current repository")
 	listCmd.Flags().Var(&listOptions.State, "state", "Pull request state to fetch. Defaults to \"all\"")
 	_ = listCmd.RegisterFlagCompletionFunc("state", listOptions.State.CompletionFunc())
@@ -39,12 +38,12 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Listing all pull requests for repository: %s with profile %s", listOptions.Repository, profile.Current)
+	log.Infof("Listing %s pull requests for repository: %s with profile %s", listOptions.State, listOptions.Repository, profile.Current)
 	pullrequests, err := profile.GetAll[PullRequest](
 		log.ToContext(cmd.Context()),
 		profile.Current,
 		listOptions.Repository,
-		"pullrequests?state="+listOptions.State.String(),
+		"pullrequests/?state="+strings.ToUpper(listOptions.State.String()),
 	)
 	if err != nil {
 		return err
@@ -53,7 +52,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No pullrequest found")
 		return
 	}
-	payload, _ := json.MarshalIndent(pullrequests, "", "  ")
-	fmt.Println(string(payload))
-	return nil
+	return profile.Current.Print(cmd.Context(), PullRequests(pullrequests))
 }

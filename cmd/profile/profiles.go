@@ -1,6 +1,8 @@
 package profile
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -33,6 +35,38 @@ func (profiles profiles) Names() []string {
 		names = append(names, profile.Name)
 	}
 	return names
+}
+
+// GetHeader gets the header for a table
+//
+// implements common.Tableables
+func (profiles profiles) GetHeader() []string {
+	return Profile{}.GetHeader(false)
+}
+
+// GetRowAt gets the row for a table
+//
+// implements common.Tableables
+func (profiles profiles) GetRowAt(index int) []string {
+	if index < 0 || index >= len(profiles) {
+		return []string{}
+	}
+	profile := profiles[index]
+	return []string{
+		profile.Name,
+		profile.Description,
+		fmt.Sprintf("%v", profile.Default),
+		profile.User,
+		profile.ClientID,
+		profile.AccessToken,
+	}
+}
+
+// Size gets the number of elements
+//
+// implements common.Tableables
+func (profiles profiles) Size() int {
+	return len(profiles)
 }
 
 // Find finds a profile by name

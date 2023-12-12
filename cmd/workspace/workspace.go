@@ -31,6 +31,24 @@ var Command = &cobra.Command{
 	},
 }
 
+// GetHeader gets the header for a table
+//
+// implements common.Tableable
+func (workspace Workspace) GetHeader(short bool) []string {
+	return []string{"ID", "Name", "Slug"}
+}
+
+// GetRow gets the row for a table
+//
+// implements common.Tableable
+func (workspace Workspace) GetRow(headers []string) []string {
+	return []string{
+		workspace.ID,
+		workspace.Name,
+		workspace.Slug,
+	}
+}
+
 // GetWorkspaceSlugs gets the slugs of all workspaces
 func GetWorkspaceSlugs(context context.Context) (slugs []string) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")

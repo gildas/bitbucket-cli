@@ -1,9 +1,6 @@
 package profile
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -30,7 +27,5 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	if !found {
 		return errors.NotFound.With("profile", args[0])
 	}
-	payload, _ := json.MarshalIndent(profile, "", "  ")
-	fmt.Println(string(payload))
-	return nil
+	return Current.Print(cmd.Context(), profile)
 }

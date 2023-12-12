@@ -1,11 +1,10 @@
 package profile
 
 import (
-	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -20,11 +19,15 @@ var updateCmd = &cobra.Command{
 	RunE:              updateProcess,
 }
 
-var updateOptions Profile
+var updateOptions struct {
+	Profile
+	OutputFormat common.EnumFlag
+}
 
 func init() {
 	Command.AddCommand(updateCmd)
 
+	updateOptions.OutputFormat = common.EnumFlag{Allowed: []string{"json", "yaml", "table"}, Value: ""}
 	updateCmd.Flags().StringVarP(&updateOptions.Name, "name", "n", "", "Name of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the profile")
 	updateCmd.Flags().BoolVar(&updateOptions.Default, "default", false, "True if this is the default profile")
@@ -33,6 +36,7 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.ClientID, "client-id", "", "Client ID of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.ClientSecret, "client-secret", "", "Client Secret of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.AccessToken, "access-token", "", "Access Token of the profile")
+	updateCmd.Flags().Var(&updateOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	updateCmd.MarkFlagsRequiredTogether("user", "password")
 	updateCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	updateCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
@@ -41,16 +45,24 @@ func init() {
 func updateProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
-	if err := createOptions.Validate(); err != nil {
-		return err
+	if len(updateOptions.OutputFormat.String()) > 0 {
+		updateOptions.Profile.OutputFormat = updateOptions.OutputFormat.String()
 	}
-	if _, found := Profiles.Find(args[0]); !found {
+	log.Infof("Updating profile %s (Valid Names: %v)", args[0], Profiles.Names())
+	profile, found := Profiles.Find(args[0])
+	if !found {
 		return errors.NotFound.With("profile", args[0])
 	}
 
 	log.Record("profile", profile).Debugf("Updating profile %s", profile.Name)
-	Profiles.Add(&updateOptions)
-	_ = Profiles.Delete(args[0])
+	err := profile.Update(updateOptions.Profile)
+	if err != nil {
+		return err
+	}
+	if profile.Default {
+		Profiles.SetCurrent(profile.Name)
+	}
+	log.Record("profile", profile).Debugf("Updated profile %s", profile.Name)
 
 	viper.Set("profiles", Profiles)
 	if len(viper.ConfigFileUsed()) > 0 {
@@ -77,8 +89,5 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	} else {
 		return err
 	}
-	profile, _ := Profiles.Find(args[0])
-	payload, _ := json.MarshalIndent(profile, "", "  ")
-	fmt.Println(string(payload))
-	return nil
+	return Current.Print(cmd.Context(), profile)
 }

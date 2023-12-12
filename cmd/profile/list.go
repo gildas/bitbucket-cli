@@ -1,9 +1,6 @@
 package profile
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -27,6 +24,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No profiles found")
 		return
 	}
-	payload, _ := json.MarshalIndent(Profiles, "", "  ")
-	fmt.Println(string(payload))
+	return Current.Print(cmd.Context(), Profiles)
 }
