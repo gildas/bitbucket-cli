@@ -2,7 +2,6 @@ package workspace
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -55,9 +54,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("No member found")
 			return nil
 		}
-		payload, _ := json.MarshalIndent(members, "", "  ")
-		fmt.Println(string(payload))
-		return nil
+		return profile.Current.Print(cmd.Context(), Members(members))
 	}
 
 	if len(getOptions.Member) != 0 {
@@ -67,10 +64,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			fmt.Fprintf(os.Stderr, "Failed to get workspace member %s: %s\n", getOptions.Member, err)
 			os.Exit(1)
 		}
-
-		payload, _ := json.MarshalIndent(member, "", "  ")
-		fmt.Println(string(payload))
-		return nil
+		return profile.Current.Print(cmd.Context(), member)
 	}
 
 	log.Infof("Displaying workspace %s", args[0])
@@ -79,10 +73,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to get workspace %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-
-	payload, _ := json.MarshalIndent(workspace, "", "  ")
-	fmt.Println(string(payload))
-	return nil
+	return profile.Current.Print(cmd.Context(), workspace)
 }
 
 func getWorkspaceMember(context context.Context, profile *profile.Profile, workspace string, member string) (*Member, error) {

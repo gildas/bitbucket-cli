@@ -1,7 +1,6 @@
 package pullrequest
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -81,8 +80,5 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to merge pullrequest %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	data, _ := json.MarshalIndent(pullrequest, "", "  ")
-	fmt.Println(string(data))
-
-	return
+	return profile.Current.Print(cmd.Context(), pullrequest)
 }

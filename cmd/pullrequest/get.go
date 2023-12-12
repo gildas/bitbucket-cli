@@ -1,7 +1,6 @@
 package pullrequest
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -63,7 +62,5 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 
-	payload, _ := json.MarshalIndent(pullrequest, "", "  ")
-	fmt.Println(string(payload))
-	return nil
+	return profile.Current.Print(cmd.Context(), pullrequest)
 }

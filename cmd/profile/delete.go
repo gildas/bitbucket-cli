@@ -11,6 +11,7 @@ import (
 var deleteCmd = &cobra.Command{
 	Use:               "delete",
 	Short:             "delete a profile",
+	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: ValidProfileNames,
 	RunE:              deleteProcess,
 }

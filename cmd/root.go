@@ -10,6 +10,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
@@ -21,11 +22,12 @@ import (
 
 // RootOptions describes the options for the application
 type RootOptions struct {
-	ConfigFile     string `mapstructure:"-"`
-	LogDestination string `mapstructure:"-"`
-	ProfileName    string `mapstructure:"-"`
-	Verbose        bool   `mapstructure:"-"`
-	Debug          bool   `mapstructure:"-"`
+	ConfigFile     string          `mapstructure:"-"`
+	LogDestination string          `mapstructure:"-"`
+	ProfileName    string          `mapstructure:"-"`
+	OutputFormat   common.EnumFlag `mapstructure:"-"`
+	Verbose        bool            `mapstructure:"-"`
+	Debug          bool            `mapstructure:"-"`
 }
 
 // CmdOptions contains the options for the application
@@ -49,11 +51,13 @@ func init() {
 	cobra.CheckErr(err)
 
 	// Global flags
+	CmdOptions.OutputFormat = common.EnumFlag{Allowed: []string{"csv", "json", "yaml", "table"}, Value: ""}
 	RootCmd.PersistentFlags().StringVar(&CmdOptions.ConfigFile, "config", "", "config file (default is .env, "+filepath.Join(configDir, "bitbucket", "config-cli.yml"))
 	RootCmd.PersistentFlags().StringVarP(&CmdOptions.ProfileName, "profile", "p", "", "Profile to use. Overrides the default profile")
 	RootCmd.PersistentFlags().StringVarP(&CmdOptions.LogDestination, "log", "l", "", "Log destination (stdout, stderr, file, none), overrides LOG_DESTINATION environment variable")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.Debug, "debug", false, "logs are written at DEBUG level, overrides DEBUG environment variable")
 	RootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
+	RootCmd.PersistentFlags().VarP(&CmdOptions.OutputFormat, "output", "o", "Output format (json, yaml, table). Overrides the default output format of the profile")
 	_ = RootCmd.MarkFlagFilename("config")
 	_ = RootCmd.MarkFlagFilename("log")
 
@@ -127,6 +131,10 @@ func initConfig() {
 		} else {
 			profile.Current = profile.Profiles.Current()
 		}
-		log.Infof("Profile: %s", profile.Current)
+		if len(CmdOptions.OutputFormat.String()) > 0 {
+			log.Debugf("Setting output format to %s (was: %s)", CmdOptions.OutputFormat.String(), profile.Current.OutputFormat)
+			profile.Current.OutputFormat = CmdOptions.OutputFormat.String()
+		}
+		log.Record("profile", profile.Current).Infof("Profile: %s", profile.Current)
 	}
 }
