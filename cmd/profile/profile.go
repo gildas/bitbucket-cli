@@ -194,6 +194,29 @@ func (profile Profile) Print(context context.Context, payload any) error {
 		default:
 			return errors.ArgumentInvalid.With("payload", "not a tableable")
 		}
+	case "tsv":
+		log.Debugf("Printing payload as tsv")
+		writer := csv.NewWriter(os.Stdout)
+		writer.Comma = '\t'
+		defer writer.Flush()
+
+		switch actual := payload.(type) {
+		case common.Tableable:
+			headers := actual.GetHeader(true)
+			_ = writer.Write(headers)
+			_ = writer.Write(actual.GetRow(headers))
+		case common.Tableables:
+			log.Debugf("Payload is a slice of %d elements", actual.Size())
+			if actual.Size() > 0 {
+				headers := actual.GetHeader()
+				_ = writer.Write(headers)
+				for i := 0; i < actual.Size(); i++ {
+					_ = writer.Write(actual.GetRowAt(i))
+				}
+			}
+		default:
+			return errors.ArgumentInvalid.With("payload", "not a tableable")
+		}
 	case "table":
 		fallthrough
 	default:

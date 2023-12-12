@@ -51,7 +51,7 @@ func init() {
 	cobra.CheckErr(err)
 
 	// Global flags
-	CmdOptions.OutputFormat = common.EnumFlag{Allowed: []string{"csv", "json", "yaml", "table"}, Value: ""}
+	CmdOptions.OutputFormat = common.EnumFlag{Allowed: []string{"csv", "json", "yaml", "table", "tsv"}, Value: ""}
 	RootCmd.PersistentFlags().StringVar(&CmdOptions.ConfigFile, "config", "", "config file (default is .env, "+filepath.Join(configDir, "bitbucket", "config-cli.yml"))
 	RootCmd.PersistentFlags().StringVarP(&CmdOptions.ProfileName, "profile", "p", "", "Profile to use. Overrides the default profile")
 	RootCmd.PersistentFlags().StringVarP(&CmdOptions.LogDestination, "log", "l", "", "Log destination (stdout, stderr, file, none), overrides LOG_DESTINATION environment variable")
