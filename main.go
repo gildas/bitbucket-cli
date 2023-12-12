@@ -23,7 +23,7 @@ func main() {
 	cmd.RootCmd.Version = Version()
 	err := cmd.Execute(log.ToContext(context.Background()))
 	if err != nil {
-		log.Fatalf("Error: %s", err)
+		log.Fatalf("Failed to execute command", err)
 		os.Exit(1)
 	}
 }
