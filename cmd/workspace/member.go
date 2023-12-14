@@ -24,7 +24,7 @@ func (member Member) GetHeader(short bool) []string {
 // implements common.Tableable
 func (member Member) GetRow(headers []string) []string {
 	return []string{
-		member.User.ID,
+		member.User.ID.String(),
 		member.User.Name,
 		member.Workspace.Name,
 	}

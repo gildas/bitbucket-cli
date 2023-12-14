@@ -25,7 +25,7 @@ func (membership Membership) GetHeader(short bool) []string {
 // implements common.Tableable
 func (membership Membership) GetRow(headers []string) []string {
 	return []string{
-		membership.User.ID,
+		membership.User.ID.String(),
 		membership.User.Name,
 		membership.Workspace.Name,
 		membership.Permission,

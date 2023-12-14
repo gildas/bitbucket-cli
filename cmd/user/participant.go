@@ -25,7 +25,7 @@ func (participant Participant) GetHeader(short bool) []string {
 // implements common.Tableable
 func (participant Participant) GetRow(headers []string) []string {
 	return []string{
-		participant.User.ID,
+		participant.User.ID.String(),
 		participant.User.Name,
 		participant.ParticipatedOn.Local().String(),
 		participant.State,

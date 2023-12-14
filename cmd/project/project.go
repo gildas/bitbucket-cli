@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
@@ -18,7 +19,7 @@ import (
 
 type Project struct {
 	Type                           string              `json:"type"                       mapstructure:"type"`
-	ID                             string              `json:"uuid"                       mapstructure:"uuid"`
+	ID                             common.UUID         `json:"uuid"                       mapstructure:"uuid"`
 	Name                           string              `json:"name"                       mapstructure:"name"`
 	Description                    string              `json:"description,omitempty"      mapstructure:"description"`
 	Key                            string              `json:"key"                        mapstructure:"key"`
