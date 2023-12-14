@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -72,6 +74,128 @@ func GetAll[T any](context context.Context, profile *Profile, repository string,
 		uripath = paginated.Next
 	}
 	return resources, nil
+}
+
+func (profile *Profile) Download(context context.Context, repository, uripath, destination string) (err error) {
+	log := logger.Must(logger.FromContext(context)).Child(nil, "download")
+
+	if len(repository) == 0 {
+		remote, err := remote.GetFromGitConfig("origin")
+		if err != nil {
+			return err
+		}
+		repository = remote.Repository()
+	}
+
+	var authorization string
+
+	if len(profile.User) > 0 {
+		authorization = request.BasicAuthorization(profile.User, profile.Password)
+	} else if len(profile.AccessToken) > 0 {
+		authorization = request.BearerAuthorization(profile.AccessToken)
+	} else if authorization, err = profile.authorize(context); err != nil {
+		return err
+	}
+
+	if strings.HasPrefix(uripath, "/") {
+		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
+	} else if !strings.HasPrefix(uripath, "http") {
+		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath)
+	}
+
+	if len(destination) == 0 {
+		destination = "."
+	}
+	if !strings.HasSuffix(destination, "/") {
+		destination += "/"
+	}
+	if err = os.MkdirAll(destination, 0755); err != nil {
+		return errors.RuntimeError.Wrap(err)
+	}
+
+	log.Infof("Downloading artifact %s to repository %s with profile %s", uripath, repository, profile.Name)
+	options := &request.Options{
+		Method:        http.MethodGet,
+		URL:           core.Must(url.Parse(uripath)),
+		Authorization: authorization,
+		Timeout:       30 * time.Second,
+		Logger:        log,
+	}
+	result, err := request.Send(options, nil)
+	if err != nil {
+		if result != nil {
+			var bberr *BitBucketError
+			if jerr := result.UnmarshalContentJSON(&bberr); jerr == nil {
+				return bberr
+			}
+		}
+		return err
+	}
+	filename := result.Headers.Get("Content-Disposition")
+	if len(filename) == 0 {
+		filename = filepath.Base(uripath)
+	} else {
+		filename = strings.TrimPrefix(filename, "attachment; filename=\"")
+		filename = strings.TrimSuffix(filename, "\"")
+	}
+	return errors.RuntimeError.Wrap(os.WriteFile(filepath.Join(destination, filename), result.Data, 0644))
+}
+
+func (profile *Profile) Upload(context context.Context, repository, uripath, source string) (err error) {
+	log := logger.Must(logger.FromContext(context)).Child(nil, "upload")
+
+	if len(repository) == 0 {
+		remote, err := remote.GetFromGitConfig("origin")
+		if err != nil {
+			return err
+		}
+		repository = remote.Repository()
+	}
+
+	var authorization string
+
+	if len(profile.User) > 0 {
+		authorization = request.BasicAuthorization(profile.User, profile.Password)
+	} else if len(profile.AccessToken) > 0 {
+		authorization = request.BearerAuthorization(profile.AccessToken)
+	} else if authorization, err = profile.authorize(context); err != nil {
+		return err
+	}
+
+	if strings.HasPrefix(uripath, "/") {
+		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
+	} else if !strings.HasPrefix(uripath, "http") {
+		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath)
+	}
+
+	reader, err := os.Open(source)
+	if err != nil {
+		return errors.RuntimeError.Wrap(err)
+	}
+	defer reader.Close()
+
+	log.Infof("Uploading artifact %s to repository %s with profile %s", source, repository, profile.Name)
+	options := &request.Options{
+		Method:        http.MethodPost,
+		URL:           core.Must(url.Parse(uripath)),
+		Authorization: authorization,
+		Payload: map[string]string{
+			">files": filepath.Base(source),
+		},
+		Attachment: reader,
+		Timeout:    30 * time.Second,
+		Logger:     log,
+	}
+	result, err := request.Send(options, nil)
+	if err != nil {
+		if result != nil {
+			var bberr *BitBucketError
+			if jerr := result.UnmarshalContentJSON(&bberr); jerr == nil {
+				return bberr
+			}
+		}
+	}
+	return
 }
 
 func (profile *Profile) authorize(context context.Context) (authorization string, err error) {

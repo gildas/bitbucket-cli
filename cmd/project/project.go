@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"time"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/project/reviewer"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -18,7 +20,7 @@ import (
 
 type Project struct {
 	Type                           string              `json:"type"                       mapstructure:"type"`
-	ID                             string              `json:"uuid"                       mapstructure:"uuid"`
+	ID                             common.UUID         `json:"uuid"                       mapstructure:"uuid"`
 	Name                           string              `json:"name"                       mapstructure:"name"`
 	Description                    string              `json:"description,omitempty"      mapstructure:"description"`
 	Key                            string              `json:"key"                        mapstructure:"key"`
@@ -41,6 +43,24 @@ var Command = &cobra.Command{
 			fmt.Println(command.Name())
 		}
 	},
+}
+
+func init() {
+	Command.AddCommand(reviewer.Command)
+}
+
+// GetHeader gets the header for a table
+//
+// implements common.Tableable
+func (project Project) GetHeader(short bool) []string {
+	return []string{"Key", "Name", "Description"}
+}
+
+// GetRow gets the row for a table
+//
+// implements common.Tableable
+func (project Project) GetRow(headers []string) []string {
+	return []string{project.Key, project.Name, project.Description}
 }
 
 // Validate validates a Project

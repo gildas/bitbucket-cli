@@ -160,6 +160,41 @@ You can delete a project with the `bb project delete` command:
 bb project delete myproject --workspace myworkspace
 ```
 
+#### Project Default Reviewers
+
+You can list the default reviewers of a project with the `bb project reviewer list` command:
+
+```bash
+bb project reviewer list --workspace myworkspace --project myproject
+```
+
+You can add a default reviewer to a project with the `bb project reviewer add` command:
+
+```bash
+bb project reviewer add \
+  --workspace myworkspace \
+  --project myproject \
+  userUUID
+```
+
+You can remove a default reviewer from a project with the `bb project reviewer remove` command:
+
+```bash
+bb project reviewer remove \
+  --workspace myworkspace \
+  --project myproject \
+  userUUID
+```
+
+ You can get the details of a default reviewer with the `bb project reviewer get` or `bb project reviewer show` command:
+
+```bash
+bb project reviewer get \
+  --workspace myworkspace \
+  --project myproject \
+  userUUID
+```
+
 ### Pull Requests
 
 You can list pull requests with the `bb pullrequest list` command:
@@ -199,6 +234,38 @@ You can `merge` a pull request with the `bb pullrequest merge` command:
 
 ```bash
 bb pullrequest merge 1
+```
+
+### Artifacts (Downloads)
+
+You can list artifacts with the `bb artifact list` command:
+
+```bash
+bb artifact list
+```
+
+By default the current repository is used, you can specify a repository with the `--repository` flag.
+
+You can also upload an artifact with the `bb artifact upload` command:
+
+```bash
+bb artifact upload myartifact.zip
+```
+
+At the moment, only one file at a time is supported (no folders or stdin). The artifact name is the file name.
+
+You can download an artifact with the `bb artifact download` command:
+
+```bash
+bb artifact download myartifact.zip
+```
+
+You can provide a `--destination` flag to specify the destination folder. If the folder does not exist, it will be created.
+
+Finally, you can delete an artifact with the `bb artifact delete` command:
+
+```bash
+bb artifact delete myartifact.zip
 ```
 
 ### Completion
@@ -266,5 +333,3 @@ bb completion zsh > "$(brew --prefix)/share/zsh/site-functions/_bb"
 ### TODO
 
 We will add more commands in the future. If you have any suggestions, please open an issue.
-
-At the moment all outputs are in JSON. We will add more output formats in the future.

@@ -1,7 +1,6 @@
 package project
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -66,8 +65,5 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to get project %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-
-	payload, _ := json.MarshalIndent(project, "", "  ")
-	fmt.Println(string(payload))
-	return nil
+	return profile.Current.Print(cmd.Context(), project)
 }

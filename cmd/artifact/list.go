@@ -1,4 +1,4 @@
-package branch
+package artifact
 
 import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -9,7 +9,7 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "list all branches",
+	Short: "list all projects",
 	Args:  cobra.NoArgs,
 	RunE:  listProcess,
 }
@@ -21,7 +21,7 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list branches from. Defaults to the current repository")
+	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list artifacts from. Defaults to the current repository")
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -31,19 +31,19 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Listing all branches for repository: %s with profile %s", listOptions.Repository, profile.Current)
-	branches, err := profile.GetAll[Branch](
-		log.ToContext(cmd.Context()),
+	log.Infof("Listing all projects from repository %s with profile %s", listOptions.Repository, profile.Current)
+	artifacts, err := profile.GetAll[Artifact](
+		cmd.Context(),
 		profile.Current,
 		listOptions.Repository,
-		"refs/branches",
+		"downloads",
 	)
 	if err != nil {
 		return err
 	}
-	if len(branches) == 0 {
-		log.Infof("No branch found")
-		return
+	if len(artifacts) == 0 {
+		log.Infof("No artifact found")
+		return nil
 	}
-	return profile.Current.Print(cmd.Context(), Branches(branches))
+	return profile.Current.Print(cmd.Context(), Artifacts(artifacts))
 }

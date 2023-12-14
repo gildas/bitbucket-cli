@@ -1,0 +1,62 @@
+package reviewer
+
+import (
+	"fmt"
+	"os"
+
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
+	"github.com/spf13/cobra"
+)
+
+var addCmd = &cobra.Command{
+	Use:     "add",
+	Aliases: []string{"append"},
+	Short:   "add a reviewer",
+	Args:    cobra.ExactArgs(1),
+	RunE:    addProcess,
+}
+
+var addOptions struct {
+	Workspace common.RemoteValueFlag
+	Project   string
+}
+
+func init() {
+	Command.AddCommand(addCmd)
+
+	addOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
+	addCmd.Flags().Var(&addOptions.Workspace, "workspace", "Workspace to add reviewers to")
+	addCmd.Flags().StringVar(&addOptions.Project, "project", "", "Project Key to add reviewers to")
+	_ = addCmd.MarkFlagRequired("workspace")
+	_ = addCmd.MarkFlagRequired("project")
+	_ = addCmd.RegisterFlagCompletionFunc("workspace", addOptions.Workspace.CompletionFunc())
+}
+
+func addProcess(cmd *cobra.Command, args []string) error {
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "add")
+
+	if profile.Current == nil {
+		return errors.ArgumentMissing.With("profile")
+	}
+
+	log.Infof("Adding reviewer %s", args[0])
+	var user user.User
+
+	err := profile.Current.Put(
+		log.ToContext(cmd.Context()),
+		"",
+		fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers/%s", addOptions.Workspace, addOptions.Project, args[0]),
+		nil,
+		&user,
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to add reviewer: %s\n", err)
+		os.Exit(1)
+	}
+	return profile.Current.Print(cmd.Context(), user)
+}

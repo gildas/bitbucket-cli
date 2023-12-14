@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/artifact"
 	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
@@ -60,7 +61,10 @@ func init() {
 	RootCmd.PersistentFlags().VarP(&CmdOptions.OutputFormat, "output", "o", "Output format (json, yaml, table). Overrides the default output format of the profile")
 	_ = RootCmd.MarkFlagFilename("config")
 	_ = RootCmd.MarkFlagFilename("log")
+	_ = RootCmd.RegisterFlagCompletionFunc("profile", profile.ValidProfileNames)
+	_ = RootCmd.RegisterFlagCompletionFunc("output", CmdOptions.OutputFormat.CompletionFunc())
 
+	RootCmd.AddCommand(artifact.Command)
 	RootCmd.AddCommand(profile.Command)
 	RootCmd.AddCommand(project.Command)
 	RootCmd.AddCommand(branch.Command)
