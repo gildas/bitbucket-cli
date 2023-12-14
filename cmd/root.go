@@ -60,6 +60,8 @@ func init() {
 	RootCmd.PersistentFlags().VarP(&CmdOptions.OutputFormat, "output", "o", "Output format (json, yaml, table). Overrides the default output format of the profile")
 	_ = RootCmd.MarkFlagFilename("config")
 	_ = RootCmd.MarkFlagFilename("log")
+	_ = RootCmd.RegisterFlagCompletionFunc("profile", profile.ValidProfileNames)
+	_ = RootCmd.RegisterFlagCompletionFunc("output", CmdOptions.OutputFormat.CompletionFunc())
 
 	RootCmd.AddCommand(profile.Command)
 	RootCmd.AddCommand(project.Command)
