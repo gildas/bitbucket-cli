@@ -14,3 +14,17 @@ type User struct {
 	Raw       string      `json:"raw,omitempty" mapstructure:"raw"`
 	Links     link.Links  `json:"links"         mapstructure:"links"`
 }
+
+// GetHeader gets the header for a table
+//
+// implements common.Tableable
+func (user User) GetHeader(short bool) []string {
+	return []string{"ID", "Name", "Nickname"}
+}
+
+// GetRow gets the row for a table
+//
+// implements common.Tableable
+func (user User) GetRow(headers []string) []string {
+	return []string{user.ID.String(), user.Name, user.Nickname}
+}

@@ -1,4 +1,4 @@
-package project
+package reviewer
 
 import (
 	"fmt"
@@ -13,21 +13,24 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "list all projects",
+	Short: "list all reviewers",
 	Args:  cobra.NoArgs,
 	RunE:  listProcess,
 }
 
 var listOptions struct {
 	Workspace common.RemoteValueFlag
+	Project   string
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	listCmd.Flags().Var(&listOptions.Workspace, "workspace", "Workspace to list projects from")
+	listCmd.Flags().Var(&listOptions.Workspace, "workspace", "Workspace to list reviewers from")
+	listCmd.Flags().StringVar(&listOptions.Project, "project", "", "Project Key to list reviewers from")
 	_ = listCmd.MarkFlagRequired("workspace")
+	_ = listCmd.MarkFlagRequired("project")
 	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc())
 }
 
@@ -38,19 +41,19 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Listing all projects from workspace %s with profile %s", listOptions.Workspace, profile.Current)
-	projects, err := profile.GetAll[Project](
+	log.Infof("Listing all reviewers")
+	reviewers, err := profile.GetAll[Reviewer](
 		cmd.Context(),
 		profile.Current,
 		"",
-		fmt.Sprintf("/workspaces/%s/projects", listOptions.Workspace),
+		fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", listOptions.Workspace, listOptions.Project),
 	)
 	if err != nil {
 		return err
 	}
-	if len(projects) == 0 {
+	if len(reviewers) == 0 {
 		log.Infof("No project found")
 		return nil
 	}
-	return profile.Current.Print(cmd.Context(), Projects(projects))
+	return profile.Current.Print(cmd.Context(), Reviewers(reviewers))
 }

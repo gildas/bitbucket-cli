@@ -2,7 +2,6 @@ package project
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
@@ -123,8 +122,5 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to update project: %s\n", err)
 		os.Exit(1)
 	}
-	data, _ := json.MarshalIndent(project, "", "  ")
-	fmt.Println(string(data))
-
-	return nil
+	return profile.Current.Print(cmd.Context(), project)
 }
