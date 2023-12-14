@@ -160,6 +160,41 @@ You can delete a project with the `bb project delete` command:
 bb project delete myproject --workspace myworkspace
 ```
 
+#### Project Default Reviewers
+
+You can list the default reviewers of a project with the `bb project reviewer list` command:
+
+```bash
+bb project reviewer list --workspace myworkspace --project myproject
+```
+
+You can add a default reviewer to a project with the `bb project reviewer add` command:
+
+```bash
+bb project reviewer add \
+  --workspace myworkspace \
+  --project myproject \
+  userUUID
+```
+
+You can remove a default reviewer from a project with the `bb project reviewer remove` command:
+
+```bash
+bb project reviewer remove \
+  --workspace myworkspace \
+  --project myproject \
+  userUUID
+```
+
+ You can get the details of a default reviewer with the `bb project reviewer get` or `bb project reviewer show` command:
+
+```bash
+bb project reviewer get \
+  --workspace myworkspace \
+  --project myproject \
+  userUUID
+```
+
 ### Pull Requests
 
 You can list pull requests with the `bb pullrequest list` command:
@@ -266,5 +301,3 @@ bb completion zsh > "$(brew --prefix)/share/zsh/site-functions/_bb"
 ### TODO
 
 We will add more commands in the future. If you have any suggestions, please open an issue.
-
-At the moment all outputs are in JSON. We will add more output formats in the future.
