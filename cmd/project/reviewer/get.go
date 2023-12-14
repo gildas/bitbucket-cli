@@ -54,7 +54,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		&user,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to add reviewer: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to get reviewer: %s\n", err)
 		os.Exit(1)
 	}
 	return profile.Current.Print(cmd.Context(), user)

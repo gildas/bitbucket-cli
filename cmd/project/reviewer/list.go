@@ -52,7 +52,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 	if len(reviewers) == 0 {
-		log.Infof("No project found")
+		log.Infof("No reviewer found")
 		return nil
 	}
 	return profile.Current.Print(cmd.Context(), Reviewers(reviewers))
