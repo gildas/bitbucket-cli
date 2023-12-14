@@ -1,9 +1,6 @@
 package branch
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -48,7 +45,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No branch found")
 		return
 	}
-	payload, _ := json.MarshalIndent(branches, "", "  ")
-	fmt.Println(string(payload))
-	return nil
+	return profile.Current.Print(cmd.Context(), Branches(branches))
 }

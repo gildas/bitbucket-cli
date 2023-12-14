@@ -30,6 +30,20 @@ var Command = &cobra.Command{
 	},
 }
 
+// GetHeader gets the header for a table
+//
+// implements common.Tableable
+func (branch Branch) GetHeader(short bool) []string {
+	return []string{"Name"}
+}
+
+// GetRow gets the row for a table
+//
+// implements common.Tableable
+func (branch Branch) GetRow(headers []string) []string {
+	return []string{branch.Name}
+}
+
 // Validate validates a Branch
 func (branch *Branch) Validate() error {
 	var merr errors.MultiError

@@ -48,6 +48,24 @@ var Command = &cobra.Command{
 	},
 }
 
+// GetHeader gets the header for a table
+//
+// implements common.Tableable
+func (commit Commit) GetHeader(short bool) []string {
+	return []string{"Hash", "Author", "Message"}
+}
+
+// GetRow gets the row for a table
+//
+// implements common.Tableable
+func (commit Commit) GetRow(headers []string) []string {
+	return []string{
+		commit.Hash[:7],
+		commit.Author.User.Name,
+		commit.Message,
+	}
+}
+
 // Validate validates a Commit
 func (commit *Commit) Validate() error {
 	var merr errors.MultiError
