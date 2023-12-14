@@ -236,6 +236,38 @@ You can `merge` a pull request with the `bb pullrequest merge` command:
 bb pullrequest merge 1
 ```
 
+### Artifacts (Downloads)
+
+You can list artifacts with the `bb artifact list` command:
+
+```bash
+bb artifact list
+```
+
+By default the current repository is used, you can specify a repository with the `--repository` flag.
+
+You can also upload an artifact with the `bb artifact upload` command:
+
+```bash
+bb artifact upload myartifact.zip
+```
+
+At the moment, only one file at a time is supported (no folders or stdin). The artifact name is the file name.
+
+You can download an artifact with the `bb artifact download` command:
+
+```bash
+bb artifact download myartifact.zip
+```
+
+You can provide a `--destination` flag to specify the destination folder. If the folder does not exist, it will be created.
+
+Finally, you can delete an artifact with the `bb artifact delete` command:
+
+```bash
+bb artifact delete myartifact.zip
+```
+
 ### Completion
 
 `bb` supports completion for Bash, fish, Powershell, and zsh.
