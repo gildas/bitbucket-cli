@@ -8,9 +8,10 @@ import (
 	"github.com/gildas/go-errors"
 )
 
-type AppUser struct {
+type Account struct {
 	Type          string       `json:"type"           mapstructure:"type"`
 	ID            common.UUID  `json:"uuid"           mapstructure:"uuid"`
+	Username      string       `json:"username"       mapstructure:"username"`
 	Name          string       `json:"display_name"   mapstructure:"display_name"`
 	AccountID     string       `json:"account_id"     mapstructure:"account_id"`
 	AccountStatus string       `json:"account_status" mapstructure:"account_status"`
@@ -20,15 +21,15 @@ type AppUser struct {
 }
 
 // MarshalJSON implements the json.Marshaler interface.
-func (user AppUser) MarshalJSON() (data []byte, err error) {
-	type surrogate AppUser
+func (account Account) MarshalJSON() (data []byte, err error) {
+	type surrogate Account
 
 	data, err = json.Marshal(struct {
 		surrogate
 		CreatedOn string `json:"created_on"`
 	}{
-		surrogate: surrogate(user),
-		CreatedOn: user.CreatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
+		surrogate: surrogate(account),
+		CreatedOn: account.CreatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
 }

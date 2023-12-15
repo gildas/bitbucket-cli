@@ -25,7 +25,7 @@ type PullRequest struct {
 	MergeCommit       *commit.Commit      `json:"merge_commit,omitempty" mapstructure:"merge_commit"`
 	CloseSourceBranch bool                `json:"close_source_branch"    mapstructure:"close_source_branch"`
 	ClosedBy          user.User           `json:"closed_by"              mapstructure:"closed_by"`
-	Author            user.AppUser        `json:"author"                 mapstructure:"author"`
+	Author            user.Account        `json:"author"                 mapstructure:"author"`
 	Reason            string              `json:"reason"                 mapstructure:"reason"`
 	Destination       Endpoint            `json:"destination"            mapstructure:"destination"`
 	Source            Endpoint            `json:"source"                 mapstructure:"source"`
