@@ -2,7 +2,6 @@ package project
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
@@ -57,6 +56,7 @@ func init() {
 	_ = createCmd.MarkFlagRequired("key")
 	_ = createCmd.MarkFlagFilename("avatar-file")
 	createCmd.MarkFlagsMutuallyExclusive("avatar-url", "avatar-file")
+	_ = createCmd.RegisterFlagCompletionFunc("workspace", createOptions.Workspace.CompletionFunc())
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {
@@ -64,13 +64,6 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
-	}
-
-	if len(createOptions.Name) == 0 {
-		return errors.ArgumentMissing.With("name")
-	}
-	if len(createOptions.Key) == 0 {
-		return errors.ArgumentMissing.With("key")
 	}
 
 	payload := ProjectCreator{
@@ -119,8 +112,5 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to create project: %s\n", err)
 		os.Exit(1)
 	}
-	data, _ := json.MarshalIndent(project, "", "  ")
-	fmt.Println(string(data))
-
-	return
+	return profile.Current.Print(cmd.Context(), project)
 }
