@@ -16,6 +16,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
+	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -72,6 +73,7 @@ func init() {
 	RootCmd.AddCommand(commit.Command)
 	RootCmd.AddCommand(component.Command)
 	RootCmd.AddCommand(pullrequest.Command)
+	RootCmd.AddCommand(user.Command)
 	RootCmd.AddCommand(workspace.Command)
 
 	RootCmd.SilenceUsage = true // Do not show usage when an error occurs
