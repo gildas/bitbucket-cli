@@ -274,12 +274,13 @@ func (profile *Profile) send(context context.Context, method, repository, uripat
 	}
 
 	options := &request.Options{
-		Method:        method,
-		URL:           core.Must(url.Parse(uripath)),
-		Authorization: authorization,
-		Payload:       body,
-		Timeout:       30 * time.Second,
-		Logger:        log,
+		Method:              method,
+		URL:                 core.Must(url.Parse(uripath)),
+		Authorization:       authorization,
+		Payload:             body,
+		Timeout:             30 * time.Second,
+		ResponseBodyLogSize: 16 * 1024,
+		Logger:              log,
 	}
 	result, err := request.Send(options, &response)
 	if err != nil {
