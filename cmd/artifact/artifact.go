@@ -3,17 +3,17 @@ package artifact
 import (
 	"fmt"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/link"
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/spf13/cobra"
 )
 
 type Artifact struct {
-	Name      string     `json:"name" mapstructure:"name"`
-	Size      uint64     `json:"size" mapstructure:"size"`
-	Downloads uint64     `json:"downloads" mapstructure:"downloads"`
-	User      user.User  `json:"user" mapstructure:"user"`
-	Links     link.Links `json:"links" mapstructure:"links"`
+	Name      string       `json:"name"      mapstructure:"name"`
+	Size      uint64       `json:"size"      mapstructure:"size"`
+	Downloads uint64       `json:"downloads" mapstructure:"downloads"`
+	User      user.User    `json:"user"      mapstructure:"user"`
+	Links     common.Links `json:"links"     mapstructure:"links"`
 }
 
 var Command = &cobra.Command{

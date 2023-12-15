@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
@@ -18,11 +17,11 @@ import (
 )
 
 type ProjectCreator struct {
-	Name        string      `json:"name"`
-	Description string      `json:"description,omitempty"`
-	Key         string      `json:"key"`
-	Links       *link.Links `json:"links,omitempty"`
-	IsPrivate   bool        `json:"is_private"`
+	Name        string        `json:"name"`
+	Description string        `json:"description,omitempty"`
+	Key         string        `json:"key"`
+	Links       *common.Links `json:"links,omitempty"`
+	IsPrivate   bool          `json:"is_private"`
 }
 
 var createCmd = &cobra.Command{
@@ -88,8 +87,8 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			return errors.Join(errors.ArgumentInvalid.With("avatar-path", createOptions.AvatarPath), err)
 		}
 		avatarBlob := base64.StdEncoding.EncodeToString(avatarData)
-		payload.Links = &link.Links{
-			Avatar: &link.Link{HREF: url.URL{Scheme: "data", Opaque: "image/png;base64," + avatarBlob}},
+		payload.Links = &common.Links{
+			Avatar: &common.Link{HREF: url.URL{Scheme: "data", Opaque: "image/png;base64," + avatarBlob}},
 		}
 	} else if strings.HasPrefix(createOptions.AvatarURL, "http") {
 		avatarURL, err := url.Parse(createOptions.AvatarURL)
@@ -97,8 +96,8 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			return errors.Join(errors.ArgumentInvalid.With("avatar", createOptions.AvatarURL), err)
 		}
 		log.Debugf("Avatar is an URL: %s", createOptions.AvatarURL)
-		payload.Links = &link.Links{
-			Avatar: &link.Link{HREF: *avatarURL},
+		payload.Links = &common.Links{
+			Avatar: &common.Link{HREF: *avatarURL},
 		}
 	} else if len(createOptions.AvatarURL) > 0 {
 		log.Errorf("Avatar is not a file nor an URL: %s", createOptions.AvatarURL)

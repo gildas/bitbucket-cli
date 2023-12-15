@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
@@ -13,11 +12,11 @@ import (
 )
 
 type Workspace struct {
-	Type  string      `json:"type"  mapstructure:"type"`
-	ID    common.UUID `json:"uuid"  mapstructure:"uuid"`
-	Name  string      `json:"name"  mapstructure:"name"`
-	Slug  string      `json:"slug"  mapstructure:"slug"`
-	Links link.Links  `json:"links" mapstructure:"links"`
+	Type  string       `json:"type"  mapstructure:"type"`
+	ID    common.UUID  `json:"uuid"  mapstructure:"uuid"`
+	Name  string       `json:"name"  mapstructure:"name"`
+	Slug  string       `json:"slug"  mapstructure:"slug"`
+	Links common.Links `json:"links" mapstructure:"links"`
 }
 
 // Command represents this folder's command

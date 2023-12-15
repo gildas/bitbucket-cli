@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
-	"bitbucket.org/gildas_cherruel/bb/cmd/link"
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
@@ -16,31 +16,24 @@ import (
 )
 
 type PullRequest struct {
-	Type              string             `json:"type"                   mapstructure:"type"`
-	ID                uint64             `json:"id"                     mapstructure:"id"`
-	Title             string             `json:"title"                  mapstructure:"title"`
-	Description       string             `json:"description"            mapstructure:"description"`
-	Summary           PullRequestSummary `json:"summary"                mapstructure:"summary"`
-	State             string             `json:"state"                  mapstructure:"state"`
-	MergeCommit       *commit.Commit     `json:"merge_commit,omitempty" mapstructure:"merge_commit"`
-	CloseSourceBranch bool               `json:"close_source_branch"    mapstructure:"close_source_branch"`
-	ClosedBy          user.User          `json:"closed_by"              mapstructure:"closed_by"`
-	Author            user.AppUser       `json:"author"                 mapstructure:"author"`
-	Reason            string             `json:"reason"                 mapstructure:"reason"`
-	Destination       Endpoint           `json:"destination"            mapstructure:"destination"`
-	Source            Endpoint           `json:"source"                 mapstructure:"source"`
-	Links             link.Links         `json:"links"                  mapstructure:"links"`
-	CommentCount      uint64             `json:"comment_count"          mapstructure:"comment_count"`
-	TaskCount         uint64             `json:"task_count"             mapstructure:"task_count"`
-	CreatedOn         time.Time          `json:"created_on"             mapstructure:"created_on"`
-	UpdatedOn         time.Time          `json:"updated_on"             mapstructure:"updated_on"`
-}
-
-type PullRequestSummary struct {
-	Type   string `json:"type"   mapstructure:"type"`
-	Markup string `json:"markup" mapstructure:"markup"`
-	Raw    string `json:"raw"    mapstructure:"raw"`
-	HTML   string `json:"html"   mapstructure:"html"`
+	Type              string              `json:"type"                   mapstructure:"type"`
+	ID                uint64              `json:"id"                     mapstructure:"id"`
+	Title             string              `json:"title"                  mapstructure:"title"`
+	Description       string              `json:"description"            mapstructure:"description"`
+	Summary           common.RenderedText `json:"summary"                mapstructure:"summary"`
+	State             string              `json:"state"                  mapstructure:"state"`
+	MergeCommit       *commit.Commit      `json:"merge_commit,omitempty" mapstructure:"merge_commit"`
+	CloseSourceBranch bool                `json:"close_source_branch"    mapstructure:"close_source_branch"`
+	ClosedBy          user.User           `json:"closed_by"              mapstructure:"closed_by"`
+	Author            user.AppUser        `json:"author"                 mapstructure:"author"`
+	Reason            string              `json:"reason"                 mapstructure:"reason"`
+	Destination       Endpoint            `json:"destination"            mapstructure:"destination"`
+	Source            Endpoint            `json:"source"                 mapstructure:"source"`
+	Links             common.Links        `json:"links"                  mapstructure:"links"`
+	CommentCount      uint64              `json:"comment_count"          mapstructure:"comment_count"`
+	TaskCount         uint64              `json:"task_count"             mapstructure:"task_count"`
+	CreatedOn         time.Time           `json:"created_on"             mapstructure:"created_on"`
+	UpdatedOn         time.Time           `json:"updated_on"             mapstructure:"updated_on"`
 }
 
 // Command represents this folder's command

@@ -5,19 +5,18 @@ import (
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"github.com/gildas/go-errors"
 )
 
 type AppUser struct {
-	Type          string      `json:"type"           mapstructure:"type"`
-	ID            common.UUID `json:"uuid"           mapstructure:"uuid"`
-	Name          string      `json:"display_name"   mapstructure:"display_name"`
-	AccountID     string      `json:"account_id"     mapstructure:"account_id"`
-	AccountStatus string      `json:"account_status" mapstructure:"account_status"`
-	Kind          string      `json:"kind"           mapstructure:"kind"`
-	Links         link.Links  `json:"links"          mapstructure:"links"`
-	CreatedOn     time.Time   `json:"created_on"     mapstructure:"created_on"`
+	Type          string       `json:"type"           mapstructure:"type"`
+	ID            common.UUID  `json:"uuid"           mapstructure:"uuid"`
+	Name          string       `json:"display_name"   mapstructure:"display_name"`
+	AccountID     string       `json:"account_id"     mapstructure:"account_id"`
+	AccountStatus string       `json:"account_status" mapstructure:"account_status"`
+	Kind          string       `json:"kind"           mapstructure:"kind"`
+	Links         common.Links `json:"links"          mapstructure:"links"`
+	CreatedOn     time.Time    `json:"created_on"     mapstructure:"created_on"`
 }
 
 // MarshalJSON implements the json.Marshaler interface.

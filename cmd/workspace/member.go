@@ -1,15 +1,15 @@
 package workspace
 
 import (
-	"bitbucket.org/gildas_cherruel/bb/cmd/link"
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 )
 
 type Member struct {
-	Type      string     `json:"type"       mapstructure:"type"`
-	User      user.User  `json:"user"       mapstructure:"user"`
-	Workspace Workspace  `json:"workspace"  mapstructure:"workspace"`
-	Links     link.Links `json:"links"      mapstructure:"links"`
+	Type      string       `json:"type"      mapstructure:"type"`
+	User      user.User    `json:"user"      mapstructure:"user"`
+	Workspace Workspace    `json:"workspace" mapstructure:"workspace"`
+	Links     common.Links `json:"links"     mapstructure:"links"`
 }
 
 // GetHeader gets the header for a table
