@@ -12,6 +12,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/component"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
@@ -69,6 +70,7 @@ func init() {
 	RootCmd.AddCommand(project.Command)
 	RootCmd.AddCommand(branch.Command)
 	RootCmd.AddCommand(commit.Command)
+	RootCmd.AddCommand(component.Command)
 	RootCmd.AddCommand(pullrequest.Command)
 	RootCmd.AddCommand(workspace.Command)
 
