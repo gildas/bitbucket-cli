@@ -100,7 +100,7 @@ func (issue Issue) MarshalJSON() (data []byte, err error) {
 		UpdatedOn: issue.UpdatedOn.Format(time.RFC3339),
 		EditedOn:  issue.EditedOn.Format(time.RFC3339),
 	})
-	return
+	return data, errors.JSONMarshalError.Wrap(err)
 }
 
 // GetIssueIDs gets the IDs of the issues

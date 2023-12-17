@@ -13,7 +13,7 @@ import (
 var getCmd = &cobra.Command{
 	Use:               "get",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get a workspace",
+	Short:             "get an issue",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
