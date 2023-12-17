@@ -8,6 +8,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/component"
+	"bitbucket.org/gildas_cherruel/bb/cmd/issue/comment"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
@@ -47,6 +48,10 @@ var Command = &cobra.Command{
 			fmt.Println(command.Name())
 		}
 	},
+}
+
+func init() {
+	Command.AddCommand(comment.Command)
 }
 
 // GetHeader gets the header for a table
