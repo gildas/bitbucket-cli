@@ -1,7 +1,6 @@
 package comment
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -29,10 +28,7 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.IssueID = common.RemoteValueFlag{AllowedFunc: func(ctx context.Context) []string {
-		// maybe we should store the Command in the flag and use it here
-		return GetIssueIDs(ctx, profile.Current, getOptions.Repository) // not sure the profile is set at this point
-	}}
+	getOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
 	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get an issue comment from. Defaults to the current repository")
 	getCmd.Flags().Var(&getOptions.IssueID, "issue", "Issue to get comments from. Defaults to the current issue")
 	_ = getCmd.MarkFlagRequired("issue")

@@ -7,7 +7,7 @@ import (
 )
 
 type RemoteValueFlag struct {
-	AllowedFunc func(context.Context) []string
+	AllowedFunc func(context.Context, *cobra.Command) []string
 	Value       string
 }
 
@@ -31,7 +31,7 @@ func (flag *RemoteValueFlag) Set(value string) error {
 func (flag *RemoteValueFlag) CompletionFunc() func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		if flag.AllowedFunc != nil {
-			return flag.AllowedFunc(cmd.Context()), cobra.ShellCompDirectiveNoFileComp
+			return flag.AllowedFunc(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
 		}
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
