@@ -56,14 +56,14 @@ func (account Account) GetRow(headers []string) []string {
 }
 
 // GetMe gets the current user
-func GetMe(context context.Context, p *profile.Profile) (account *Account, err error) {
-	if p == nil {
+func GetMe(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile) (account *Account, err error) {
+	if currentProfile == nil {
 		return nil, errors.ArgumentMissing.With("profile")
 	}
 
 	err = profile.Current.Get(
 		context,
-		"",
+		cmd,
 		"/user",
 		&account,
 	)
@@ -71,8 +71,8 @@ func GetMe(context context.Context, p *profile.Profile) (account *Account, err e
 }
 
 // GetAccount gets a user
-func GetAccount(context context.Context, p *profile.Profile, userid string) (account *Account, err error) {
-	if p == nil {
+func GetAccount(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, userid string) (account *Account, err error) {
+	if currentProfile == nil {
 		return nil, errors.ArgumentMissing.With("profile")
 	}
 
@@ -80,7 +80,7 @@ func GetAccount(context context.Context, p *profile.Profile, userid string) (acc
 	if err == nil {
 		err = profile.Current.Get(
 			context,
-			"",
+			cmd,
 			fmt.Sprintf("/users/%s", uuid.String()),
 			&account,
 		)

@@ -64,7 +64,7 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueIDs(cmd.Context(), profile.Current, updateOptions.Repository), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueIDs(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
 }
 
 func updateProcess(cmd *cobra.Command, args []string) (err error) {
@@ -85,7 +85,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if strings.ToLower(updateOptions.Assignee) == "me" || strings.ToLower(updateOptions.Assignee) == "myself" {
-		me, err := user.GetMe(cmd.Context(), profile.Current)
+		me, err := user.GetMe(cmd.Context(), cmd, profile.Current)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get current user: %s\n", err)
 			os.Exit(1)
@@ -108,7 +108,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Current.Put(
 		log.ToContext(cmd.Context()),
-		updateOptions.Repository,
+		cmd,
 		fmt.Sprintf("issues/%s", args[0]),
 		payload,
 		&issue,

@@ -54,12 +54,7 @@ func GetWorkspaceSlugs(context context.Context, cmd *cobra.Command) (slugs []str
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
 
 	log.Debugf("Getting all workspaces")
-	workspaces, err := profile.GetAll[Workspace](
-		context,
-		profile.Current,
-		"",
-		"/workspaces",
-	)
+	workspaces, err := profile.GetAll[Workspace](context, cmd, profile.Current, "/workspaces")
 	if err != nil {
 		log.Errorf("Failed to get workspaces", err)
 		return

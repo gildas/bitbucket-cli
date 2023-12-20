@@ -103,7 +103,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Current.Post(
 		log.ToContext(cmd.Context()),
-		"",
+		cmd,
 		fmt.Sprintf("/workspaces/%s/projects", createOptions.Workspace),
 		payload,
 		&project,

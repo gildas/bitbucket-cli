@@ -40,7 +40,7 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetProjectKeys(cmd.Context(), profile.Current, deleteOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
+	return GetProjectKeys(cmd.Context(), cmd, profile.Current, deleteOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
@@ -53,7 +53,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 	log.Infof("Deleting project %s", args[0])
 	err := profile.Current.Delete(
 		log.ToContext(cmd.Context()),
-		"",
+		cmd,
 		fmt.Sprintf("/workspaces/%s/projects/%s", deleteOptions.Workspace, args[0]),
 		nil,
 	)

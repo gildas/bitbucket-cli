@@ -101,12 +101,8 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command) (ids []string) {
 		ID int `json:"id" mapstructure:"id"`
 	}
 
-	issues, err := profile.GetAll[Issue](
-		context,
-		p,
-		repository,
-		"issues",
-	)
+	log.Infof("Getting all issues")
+	issues, err := profile.GetAll[Issue](context, cmd, profile.Current, "issues")
 	if err != nil {
 		log.Errorf("Failed to get issues", err)
 		return []string{}
@@ -119,15 +115,10 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command) (ids []string) {
 }
 
 // GetIssueCommentIDs gets the IDs of the issues
-func GetIssueCommentIDs(context context.Context, p *profile.Profile, repository string, issueID string) (ids []string) {
+func GetIssueCommentIDs(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, issueID string) (ids []string) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
-	comments, err := profile.GetAll[Comment](
-		context,
-		p,
-		repository,
-		fmt.Sprintf("issues/%s/comments", issueID),
-	)
+	comments, err := profile.GetAll[Comment](context, cmd, currentProfile, fmt.Sprintf("issues/%s/comments", issueID))
 	if err != nil {
 		log.Errorf("Failed to get issues", err)
 		return []string{}

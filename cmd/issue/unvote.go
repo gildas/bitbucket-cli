@@ -36,7 +36,7 @@ func unvoteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueIDs(cmd.Context(), profile.Current, unvoteOptions.Repository), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueIDs(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
 }
 
 func unvoteProcess(cmd *cobra.Command, args []string) (err error) {
@@ -49,7 +49,7 @@ func unvoteProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Infof("unvote for issue %s", args[0])
 	err = profile.Current.Delete(
 		log.ToContext(cmd.Context()),
-		unvoteOptions.Repository,
+		cmd,
 		fmt.Sprintf("issues/%s/vote", args[0]),
 		nil,
 	)

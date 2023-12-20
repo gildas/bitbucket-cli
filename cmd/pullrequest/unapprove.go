@@ -37,7 +37,7 @@ func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return getPullRequests(cmd.Context(), unapproveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequests(cmd.Context(), cmd, unapproveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func unapproveProcess(cmd *cobra.Command, args []string) (err error) {
@@ -50,7 +50,7 @@ func unapproveProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Infof("Unapproving pullrequest %s", args[0])
 	err = profile.Current.Delete(
 		log.ToContext(cmd.Context()),
-		unapproveOptions.Repository,
+		cmd,
 		fmt.Sprintf("pullrequests/%s/approve", args[0]),
 		nil,
 	)

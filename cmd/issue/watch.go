@@ -38,7 +38,7 @@ func watchValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueIDs(cmd.Context(), profile.Current, watchOptions.Repository), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueIDs(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
 }
 
 func watchProcess(cmd *cobra.Command, args []string) (err error) {
@@ -51,7 +51,7 @@ func watchProcess(cmd *cobra.Command, args []string) (err error) {
 	if watchOptions.Check {
 		err = profile.Current.Get(
 			log.ToContext(cmd.Context()),
-			watchOptions.Repository,
+			cmd,
 			fmt.Sprintf("issues/%s/watch", args[0]),
 			nil,
 		)
@@ -61,7 +61,7 @@ func watchProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Infof("watch for issue %s", args[0])
 	err = profile.Current.Put(
 		log.ToContext(cmd.Context()),
-		watchOptions.Repository,
+		cmd,
 		fmt.Sprintf("issues/%s/watch", args[0]),
 		nil,
 		nil,

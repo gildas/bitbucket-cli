@@ -10,11 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/gildas/go-request"
+	"github.com/spf13/cobra"
 )
 
 type PaginatedResources[T any] struct {
@@ -26,28 +27,28 @@ type PaginatedResources[T any] struct {
 	Previous string `json:"previous"`
 }
 
-func (profile *Profile) Post(context context.Context, repository, uripath string, body interface{}, response interface{}) (err error) {
-	return profile.send(context, http.MethodPost, repository, uripath, body, response)
+func (profile *Profile) Post(context context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
+	return profile.send(context, cmd, http.MethodPost, uripath, body, response)
 }
 
-func (profile *Profile) Get(context context.Context, repository, uripath string, response interface{}) (err error) {
-	return profile.send(context, http.MethodGet, repository, uripath, nil, response)
+func (profile *Profile) Get(context context.Context, cmd *cobra.Command, uripath string, response interface{}) (err error) {
+	return profile.send(context, cmd, http.MethodGet, uripath, nil, response)
 }
 
-func (profile *Profile) Put(context context.Context, repository, uripath string, body interface{}, response interface{}) (err error) {
-	return profile.send(context, http.MethodPut, repository, uripath, body, response)
+func (profile *Profile) Put(context context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
+	return profile.send(context, cmd, http.MethodPut, uripath, body, response)
 }
 
-func (profile *Profile) Delete(context context.Context, repository, uripath string, response interface{}) (err error) {
-	return profile.send(context, http.MethodDelete, repository, uripath, nil, response)
+func (profile *Profile) Delete(context context.Context, cmd *cobra.Command, uripath string, response interface{}) (err error) {
+	return profile.send(context, cmd, http.MethodDelete, uripath, nil, response)
 }
 
-func (profile *Profile) Patch(context context.Context, repository, uripath string, body interface{}, response interface{}) (err error) {
-	return profile.send(context, http.MethodPatch, repository, uripath, body, response)
+func (profile *Profile) Patch(context context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
+	return profile.send(context, cmd, http.MethodPatch, uripath, body, response)
 }
 
 // GetAllResources gets all resources using the given profile
-func GetAll[T any](context context.Context, profile *Profile, repository string, uripath string) (resources []T, err error) {
+func GetAll[T any](context context.Context, cmd *cobra.Command, profile *Profile, uripath string) (resources []T, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getall")
 
 	log.Infof("Getting all resources for profile %s", profile.Name)
@@ -57,7 +58,7 @@ func GetAll[T any](context context.Context, profile *Profile, repository string,
 
 		err = profile.Get(
 			context,
-			repository,
+			cmd,
 			uripath,
 			&paginated,
 		)
@@ -76,16 +77,8 @@ func GetAll[T any](context context.Context, profile *Profile, repository string,
 	return resources, nil
 }
 
-func (profile *Profile) Download(context context.Context, repository, uripath, destination string) (err error) {
+func (profile *Profile) Download(context context.Context, cmd *cobra.Command, uripath, destination string) (err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "download")
-
-	if len(repository) == 0 {
-		remote, err := remote.GetFromGitConfig("origin")
-		if err != nil {
-			return err
-		}
-		repository = remote.RepositoryName()
-	}
 
 	var authorization string
 
@@ -100,6 +93,11 @@ func (profile *Profile) Download(context context.Context, repository, uripath, d
 	if strings.HasPrefix(uripath, "/") {
 		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
 	} else if !strings.HasPrefix(uripath, "http") {
+		repository, err := repository.GetRepository(context, cmd)
+		if err != nil {
+			return err
+		}
+		log.Infof("Using repository %s", repository)
 		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath)
 	}
 
@@ -113,7 +111,7 @@ func (profile *Profile) Download(context context.Context, repository, uripath, d
 		return errors.RuntimeError.Wrap(err)
 	}
 
-	log.Infof("Downloading artifact %s to repository %s with profile %s", uripath, repository, profile.Name)
+	log.Infof("Downloading artifact %s", uripath)
 	options := &request.Options{
 		Method:        http.MethodGet,
 		URL:           core.Must(url.Parse(uripath)),
@@ -141,16 +139,8 @@ func (profile *Profile) Download(context context.Context, repository, uripath, d
 	return errors.RuntimeError.Wrap(os.WriteFile(filepath.Join(destination, filename), result.Data, 0644))
 }
 
-func (profile *Profile) Upload(context context.Context, repository, uripath, source string) (err error) {
+func (profile *Profile) Upload(context context.Context, cmd *cobra.Command, uripath, source string) (err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "upload")
-
-	if len(repository) == 0 {
-		remote, err := remote.GetFromGitConfig("origin")
-		if err != nil {
-			return err
-		}
-		repository = remote.RepositoryName()
-	}
 
 	var authorization string
 
@@ -165,6 +155,11 @@ func (profile *Profile) Upload(context context.Context, repository, uripath, sou
 	if strings.HasPrefix(uripath, "/") {
 		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
 	} else if !strings.HasPrefix(uripath, "http") {
+		repository, err := repository.GetRepository(context, cmd)
+		if err != nil {
+			return err
+		}
+		log.Infof("Using repository %s", repository)
 		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath)
 	}
 
@@ -174,7 +169,7 @@ func (profile *Profile) Upload(context context.Context, repository, uripath, sou
 	}
 	defer reader.Close()
 
-	log.Infof("Uploading artifact %s to repository %s with profile %s", source, repository, profile.Name)
+	log.Infof("Uploading artifact %s", source)
 	options := &request.Options{
 		Method:        http.MethodPost,
 		URL:           core.Must(url.Parse(uripath)),
@@ -204,7 +199,7 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 	if err := profile.loadAccessToken(); err == nil {
 		if !profile.isTokenExpired() {
 			log.Infof("Using access token for profile %s", profile.Name)
-			log.Debugf("Token exires on %s in %s", profile.TokenExpires.Format(time.RFC3339), time.Until(profile.TokenExpires))
+			log.Debugf("Token expires on %s in %s", profile.TokenExpires.Format(time.RFC3339), time.Until(profile.TokenExpires))
 			return request.BearerAuthorization(profile.AccessToken), nil
 		}
 	}
@@ -246,16 +241,8 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 	return request.BearerAuthorization(profile.AccessToken), nil
 }
 
-func (profile *Profile) send(context context.Context, method, repository, uripath string, body interface{}, response interface{}) (err error) {
+func (profile *Profile) send(context context.Context, cmd *cobra.Command, method, uripath string, body interface{}, response interface{}) (err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, strings.ToLower(method))
-
-	if len(repository) == 0 {
-		remote, err := remote.GetFromGitConfig("origin")
-		if err != nil {
-			return err
-		}
-		repository = remote.RepositoryName()
-	}
 
 	var authorization string
 
@@ -270,6 +257,11 @@ func (profile *Profile) send(context context.Context, method, repository, uripat
 	if strings.HasPrefix(uripath, "/") {
 		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
 	} else if !strings.HasPrefix(uripath, "http") {
+		repository, err := repository.GetRepository(context, cmd)
+		if err != nil {
+			return err
+		}
+		log.Infof("Using repository %s", repository)
 		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath)
 	}
 

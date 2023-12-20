@@ -42,7 +42,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	err := profile.Current.Download(
 		log.ToContext(cmd.Context()),
-		downloadOptions.Repository,
+		cmd,
 		fmt.Sprintf("downloads/%s", args[0]),
 		downloadOptions.Destination,
 	)

@@ -39,7 +39,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueIDs(cmd.Context(), profile.Current, getOptions.Repository), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueIDs(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) (err error) {
@@ -53,8 +53,8 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("Displaying changes for issue %s", args[0])
 		changes, err := profile.GetAll[IssueChange](
 			log.ToContext(cmd.Context()),
+			cmd,
 			profile.Current,
-			getOptions.Repository,
 			fmt.Sprintf("issues/%s/changes", args[0]),
 		)
 		if err != nil {
@@ -69,7 +69,7 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Current.Get(
 		log.ToContext(cmd.Context()),
-		getOptions.Repository,
+		cmd,
 		fmt.Sprintf("issues/%s", args[0]),
 		&issue,
 	)

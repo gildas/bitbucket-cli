@@ -38,9 +38,9 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	var account *Account
 
 	if strings.ToLower(args[0]) == "myself" || strings.ToLower(args[0]) == "me" {
-		account, err = GetMe(cmd.Context(), profile.Current)
+		account, err = GetMe(cmd.Context(), cmd, profile.Current)
 	} else {
-		account, err = GetAccount(cmd.Context(), profile.Current, args[0])
+		account, err = GetAccount(cmd.Context(), cmd, profile.Current, args[0])
 	}
 	if err != nil {
 		return err

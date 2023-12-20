@@ -36,7 +36,7 @@ func voteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]stri
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueIDs(cmd.Context(), profile.Current, voteOptions.Repository), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueIDs(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
 }
 
 func voteProcess(cmd *cobra.Command, args []string) (err error) {
@@ -49,7 +49,7 @@ func voteProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Infof("Vote for issue %s", args[0])
 	err = profile.Current.Put(
 		log.ToContext(cmd.Context()),
-		voteOptions.Repository,
+		cmd,
 		fmt.Sprintf("issues/%s/vote", args[0]),
 		nil,
 		nil,

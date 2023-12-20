@@ -38,7 +38,7 @@ func declineValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return getPullRequests(cmd.Context(), declineOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequests(cmd.Context(), cmd, declineOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func declineProcess(cmd *cobra.Command, args []string) (err error) {
@@ -53,7 +53,7 @@ func declineProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Current.Post(
 		log.ToContext(cmd.Context()),
-		declineOptions.Repository,
+		cmd,
 		fmt.Sprintf("pullrequests/%s/decline", args[0]),
 		nil,
 		&participant,

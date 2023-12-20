@@ -77,7 +77,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Current.Post(
 		log.ToContext(cmd.Context()),
-		createOptions.Repository,
+		cmd,
 		"pullrequests",
 		payload,
 		&pullrequest,

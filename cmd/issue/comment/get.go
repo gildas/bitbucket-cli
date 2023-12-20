@@ -43,7 +43,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueCommentIDs(cmd.Context(), profile.Current, getOptions.Repository, getOptions.IssueID.Value), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, getOptions.IssueID.Value), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) (err error) {
@@ -58,7 +58,7 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Current.Get(
 		log.ToContext(cmd.Context()),
-		getOptions.Repository,
+		cmd,
 		fmt.Sprintf("issues/%s/comments/%s", getOptions.IssueID.Value, args[0]),
 		&comment,
 	)

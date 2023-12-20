@@ -36,7 +36,7 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueIDs(cmd.Context(), profile.Current, deleteOptions.Repository), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueIDs(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
@@ -49,7 +49,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 	log.Infof("Deleting project %s", args[0])
 	err := profile.Current.Delete(
 		log.ToContext(cmd.Context()),
-		getOptions.Repository,
+		cmd,
 		fmt.Sprintf("issues/%s", args[0]),
 		nil,
 	)

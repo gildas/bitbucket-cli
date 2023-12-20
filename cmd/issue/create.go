@@ -73,7 +73,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if strings.ToLower(createOptions.Assignee) == "me" || strings.ToLower(createOptions.Assignee) == "myself" {
-		me, err := user.GetMe(cmd.Context(), profile.Current)
+		me, err := user.GetMe(cmd.Context(), cmd, profile.Current)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get current user: %s\n", err)
 			os.Exit(1)
@@ -92,7 +92,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Current.Post(
 		log.ToContext(cmd.Context()),
-		createOptions.Repository,
+		cmd,
 		"issues",
 		payload,
 		&issue,

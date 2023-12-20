@@ -93,15 +93,10 @@ func (project Project) MarshalJSON() (data []byte, err error) {
 }
 
 // GetProjectKeys gets the keys of the projects in the given workspace
-func GetProjectKeys(context context.Context, p *profile.Profile, workspace string) (keys []string) {
+func GetProjectKeys(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, workspace string) (keys []string) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 
-	projects, err := profile.GetAll[Project](
-		context,
-		p,
-		"",
-		fmt.Sprintf("/workspaces/%s/projects", workspace),
-	)
+	projects, err := profile.GetAll[Project](context, cmd, currentProfile, fmt.Sprintf("/workspaces/%s/projects", workspace))
 	if err != nil {
 		log.Errorf("Failed to get projects", err)
 		return

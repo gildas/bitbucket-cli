@@ -36,7 +36,7 @@ func unwatchValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueIDs(cmd.Context(), profile.Current, unwatchOptions.Repository), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueIDs(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
 }
 
 func unwatchProcess(cmd *cobra.Command, args []string) (err error) {
@@ -49,7 +49,7 @@ func unwatchProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Infof("unwatch for issue %s", args[0])
 	err = profile.Current.Delete(
 		log.ToContext(cmd.Context()),
-		unwatchOptions.Repository,
+		cmd,
 		fmt.Sprintf("issues/%s/watch", args[0]),
 		nil,
 	)

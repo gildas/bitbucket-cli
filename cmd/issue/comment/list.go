@@ -38,12 +38,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all comments from repository %s with profile %s", listOptions.Repository, profile.Current)
-	comments, err := profile.GetAll[Comment](
-		cmd.Context(),
-		profile.Current,
-		listOptions.Repository,
-		fmt.Sprintf("issues/%d/comments", listOptions.Issue),
-	)
+	comments, err := profile.GetAll[Comment](cmd.Context(), cmd, profile.Current, fmt.Sprintf("issues/%d/comments", listOptions.Issue))
 	if err != nil {
 		return err
 	}

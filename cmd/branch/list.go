@@ -32,12 +32,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all branches for repository: %s with profile %s", listOptions.Repository, profile.Current)
-	branches, err := profile.GetAll[Branch](
-		log.ToContext(cmd.Context()),
-		profile.Current,
-		listOptions.Repository,
-		"refs/branches",
-	)
+	branches, err := profile.GetAll[Branch](log.ToContext(cmd.Context()), cmd, profile.Current, "refs/branches")
 	if err != nil {
 		return err
 	}

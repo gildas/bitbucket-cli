@@ -32,12 +32,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all issues from repository %s with profile %s", listOptions.Repository, profile.Current)
-	components, err := profile.GetAll[Component](
-		cmd.Context(),
-		profile.Current,
-		listOptions.Repository,
-		"components",
-	)
+	components, err := profile.GetAll[Component](cmd.Context(), cmd, profile.Current, "components")
 	if err != nil {
 		return err
 	}

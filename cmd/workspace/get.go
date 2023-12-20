@@ -43,8 +43,8 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		log.Infof("Displaying workspace %s members", args[0])
 		members, err := profile.GetAll[Member](
 			cmd.Context(),
+			cmd,
 			profile.Current,
-			"",
 			fmt.Sprintf("/workspaces/%s/members", args[0]),
 		)
 		if err != nil {
@@ -59,7 +59,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	if len(getOptions.Member) != 0 {
 		log.Infof("Displaying workspace %s member %s", args[0], getOptions.Member)
-		member, err := getWorkspaceMember(cmd.Context(), profile.Current, args[0], getOptions.Member)
+		member, err := getWorkspaceMember(cmd.Context(), cmd, profile.Current, args[0], getOptions.Member)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get workspace member %s: %s\n", getOptions.Member, err)
 			os.Exit(1)
@@ -68,7 +68,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying workspace %s", args[0])
-	workspace, err := getWorkspace(cmd.Context(), profile.Current, args[0])
+	workspace, err := getWorkspace(cmd.Context(), cmd, profile.Current, args[0])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get workspace %s: %s\n", args[0], err)
 		os.Exit(1)
@@ -76,7 +76,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	return profile.Current.Print(cmd.Context(), workspace)
 }
 
-func getWorkspaceMember(context context.Context, profile *profile.Profile, workspace string, member string) (*Member, error) {
+func getWorkspaceMember(context context.Context, cmd *cobra.Command, profile *profile.Profile, workspace string, member string) (*Member, error) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "get")
 
 	if profile == nil {
@@ -88,7 +88,7 @@ func getWorkspaceMember(context context.Context, profile *profile.Profile, works
 
 	err := profile.Get(
 		log.ToContext(context),
-		"",
+		cmd,
 		fmt.Sprintf("/workspaces/%s/members/%s", workspace, member),
 		&result,
 	)
@@ -99,7 +99,7 @@ func getWorkspaceMember(context context.Context, profile *profile.Profile, works
 	return &result, nil
 }
 
-func getWorkspace(context context.Context, profile *profile.Profile, workspace string) (*Workspace, error) {
+func getWorkspace(context context.Context, cmd *cobra.Command, profile *profile.Profile, workspace string) (*Workspace, error) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "get")
 
 	if profile == nil {
@@ -111,7 +111,7 @@ func getWorkspace(context context.Context, profile *profile.Profile, workspace s
 
 	err := profile.Get(
 		log.ToContext(context),
-		"",
+		cmd,
 		fmt.Sprintf("/workspaces/%s", workspace),
 		&result,
 	)

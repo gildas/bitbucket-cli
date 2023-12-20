@@ -10,6 +10,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -100,15 +101,15 @@ func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 	return data, errors.JSONMarshalError.Wrap(err)
 }
 
-// getPullRequests gets the pullrequests for completion
-func getPullRequests(context context.Context, repository string, state string) []string {
+// GetPullRequests gets the pullrequests for completion
+func GetPullRequests(context context.Context, cmd *cobra.Command, repository string, state string) []string {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getpullrequests")
 
 	log.Infof("Getting open pullrequests for repository %s", approveOptions.Repository)
 	pullrequests, err := profile.GetAll[PullRequest](
 		log.ToContext(context),
+		cmd,
 		profile.Current,
-		repository,
 		fmt.Sprintf("pullrequests?state=%s", state),
 	)
 	if err != nil {
@@ -116,9 +117,7 @@ func getPullRequests(context context.Context, repository string, state string) [
 		return []string{}
 	}
 
-	var result []string
-	for _, pullrequest := range pullrequests {
-		result = append(result, fmt.Sprintf("%d", pullrequest.ID))
-	}
-	return result
+	return core.Map(pullrequests, func(pullrequest PullRequest) string {
+		return fmt.Sprintf("%d", pullrequest.ID)
+	})
 }

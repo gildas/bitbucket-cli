@@ -38,7 +38,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return getPullRequests(cmd.Context(), getOptions.Repository, "ALL"), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequests(cmd.Context(), cmd, getOptions.Repository, "ALL"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
@@ -53,7 +53,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	err := profile.Current.Get(
 		log.ToContext(cmd.Context()),
-		getOptions.Repository,
+		cmd,
 		fmt.Sprintf("pullrequests/%s", args[0]),
 		&pullrequest,
 	)

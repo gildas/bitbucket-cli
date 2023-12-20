@@ -65,7 +65,7 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetProjectKeys(cmd.Context(), profile.Current, deleteOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
+	return GetProjectKeys(cmd.Context(), cmd, profile.Current, deleteOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
 }
 
 func updateProcess(cmd *cobra.Command, args []string) error {
@@ -112,7 +112,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 
 	err := profile.Current.Put(
 		log.ToContext(cmd.Context()),
-		"",
+		cmd,
 		fmt.Sprintf("/workspaces/%s/projects/%s", updateOptions.Workspace, args[0]),
 		payload,
 		&project,
