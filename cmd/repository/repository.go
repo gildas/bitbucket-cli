@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
+	"github.com/gildas/go-errors"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +23,7 @@ func GetRepository(context context.Context, cmd *cobra.Command) (*Repository, er
 	if len(fullName) == 0 {
 		remote, err := remote.GetFromGitConfig("origin")
 		if err != nil {
-			return nil, err
+			return nil, errors.Join(errors.NotFound.With("current repository"), err)
 		}
 		fullName = remote.RepositoryName()
 	}

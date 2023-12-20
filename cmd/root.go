@@ -145,6 +145,6 @@ func initConfig() {
 			log.Debugf("Setting output format to %s (was: %s)", CmdOptions.OutputFormat.String(), profile.Current.OutputFormat)
 			profile.Current.OutputFormat = CmdOptions.OutputFormat.String()
 		}
-		log.Record("profile", profile.Current).Infof("Profile: %s", profile.Current)
+		log.Record("profile", profile.Current).Infof("Current Profile: %s", profile.Current)
 	}
 }
