@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
@@ -14,22 +13,22 @@ import (
 )
 
 type Commit struct {
-	Type       string                `json:"type"                   mapstructure:"type"`
-	Hash       string                `json:"hash"                   mapstructure:"hash"`
-	Author     user.Author           `json:"author"                 mapstructure:"author"`
-	Message    string                `json:"message"                mapstructure:"message"`
-	Summary    *common.RenderedText  `json:"summary,omitempty"     mapstructure:"summary"`
-	Rendered   *RenderedMessage      `json:"rendered,omitempty"    mapstructure:"rendered"`
-	Parents    []CommitRef           `json:"parents"                mapstructure:"parents"`
-	Date       time.Time             `json:"date"                   mapstructure:"date"`
-	Repository repository.Repository `json:"repository"             mapstructure:"repository"`
-	Links      link.Links            `json:"links"                  mapstructure:"links"`
+	Type       string                `json:"type"               mapstructure:"type"`
+	Hash       string                `json:"hash"               mapstructure:"hash"`
+	Author     user.Author           `json:"author"             mapstructure:"author"`
+	Message    string                `json:"message"            mapstructure:"message"`
+	Summary    *common.RenderedText  `json:"summary,omitempty"  mapstructure:"summary"`
+	Rendered   *RenderedMessage      `json:"rendered,omitempty" mapstructure:"rendered"`
+	Parents    []CommitRef           `json:"parents"            mapstructure:"parents"`
+	Date       time.Time             `json:"date"               mapstructure:"date"`
+	Repository repository.Repository `json:"repository"         mapstructure:"repository"`
+	Links      common.Links          `json:"links"              mapstructure:"links"`
 }
 
 type CommitRef struct {
-	Type  string     `json:"type"  mapstructure:"type"`
-	Hash  string     `json:"hash"  mapstructure:"hash"`
-	Links link.Links `json:"links" mapstructure:"links"`
+	Type  string       `json:"type"  mapstructure:"type"`
+	Hash  string       `json:"hash"  mapstructure:"hash"`
+	Links common.Links `json:"links" mapstructure:"links"`
 }
 
 type RenderedMessage struct {

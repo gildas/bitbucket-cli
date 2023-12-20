@@ -11,11 +11,12 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:     "download",
-	Aliases: []string{"get", "fetch"},
-	Short:   "download an artifact",
-	Args:    cobra.ExactArgs(1),
-	RunE:    getProcess,
+	Use:               "download",
+	Aliases:           []string{"get", "fetch"},
+	Short:             "download an artifact",
+	ValidArgsFunction: downloadValidArgs,
+	Args:              cobra.ExactArgs(1),
+	RunE:              getProcess,
 }
 
 var downloadOptions struct {
@@ -31,6 +32,17 @@ func init() {
 	_ = downloadCmd.MarkFlagDirname("destination")
 }
 
+func downloadValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+	return GetArtifactNames(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
+}
+
 func getProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "download")
 
@@ -38,11 +50,11 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Downloading artifact %s", args[0])
+	log.Infof("Downloading artifact %s to %s", args[0], downloadOptions.Destination)
 
 	err := profile.Current.Download(
 		log.ToContext(cmd.Context()),
-		downloadOptions.Repository,
+		cmd,
 		fmt.Sprintf("downloads/%s", args[0]),
 		downloadOptions.Destination,
 	)

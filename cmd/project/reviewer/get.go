@@ -14,27 +14,41 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:     "get",
-	Aliases: []string{"show", "info", "display"},
-	Short:   "get a reviewer",
-	Args:    cobra.ExactArgs(1),
-	RunE:    getProcess,
+	Use:               "get",
+	Aliases:           []string{"show", "info", "display"},
+	Short:             "get a reviewer",
+	ValidArgsFunction: getValidArgs,
+	Args:              cobra.ExactArgs(1),
+	RunE:              getProcess,
 }
 
 var getOptions struct {
 	Workspace common.RemoteValueFlag
-	Project   string
+	Project   common.RemoteValueFlag
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
 	getOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
+	getOptions.Project = common.RemoteValueFlag{AllowedFunc: GetProjectKeys}
 	getCmd.Flags().Var(&getOptions.Workspace, "workspace", "Workspace to get reviewers from")
-	getCmd.Flags().StringVar(&getOptions.Project, "project", "", "Project Key to get reviewers from")
+	getCmd.Flags().Var(&getOptions.Project, "project", "Project Key to get reviewers from")
 	_ = getCmd.MarkFlagRequired("workspace")
 	_ = getCmd.MarkFlagRequired("project")
 	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc())
+	_ = getCmd.RegisterFlagCompletionFunc("project", getOptions.Project.CompletionFunc())
+}
+
+func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+	return GetReviewerUserIDs(cmd.Context(), cmd, profile.Current, getOptions.Workspace.Value, getOptions.Project.Value), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
@@ -49,7 +63,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	err := profile.Current.Get(
 		log.ToContext(cmd.Context()),
-		"",
+		cmd,
 		fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers/%s", getOptions.Workspace, getOptions.Project, args[0]),
 		&user,
 	)

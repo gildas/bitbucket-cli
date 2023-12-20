@@ -20,18 +20,20 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Workspace common.RemoteValueFlag
-	Project   string
+	Project   common.RemoteValueFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
+	listOptions.Project = common.RemoteValueFlag{AllowedFunc: GetProjectKeys}
 	listCmd.Flags().Var(&listOptions.Workspace, "workspace", "Workspace to list reviewers from")
-	listCmd.Flags().StringVar(&listOptions.Project, "project", "", "Project Key to list reviewers from")
+	listCmd.Flags().Var(&listOptions.Project, "project", "Project Key to list reviewers from")
 	_ = listCmd.MarkFlagRequired("workspace")
 	_ = listCmd.MarkFlagRequired("project")
 	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc())
+	_ = getCmd.RegisterFlagCompletionFunc("project", listOptions.Project.CompletionFunc())
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -44,8 +46,8 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Infof("Listing all reviewers")
 	reviewers, err := profile.GetAll[Reviewer](
 		cmd.Context(),
+		cmd,
 		profile.Current,
-		"",
 		fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", listOptions.Workspace, listOptions.Project),
 	)
 	if err != nil {

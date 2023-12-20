@@ -46,7 +46,7 @@ func mergeValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return getPullRequests(cmd.Context(), mergeOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequests(cmd.Context(), cmd, mergeOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func mergeProcess(cmd *cobra.Command, args []string) (err error) {
@@ -71,7 +71,7 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Record("payload", payload).Infof("Merging pullrequest %s", args[0])
 	err = profile.Current.Post(
 		log.ToContext(cmd.Context()),
-		mergeOptions.Repository,
+		cmd,
 		fmt.Sprintf("pullrequests/%s/merge", args[0]),
 		payload,
 		&pullrequest,

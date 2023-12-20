@@ -31,12 +31,12 @@ func TestCanGetRepositoryWithGitAt(t *testing.T) {
 	r, err := remote.Get(strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel/bb", r.Repository())
+	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
 
 	r, err = remote.Get(strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel/bb", r.Repository())
+	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
 }
 
 func TestCanGetRepositoryWithHTTPS(t *testing.T) {
@@ -62,10 +62,10 @@ func TestCanGetRepositoryWithHTTPS(t *testing.T) {
 	r, err := remote.Get(strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel/bb", r.Repository())
+	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
 
 	r, err = remote.Get(strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel/bb", r.Repository())
+	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
 }

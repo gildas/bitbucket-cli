@@ -38,7 +38,7 @@ func approveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return getPullRequests(cmd.Context(), approveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequests(cmd.Context(), cmd, approveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func approveProcess(cmd *cobra.Command, args []string) (err error) {
@@ -53,7 +53,7 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Current.Post(
 		log.ToContext(cmd.Context()),
-		approveOptions.Repository,
+		cmd,
 		fmt.Sprintf("pullrequests/%s/approve", args[0]),
 		nil,
 		&participant,

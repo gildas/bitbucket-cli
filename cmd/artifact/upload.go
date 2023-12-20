@@ -38,7 +38,7 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 
 	err := profile.Current.Upload(
 		log.ToContext(cmd.Context()),
-		uploadOptions.Repository,
+		cmd,
 		"downloads",
 		args[0],
 	)

@@ -12,9 +12,12 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/component"
+	"bitbucket.org/gildas_cherruel/bb/cmd/issue"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
+	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -69,7 +72,10 @@ func init() {
 	RootCmd.AddCommand(project.Command)
 	RootCmd.AddCommand(branch.Command)
 	RootCmd.AddCommand(commit.Command)
+	RootCmd.AddCommand(component.Command)
+	RootCmd.AddCommand(issue.Command)
 	RootCmd.AddCommand(pullrequest.Command)
+	RootCmd.AddCommand(user.Command)
 	RootCmd.AddCommand(workspace.Command)
 
 	RootCmd.SilenceUsage = true // Do not show usage when an error occurs
@@ -139,6 +145,6 @@ func initConfig() {
 			log.Debugf("Setting output format to %s (was: %s)", CmdOptions.OutputFormat.String(), profile.Current.OutputFormat)
 			profile.Current.OutputFormat = CmdOptions.OutputFormat.String()
 		}
-		log.Record("profile", profile.Current).Infof("Profile: %s", profile.Current)
+		log.Record("profile", profile.Current).Infof("Current Profile: %s", profile.Current)
 	}
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project/reviewer"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
@@ -26,7 +25,7 @@ type Project struct {
 	Key                            string              `json:"key"                        mapstructure:"key"`
 	Owner                          user.User           `json:"owner"                      mapstructure:"owner"`
 	Workspace                      workspace.Workspace `json:"workspace"                  mapstructure:"workspace"`
-	Links                          link.Links          `json:"links"                      mapstructure:"links"`
+	Links                          common.Links        `json:"links"                      mapstructure:"links"`
 	IsPrivate                      bool                `json:"is_private"                 mapstructure:"is_private"`
 	HasPubliclyVisibleRepositories bool                `json:"has_publicly_visible_repos" mapstructure:"has_publicly_visible_repos"`
 	CreatedOn                      time.Time           `json:"created_on"                 mapstructure:"created_on"`
@@ -94,15 +93,10 @@ func (project Project) MarshalJSON() (data []byte, err error) {
 }
 
 // GetProjectKeys gets the keys of the projects in the given workspace
-func GetProjectKeys(context context.Context, p *profile.Profile, workspace string) (keys []string) {
+func GetProjectKeys(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, workspace string) (keys []string) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 
-	projects, err := profile.GetAll[Project](
-		context,
-		p,
-		"",
-		fmt.Sprintf("/workspaces/%s/projects", workspace),
-	)
+	projects, err := profile.GetAll[Project](context, cmd, currentProfile, fmt.Sprintf("/workspaces/%s/projects", workspace))
 	if err != nil {
 		log.Errorf("Failed to get projects", err)
 		return

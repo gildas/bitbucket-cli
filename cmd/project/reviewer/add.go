@@ -23,18 +23,20 @@ var addCmd = &cobra.Command{
 
 var addOptions struct {
 	Workspace common.RemoteValueFlag
-	Project   string
+	Project   common.RemoteValueFlag
 }
 
 func init() {
 	Command.AddCommand(addCmd)
 
 	addOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
+	addOptions.Project = common.RemoteValueFlag{AllowedFunc: GetProjectKeys}
 	addCmd.Flags().Var(&addOptions.Workspace, "workspace", "Workspace to add reviewers to")
-	addCmd.Flags().StringVar(&addOptions.Project, "project", "", "Project Key to add reviewers to")
+	addCmd.Flags().Var(&addOptions.Project, "project", "Project Key to add reviewers to")
 	_ = addCmd.MarkFlagRequired("workspace")
 	_ = addCmd.MarkFlagRequired("project")
 	_ = addCmd.RegisterFlagCompletionFunc("workspace", addOptions.Workspace.CompletionFunc())
+	_ = getCmd.RegisterFlagCompletionFunc("project", addOptions.Project.CompletionFunc())
 }
 
 func addProcess(cmd *cobra.Command, args []string) error {
@@ -49,7 +51,7 @@ func addProcess(cmd *cobra.Command, args []string) error {
 
 	err := profile.Current.Put(
 		log.ToContext(cmd.Context()),
-		"",
+		cmd,
 		fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers/%s", addOptions.Workspace, addOptions.Project, args[0]),
 		nil,
 		&user,

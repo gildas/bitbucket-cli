@@ -1,4 +1,4 @@
-package link
+package common
 
 type Links struct {
 	Self           *Link `json:"self,omitempty"            mapstructure:"self"`

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
-	"bitbucket.org/gildas_cherruel/bb/cmd/link"
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-errors"
 	"github.com/spf13/cobra"
 )
@@ -13,7 +13,7 @@ type Branch struct {
 	Type                 string        `json:"type"                             mapstructure:"type"`
 	Name                 string        `json:"name"                             mapstructure:"name"`
 	Target               commit.Commit `json:"target"                           mapstructure:"target"`
-	Links                link.Links    `json:"links"                            mapstructure:"links"`
+	Links                common.Links  `json:"links"                            mapstructure:"links"`
 	MergeStrategies      []string      `json:"merge_strategies,omitempty"       mapstructure:"merge_strategies"`
 	DefaultMergeStrategy string        `json:"default_merge_strategy,omitempty" mapstructure:"default_merge_strategy"`
 }

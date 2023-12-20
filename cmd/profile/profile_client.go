@@ -10,11 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/gildas/go-request"
+	"github.com/spf13/cobra"
 )
 
 type PaginatedResources[T any] struct {
@@ -26,28 +27,43 @@ type PaginatedResources[T any] struct {
 	Previous string `json:"previous"`
 }
 
-func (profile *Profile) Post(context context.Context, repository, uripath string, body interface{}, response interface{}) (err error) {
-	return profile.send(context, http.MethodPost, repository, uripath, body, response)
+// Post posts a resource
+func (profile *Profile) Post(context context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
+	options := &request.Options{Method: http.MethodPost, Payload: body}
+	_, err = profile.send(context, cmd, options, uripath, response)
+	return
 }
 
-func (profile *Profile) Get(context context.Context, repository, uripath string, response interface{}) (err error) {
-	return profile.send(context, http.MethodGet, repository, uripath, nil, response)
+// Get gets a resource
+func (profile *Profile) Get(context context.Context, cmd *cobra.Command, uripath string, response interface{}) (err error) {
+	options := &request.Options{Method: http.MethodGet}
+	_, err = profile.send(context, cmd, options, uripath, response)
+	return
 }
 
-func (profile *Profile) Put(context context.Context, repository, uripath string, body interface{}, response interface{}) (err error) {
-	return profile.send(context, http.MethodPut, repository, uripath, body, response)
+// Put puts/updates a resource
+func (profile *Profile) Put(context context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
+	options := &request.Options{Method: http.MethodPut, Payload: body}
+	_, err = profile.send(context, cmd, options, uripath, response)
+	return
 }
 
-func (profile *Profile) Delete(context context.Context, repository, uripath string, response interface{}) (err error) {
-	return profile.send(context, http.MethodDelete, repository, uripath, nil, response)
+// Delete deletes a resource
+func (profile *Profile) Delete(context context.Context, cmd *cobra.Command, uripath string, response interface{}) (err error) {
+	options := &request.Options{Method: http.MethodDelete}
+	_, err = profile.send(context, cmd, options, uripath, response)
+	return
 }
 
-func (profile *Profile) Patch(context context.Context, repository, uripath string, body interface{}, response interface{}) (err error) {
-	return profile.send(context, http.MethodPatch, repository, uripath, body, response)
+// Patch patches a resource
+func (profile *Profile) Patch(context context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
+	options := &request.Options{Method: http.MethodPatch, Payload: body}
+	_, err = profile.send(context, cmd, options, uripath, response)
+	return
 }
 
-// GetAllResources gets all resources using the given profile
-func GetAll[T any](context context.Context, profile *Profile, repository string, uripath string) (resources []T, err error) {
+// GetAllResources gets all resources of the given type
+func GetAll[T any](context context.Context, cmd *cobra.Command, profile *Profile, uripath string) (resources []T, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getall")
 
 	log.Infof("Getting all resources for profile %s", profile.Name)
@@ -57,7 +73,7 @@ func GetAll[T any](context context.Context, profile *Profile, repository string,
 
 		err = profile.Get(
 			context,
-			repository,
+			cmd,
 			uripath,
 			&paginated,
 		)
@@ -76,32 +92,9 @@ func GetAll[T any](context context.Context, profile *Profile, repository string,
 	return resources, nil
 }
 
-func (profile *Profile) Download(context context.Context, repository, uripath, destination string) (err error) {
+// Dowmload downloads a resource to a destination folder
+func (profile *Profile) Download(context context.Context, cmd *cobra.Command, uripath, destination string) (err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "download")
-
-	if len(repository) == 0 {
-		remote, err := remote.GetFromGitConfig("origin")
-		if err != nil {
-			return err
-		}
-		repository = remote.Repository()
-	}
-
-	var authorization string
-
-	if len(profile.User) > 0 {
-		authorization = request.BasicAuthorization(profile.User, profile.Password)
-	} else if len(profile.AccessToken) > 0 {
-		authorization = request.BearerAuthorization(profile.AccessToken)
-	} else if authorization, err = profile.authorize(context); err != nil {
-		return err
-	}
-
-	if strings.HasPrefix(uripath, "/") {
-		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
-	} else if !strings.HasPrefix(uripath, "http") {
-		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath)
-	}
 
 	if len(destination) == 0 {
 		destination = "."
@@ -112,25 +105,28 @@ func (profile *Profile) Download(context context.Context, repository, uripath, d
 	if err = os.MkdirAll(destination, 0755); err != nil {
 		return errors.RuntimeError.Wrap(err)
 	}
-
-	log.Infof("Downloading artifact %s to repository %s with profile %s", uripath, repository, profile.Name)
-	options := &request.Options{
-		Method:        http.MethodGet,
-		URL:           core.Must(url.Parse(uripath)),
-		Authorization: authorization,
-		Timeout:       30 * time.Second,
-		Logger:        log,
-	}
-	result, err := request.Send(options, nil)
+	writer, err := os.CreateTemp(destination, "artifact-")
 	if err != nil {
-		if result != nil {
-			var bberr *BitBucketError
-			if jerr := result.UnmarshalContentJSON(&bberr); jerr == nil {
-				return bberr
-			}
-		}
+		return errors.RuntimeError.Wrap(err)
+	}
+
+	log.Debugf("Downloading artifact to %s", writer.Name())
+	options := &request.Options{
+		Method:              http.MethodGet,
+		Timeout:             15 * time.Minute,
+		ResponseBodyLogSize: -1, // we are not interested in the file content
+	}
+	result, err := profile.send(context, cmd, options, uripath, writer)
+	if err != nil {
+		_ = writer.Close()
 		return err
 	}
+	if err = writer.Close(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to close file %s: %s\n", writer.Name(), err)
+		log.Errorf("Failed to close file %s: %s", writer.Name(), err)
+	}
+	log.Debugf("Downloaded %d bytes", result.Length)
+
 	filename := result.Headers.Get("Content-Disposition")
 	if len(filename) == 0 {
 		filename = filepath.Base(uripath)
@@ -138,63 +134,27 @@ func (profile *Profile) Download(context context.Context, repository, uripath, d
 		filename = strings.TrimPrefix(filename, "attachment; filename=\"")
 		filename = strings.TrimSuffix(filename, "\"")
 	}
-	return errors.RuntimeError.Wrap(os.WriteFile(filepath.Join(destination, filename), result.Data, 0644))
+	log.Infof("Renaming %s  into %s", writer.Name(), filepath.Join(destination, filename))
+	return errors.RuntimeError.Wrap(os.Rename(writer.Name(), filepath.Join(destination, filename)))
 }
 
-func (profile *Profile) Upload(context context.Context, repository, uripath, source string) (err error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "upload")
-
-	if len(repository) == 0 {
-		remote, err := remote.GetFromGitConfig("origin")
-		if err != nil {
-			return err
-		}
-		repository = remote.Repository()
-	}
-
-	var authorization string
-
-	if len(profile.User) > 0 {
-		authorization = request.BasicAuthorization(profile.User, profile.Password)
-	} else if len(profile.AccessToken) > 0 {
-		authorization = request.BearerAuthorization(profile.AccessToken)
-	} else if authorization, err = profile.authorize(context); err != nil {
-		return err
-	}
-
-	if strings.HasPrefix(uripath, "/") {
-		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
-	} else if !strings.HasPrefix(uripath, "http") {
-		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath)
-	}
-
+// Upload uploads a resource from a source file
+func (profile *Profile) Upload(context context.Context, cmd *cobra.Command, uripath, source string) (err error) {
 	reader, err := os.Open(source)
 	if err != nil {
 		return errors.RuntimeError.Wrap(err)
 	}
 	defer reader.Close()
 
-	log.Infof("Uploading artifact %s to repository %s with profile %s", source, repository, profile.Name)
 	options := &request.Options{
-		Method:        http.MethodPost,
-		URL:           core.Must(url.Parse(uripath)),
-		Authorization: authorization,
+		Method: http.MethodPost,
 		Payload: map[string]string{
 			">files": filepath.Base(source),
 		},
 		Attachment: reader,
-		Timeout:    30 * time.Second,
-		Logger:     log,
+		Timeout:    15 * time.Minute,
 	}
-	result, err := request.Send(options, nil)
-	if err != nil {
-		if result != nil {
-			var bberr *BitBucketError
-			if jerr := result.UnmarshalContentJSON(&bberr); jerr == nil {
-				return bberr
-			}
-		}
-	}
+	_, err = profile.send(context, cmd, options, uripath, nil)
 	return
 }
 
@@ -204,7 +164,7 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 	if err := profile.loadAccessToken(); err == nil {
 		if !profile.isTokenExpired() {
 			log.Infof("Using access token for profile %s", profile.Name)
-			log.Debugf("Token exires on %s in %s", profile.TokenExpires.Format(time.RFC3339), time.Until(profile.TokenExpires))
+			log.Debugf("Token expires on %s in %s", profile.TokenExpires.Format(time.RFC3339), time.Until(profile.TokenExpires))
 			return request.BearerAuthorization(profile.AccessToken), nil
 		}
 	}
@@ -246,47 +206,47 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 	return request.BearerAuthorization(profile.AccessToken), nil
 }
 
-func (profile *Profile) send(context context.Context, method, repository, uripath string, body interface{}, response interface{}) (err error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, strings.ToLower(method))
-
-	if len(repository) == 0 {
-		remote, err := remote.GetFromGitConfig("origin")
-		if err != nil {
-			return err
-		}
-		repository = remote.Repository()
-	}
-
-	var authorization string
+func (profile *Profile) send(context context.Context, cmd *cobra.Command, options *request.Options, uripath string, response interface{}) (result *request.Content, err error) {
+	log := logger.Must(logger.FromContext(context)).Child(nil, strings.ToLower(options.Method))
 
 	if len(profile.User) > 0 {
-		authorization = request.BasicAuthorization(profile.User, profile.Password)
+		options.Authorization = request.BasicAuthorization(profile.User, profile.Password)
 	} else if len(profile.AccessToken) > 0 {
-		authorization = request.BearerAuthorization(profile.AccessToken)
-	} else if authorization, err = profile.authorize(context); err != nil {
-		return err
+		options.Authorization = request.BearerAuthorization(profile.AccessToken)
+	} else if options.Authorization, err = profile.authorize(context); err != nil {
+		return nil, err
 	}
 
 	if strings.HasPrefix(uripath, "/") {
 		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
 	} else if !strings.HasPrefix(uripath, "http") {
+		repository, err := repository.GetRepository(context, cmd)
+		if err != nil {
+			return nil, err
+		}
+		log.Infof("Using repository %s", repository)
 		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath)
 	}
 
-	options := &request.Options{
-		Method:        method,
-		URL:           core.Must(url.Parse(uripath)),
-		Authorization: authorization,
-		Payload:       body,
-		Timeout:       30 * time.Second,
-		Logger:        log,
+	options.URL, err = url.Parse(uripath)
+	if err != nil {
+		return nil, err
 	}
-	result, err := request.Send(options, &response)
+	if options.Timeout == 0 {
+		options.Timeout = 30 * time.Second
+	}
+	if options.Logger == nil {
+		options.Logger = log
+	}
+	if options.ResponseBodyLogSize == 0 {
+		options.ResponseBodyLogSize = 16 * 1024
+	}
+	result, err = request.Send(options, response)
 	if err != nil {
 		if result != nil {
 			var bberr *BitBucketError
 			if jerr := result.UnmarshalContentJSON(&bberr); jerr == nil {
-				return bberr
+				return result, bberr
 			}
 		}
 	}

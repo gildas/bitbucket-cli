@@ -2,14 +2,12 @@ package project
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/link"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
@@ -18,11 +16,11 @@ import (
 )
 
 type ProjectCreator struct {
-	Name        string      `json:"name"`
-	Description string      `json:"description,omitempty"`
-	Key         string      `json:"key"`
-	Links       *link.Links `json:"links,omitempty"`
-	IsPrivate   bool        `json:"is_private"`
+	Name        string        `json:"name"`
+	Description string        `json:"description,omitempty"`
+	Key         string        `json:"key"`
+	Links       *common.Links `json:"links,omitempty"`
+	IsPrivate   bool          `json:"is_private"`
 }
 
 var createCmd = &cobra.Command{
@@ -58,6 +56,7 @@ func init() {
 	_ = createCmd.MarkFlagRequired("key")
 	_ = createCmd.MarkFlagFilename("avatar-file")
 	createCmd.MarkFlagsMutuallyExclusive("avatar-url", "avatar-file")
+	_ = createCmd.RegisterFlagCompletionFunc("workspace", createOptions.Workspace.CompletionFunc())
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {
@@ -65,13 +64,6 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
-	}
-
-	if len(createOptions.Name) == 0 {
-		return errors.ArgumentMissing.With("name")
-	}
-	if len(createOptions.Key) == 0 {
-		return errors.ArgumentMissing.With("key")
 	}
 
 	payload := ProjectCreator{
@@ -88,8 +80,8 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			return errors.Join(errors.ArgumentInvalid.With("avatar-path", createOptions.AvatarPath), err)
 		}
 		avatarBlob := base64.StdEncoding.EncodeToString(avatarData)
-		payload.Links = &link.Links{
-			Avatar: &link.Link{HREF: url.URL{Scheme: "data", Opaque: "image/png;base64," + avatarBlob}},
+		payload.Links = &common.Links{
+			Avatar: &common.Link{HREF: url.URL{Scheme: "data", Opaque: "image/png;base64," + avatarBlob}},
 		}
 	} else if strings.HasPrefix(createOptions.AvatarURL, "http") {
 		avatarURL, err := url.Parse(createOptions.AvatarURL)
@@ -97,8 +89,8 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			return errors.Join(errors.ArgumentInvalid.With("avatar", createOptions.AvatarURL), err)
 		}
 		log.Debugf("Avatar is an URL: %s", createOptions.AvatarURL)
-		payload.Links = &link.Links{
-			Avatar: &link.Link{HREF: *avatarURL},
+		payload.Links = &common.Links{
+			Avatar: &common.Link{HREF: *avatarURL},
 		}
 	} else if len(createOptions.AvatarURL) > 0 {
 		log.Errorf("Avatar is not a file nor an URL: %s", createOptions.AvatarURL)
@@ -111,7 +103,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Current.Post(
 		log.ToContext(cmd.Context()),
-		"",
+		cmd,
 		fmt.Sprintf("/workspaces/%s/projects", createOptions.Workspace),
 		payload,
 		&project,
@@ -120,8 +112,5 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to create project: %s\n", err)
 		os.Exit(1)
 	}
-	data, _ := json.MarshalIndent(project, "", "  ")
-	fmt.Println(string(data))
-
-	return
+	return profile.Current.Print(cmd.Context(), project)
 }

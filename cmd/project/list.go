@@ -41,8 +41,8 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Infof("Listing all projects from workspace %s with profile %s", listOptions.Workspace, profile.Current)
 	projects, err := profile.GetAll[Project](
 		cmd.Context(),
+		cmd,
 		profile.Current,
-		"",
 		fmt.Sprintf("/workspaces/%s/projects", listOptions.Workspace),
 	)
 	if err != nil {
