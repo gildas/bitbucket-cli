@@ -84,7 +84,7 @@ func (profile *Profile) Download(context context.Context, repository, uripath, d
 		if err != nil {
 			return err
 		}
-		repository = remote.Repository()
+		repository = remote.RepositoryName()
 	}
 
 	var authorization string
@@ -149,7 +149,7 @@ func (profile *Profile) Upload(context context.Context, repository, uripath, sou
 		if err != nil {
 			return err
 		}
-		repository = remote.Repository()
+		repository = remote.RepositoryName()
 	}
 
 	var authorization string
@@ -254,7 +254,7 @@ func (profile *Profile) send(context context.Context, method, repository, uripat
 		if err != nil {
 			return err
 		}
-		repository = remote.Repository()
+		repository = remote.RepositoryName()
 	}
 
 	var authorization string

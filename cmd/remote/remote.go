@@ -42,7 +42,7 @@ func Get(reader io.Reader, name string) (remote *Remote, err error) {
 	}, nil
 }
 
-func (remote Remote) Repository() string {
+func (remote Remote) RepositoryName() string {
 	if strings.HasPrefix(remote.URL, "git@") {
 		if strings.HasSuffix(remote.URL, ".git") {
 			return remote.URL[strings.LastIndex(remote.URL, ":")+1 : len(remote.URL)-4]
