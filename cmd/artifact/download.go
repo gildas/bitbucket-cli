@@ -50,7 +50,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Downloading artifact %s", args[0])
+	log.Infof("Downloading artifact %s to %s", args[0], downloadOptions.Destination)
 
 	err := profile.Current.Download(
 		log.ToContext(cmd.Context()),

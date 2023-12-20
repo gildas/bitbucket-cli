@@ -96,19 +96,6 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, profile *Profile
 func (profile *Profile) Download(context context.Context, cmd *cobra.Command, uripath, destination string) (err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "download")
 
-	log.Infof("Downloading %s", uripath)
-	options := &request.Options{Method: http.MethodGet, Timeout: 15 * time.Minute}
-	result, err := profile.send(context, cmd, options, uripath, nil)
-	if err != nil {
-		return err
-	}
-	filename := result.Headers.Get("Content-Disposition")
-	if len(filename) == 0 {
-		filename = filepath.Base(uripath)
-	} else {
-		filename = strings.TrimPrefix(filename, "attachment; filename=\"")
-		filename = strings.TrimSuffix(filename, "\"")
-	}
 	if len(destination) == 0 {
 		destination = "."
 	}
@@ -118,27 +105,54 @@ func (profile *Profile) Download(context context.Context, cmd *cobra.Command, ur
 	if err = os.MkdirAll(destination, 0755); err != nil {
 		return errors.RuntimeError.Wrap(err)
 	}
-	log.Infof("Writing data to %s", filepath.Join(destination, filename))
-	return errors.RuntimeError.Wrap(os.WriteFile(filepath.Join(destination, filename), result.Data, 0644))
+	writer, err := os.CreateTemp(destination, "artifact-")
+	if err != nil {
+		return errors.RuntimeError.Wrap(err)
+	}
+
+	log.Debugf("Downloading artifact to %s", writer.Name())
+	options := &request.Options{
+		Method:              http.MethodGet,
+		Timeout:             15 * time.Minute,
+		ResponseBodyLogSize: -1, // we are not interested in the file content
+	}
+	result, err := profile.send(context, cmd, options, uripath, writer)
+	if err != nil {
+		_ = writer.Close()
+		return err
+	}
+	if err = writer.Close(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to close file %s: %s\n", writer.Name(), err)
+		log.Errorf("Failed to close file %s: %s", writer.Name(), err)
+	}
+	log.Debugf("Downloaded %d bytes", result.Length)
+
+	filename := result.Headers.Get("Content-Disposition")
+	if len(filename) == 0 {
+		filename = filepath.Base(uripath)
+	} else {
+		filename = strings.TrimPrefix(filename, "attachment; filename=\"")
+		filename = strings.TrimSuffix(filename, "\"")
+	}
+	log.Infof("Renaming %s  into %s", writer.Name(), filepath.Join(destination, filename))
+	return errors.RuntimeError.Wrap(os.Rename(writer.Name(), filepath.Join(destination, filename)))
 }
 
 // Upload uploads a resource from a source file
 func (profile *Profile) Upload(context context.Context, cmd *cobra.Command, uripath, source string) (err error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "upload")
-
 	reader, err := os.Open(source)
 	if err != nil {
 		return errors.RuntimeError.Wrap(err)
 	}
 	defer reader.Close()
 
-	log.Infof("Uploading %s", source)
 	options := &request.Options{
 		Method: http.MethodPost,
 		Payload: map[string]string{
 			">files": filepath.Base(source),
 		},
-		Timeout: 15 * time.Minute,
+		Attachment: reader,
+		Timeout:    15 * time.Minute,
 	}
 	_, err = profile.send(context, cmd, options, uripath, nil)
 	return
@@ -224,8 +238,10 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 	if options.Logger == nil {
 		options.Logger = log
 	}
-	options.ResponseBodyLogSize = 16 * 1024
-	result, err = request.Send(options, &response)
+	if options.ResponseBodyLogSize == 0 {
+		options.ResponseBodyLogSize = 16 * 1024
+	}
+	result, err = request.Send(options, response)
 	if err != nil {
 		if result != nil {
 			var bberr *BitBucketError
