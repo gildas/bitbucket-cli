@@ -59,7 +59,7 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	err = profile.Current.Get(
 		log.ToContext(cmd.Context()),
 		getOptions.Repository,
-		fmt.Sprintf("issues/%d/comment/%s", getOptions.IssueID, args[0]),
+		fmt.Sprintf("issues/%s/comments/%s", getOptions.IssueID.Value, args[0]),
 		&comment,
 	)
 	if err != nil {
