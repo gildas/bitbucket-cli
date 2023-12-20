@@ -11,11 +11,12 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:     "download",
-	Aliases: []string{"get", "fetch"},
-	Short:   "download an artifact",
-	Args:    cobra.ExactArgs(1),
-	RunE:    getProcess,
+	Use:               "download",
+	Aliases:           []string{"get", "fetch"},
+	Short:             "download an artifact",
+	ValidArgsFunction: downloadValidArgs,
+	Args:              cobra.ExactArgs(1),
+	RunE:              getProcess,
 }
 
 var downloadOptions struct {
@@ -29,6 +30,17 @@ func init() {
 	downloadCmd.Flags().StringVar(&downloadOptions.Repository, "repository", "", "Repository to download artifacts from. Defaults to the current repository")
 	downloadCmd.Flags().StringVar(&downloadOptions.Destination, "destination", "", "Destination folder to download the artifact to. Defaults to the current folder")
 	_ = downloadCmd.MarkFlagDirname("destination")
+}
+
+func downloadValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+	return GetArtifactNames(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {

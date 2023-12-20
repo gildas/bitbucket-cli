@@ -1,10 +1,14 @@
 package artifact
 
 import (
+	"context"
 	"fmt"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/go-core"
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -44,4 +48,17 @@ func (artifact Artifact) GetRow(headers []string) []string {
 		fmt.Sprintf("%d", artifact.Downloads),
 		artifact.User.Name,
 	}
+}
+
+func GetArtifactNames(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile) (names []string) {
+	log := logger.Must(logger.FromContext(context)).Child("artifact", "getnames")
+
+	artifacts, err := profile.GetAll[Artifact](cmd.Context(), cmd, profile.Current, "downloads")
+	if err != nil {
+		log.Errorf("Failed to get artifacts: %s", err)
+		return []string{}
+	}
+	return core.Map(artifacts, func(artifact Artifact) string {
+		return artifact.Name
+	})
 }

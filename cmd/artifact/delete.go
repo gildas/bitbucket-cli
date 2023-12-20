@@ -11,10 +11,11 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "delete an artifact by its filename",
-	Args:  cobra.ExactArgs(1),
-	RunE:  deleteProcess,
+	Use:               "delete",
+	Short:             "delete an artifact by its filename",
+	ValidArgsFunction: deleteValidArgs,
+	Args:              cobra.ExactArgs(1),
+	RunE:              deleteProcess,
 }
 
 var deleteOptions struct {
@@ -25,6 +26,17 @@ func init() {
 	Command.AddCommand(deleteCmd)
 
 	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete artifacts from. Defaults to the current repository")
+}
+
+func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+	return GetArtifactNames(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
