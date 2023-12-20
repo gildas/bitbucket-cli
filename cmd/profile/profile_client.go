@@ -97,7 +97,7 @@ func (profile *Profile) Download(context context.Context, cmd *cobra.Command, ur
 	log := logger.Must(logger.FromContext(context)).Child(nil, "download")
 
 	log.Infof("Downloading %s", uripath)
-	options := &request.Options{Method: http.MethodGet}
+	options := &request.Options{Method: http.MethodGet, Timeout: 15 * time.Minute}
 	result, err := profile.send(context, cmd, options, uripath, nil)
 	if err != nil {
 		return err
@@ -138,6 +138,7 @@ func (profile *Profile) Upload(context context.Context, cmd *cobra.Command, urip
 		Payload: map[string]string{
 			">files": filepath.Base(source),
 		},
+		Timeout: 15 * time.Minute,
 	}
 	_, err = profile.send(context, cmd, options, uripath, nil)
 	return
