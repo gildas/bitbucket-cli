@@ -26,7 +26,7 @@ PROJECT   != awk '/^const +APP += +/{gsub("\"", "", $$4); print $$4}' version.go
 ifeq (${PROJECT},)
 PROJECT   != basename "$(PWD)"
 endif
-PLATFORMS ?= darwin-amd64 darwin-arm64 linux-amd64 linux-arm64 windows pi
+PLATFORMS ?= darwin-amd64 darwin-arm64 linux-amd64 linux-arm64 windows
 
 # Files
 GOTESTS   := $(call rwildcard,,*_test.go)
@@ -43,7 +43,6 @@ COVERAGE_HTML := $(COV_DIR)/index.html
 # Tools
 GO      ?= go
 GOOS    != $(GO) env GOOS
-HTTPIE  ?= http
 LOGGER   =  bunyan -L -o short
 GOBIN    = $(BIN_DIR)
 GOLINT  ?= golangci-lint
@@ -67,7 +66,7 @@ endif
 
 # Docker
 export DOCKER_BUILDKIT = 1
-DOCKER_REGISTRY     ?= registry.breizh.org
+DOCKER_REGISTRY     ?= gildas
 DOCKER_REPOSITORY    = $(PROJECT)
 DOCKER_IMAGE         = $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)
 DOCKER_BRANCH       := $(subst /,_,$(shell git symbolic-ref --short HEAD))
@@ -98,10 +97,6 @@ endif
 DOCKER_FLAGS += --build-arg=GOPRIVATE="$(GOPRIVATE)"
 DOCKER_FLAGS += --label="org.opencontainers.image.revision"="$(COMMIT)"
 DOCKER_FLAGS += --label="org.opencontainers.image.created"="$(NOW)"
-
-# Artifacts
-ARTIFACTS_URL ?= https://bitbucket.org/gildas_cherruel/bb/downloads
-ARTIFACTS_KEY ?=
 
 ifeq ($(OS), Windows_NT)
   include Makefile.windows
@@ -266,12 +261,7 @@ endif
 .PHONY: __publish_init__ __publish_binaries__
 __publish_init__:; $(info $(M) Pushing the Docker Image $(DOCKER_IMAGE)...)
 __publish_binaries__: archive
-#$Q $(foreach platform, $(PLATFORMS), $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z)
-	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/darwin-amd64/$(PROJECT)-$(VERSION).darwin-amd64.7z
-	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/darwin-arm64/$(PROJECT)-$(VERSION).darwin-arm64.7z
-	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/linux-amd64/$(PROJECT)-$(VERSION).linux-amd64.7z
-	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/linux-arm64/$(PROJECT)-$(VERSION).linux-arm64.7z
-	$Q $(HTTPIE) --form $(ARTIFACTS_URL)/upload?key=$(ARTIFACTS_KEY) file@$(BIN_DIR)/windows/$(PROJECT)-$(VERSION).windows.7z
+	$Q $(foreach platform, $(PLATFORMS), echo go run . artifact upload $(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z ; )
 
 .PHONY: __docker_save__
 __docker_save__: $(TMP_DIR)/image.$(DOCKER_BRANCH).$(COMMIT).tar
