@@ -25,6 +25,7 @@ type ProjectUpdator struct {
 
 var updateCmd = &cobra.Command{
 	Use:               "update",
+	Aliases:           []string{"edit"},
 	Short:             "update a project",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: updateValidArgs,

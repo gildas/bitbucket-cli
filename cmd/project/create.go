@@ -24,10 +24,11 @@ type ProjectCreator struct {
 }
 
 var createCmd = &cobra.Command{
-	Use:   "create",
-	Short: "create a project",
-	Args:  cobra.NoArgs,
-	RunE:  createProcess,
+	Use:     "create",
+	Aliases: []string{"add", "new"},
+	Short:   "create a project",
+	Args:    cobra.NoArgs,
+	RunE:    createProcess,
 }
 
 var createOptions struct {

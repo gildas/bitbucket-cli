@@ -24,6 +24,7 @@ type IssueUpdator struct {
 
 var updateCmd = &cobra.Command{
 	Use:               "update",
+	Aliases:           []string{"edit"},
 	Short:             "update an issue",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: updateValidArgs,
