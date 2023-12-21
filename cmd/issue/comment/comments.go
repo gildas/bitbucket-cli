@@ -6,7 +6,14 @@ type Comments []Comment
 //
 // implements common.Tableables
 func (comments Comments) GetHeader() []string {
-	return Comment{}.GetHeader(false)
+	short := true
+	for _, comment := range comments {
+		if !comment.UpdatedOn.IsZero() {
+			short = false
+			break
+		}
+	}
+	return Comment{}.GetHeader(short)
 }
 
 // GetRowAt gets the row for the list command
