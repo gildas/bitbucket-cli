@@ -12,10 +12,11 @@ import (
 )
 
 var createCmd = &cobra.Command{
-	Use:   "create",
-	Short: "create a profile",
-	Args:  cobra.NoArgs,
-	RunE:  createProcess,
+	Use:     "create",
+	Aliases: []string{"add", "new"},
+	Short:   "create a profile",
+	Args:    cobra.NoArgs,
+	RunE:    createProcess,
 }
 
 var createOptions struct {

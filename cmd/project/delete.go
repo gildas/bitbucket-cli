@@ -14,6 +14,7 @@ import (
 
 var deleteCmd = &cobra.Command{
 	Use:               "delete",
+	Aliases:           []string{"remove", "rm"},
 	Short:             "delete a project by its key",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: deleteValidArgs,

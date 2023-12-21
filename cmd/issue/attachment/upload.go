@@ -1,9 +1,10 @@
-package artifact
+package attachment
 
 import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -19,13 +20,18 @@ var uploadCmd = &cobra.Command{
 }
 
 var uploadOptions struct {
+	IssueID    common.RemoteValueFlag
 	Repository string
 }
 
 func init() {
 	Command.AddCommand(uploadCmd)
 
-	uploadCmd.Flags().StringVar(&uploadOptions.Repository, "repository", "", "Repository to upload artifacts to. Defaults to the current repository")
+	uploadOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
+	uploadCmd.Flags().StringVar(&uploadOptions.Repository, "repository", "", "Repository to upload issue attachments to. Defaults to the current repository")
+	uploadCmd.Flags().Var(&uploadOptions.IssueID, "issue", "Issue to upload attachments to")
+	_ = uploadCmd.MarkFlagRequired("issue")
+	_ = uploadCmd.RegisterFlagCompletionFunc("issue", uploadOptions.IssueID.CompletionFunc())
 }
 
 func uploadProcess(cmd *cobra.Command, args []string) error {
@@ -35,16 +41,16 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Uploading artifact %s", args[0])
+	log.Infof("Uploading issue attachment %s", args[0])
 
 	err := profile.Current.Upload(
 		log.ToContext(cmd.Context()),
 		cmd,
-		"downloads",
+		fmt.Sprintf("issues/%s/attachments", uploadOptions.IssueID.Value),
 		args[0],
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to upload artifact %s: %s\n", args[0], err)
+		fmt.Fprintf(os.Stderr, "Failed to upload attachment %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
 	return nil

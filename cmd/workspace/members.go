@@ -12,11 +12,11 @@ func (members Members) GetHeader() []string {
 // GetRowAt gets the row for a table
 //
 // implements common.Tableables
-func (members Members) GetRowAt(index int) []string {
+func (members Members) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(members) {
 		return []string{}
 	}
-	return members[index].GetRow(nil)
+	return members[index].GetRow(headers)
 }
 
 // Size gets the number of elements

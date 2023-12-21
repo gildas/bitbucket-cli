@@ -12,11 +12,11 @@ func (pullrequests PullRequests) GetHeader() []string {
 // GetRowAt gets the row for a table
 //
 // implements common.Tableables
-func (pullrequests PullRequests) GetRowAt(index int) []string {
+func (pullrequests PullRequests) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(pullrequests) {
 		return []string{}
 	}
-	return pullrequests[index].GetRow(nil)
+	return pullrequests[index].GetRow(headers)
 }
 
 // Size gets the number of elements

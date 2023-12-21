@@ -1,25 +1,18 @@
-package comment
+package attachment
 
-type Comments []Comment
+type Attachments []Attachment
 
 // GetHeader gets the headers for the list command
 //
 // implements common.Tableables
-func (comments Comments) GetHeader() []string {
-	short := true
-	for _, comment := range comments {
-		if !comment.UpdatedOn.IsZero() {
-			short = false
-			break
-		}
-	}
-	return Comment{}.GetHeader(short)
+func (comments Attachments) GetHeader() []string {
+	return Attachment{}.GetHeader(false)
 }
 
 // GetRowAt gets the row for the list command
 //
 // implements common.Tableables
-func (comments Comments) GetRowAt(index int, headers []string) []string {
+func (comments Attachments) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(comments) {
 		return []string{}
 	}
@@ -29,6 +22,6 @@ func (comments Comments) GetRowAt(index int, headers []string) []string {
 // Size gets the number of elements
 //
 // implements common.Tableables
-func (comments Comments) Size() int {
+func (comments Attachments) Size() int {
 	return len(comments)
 }

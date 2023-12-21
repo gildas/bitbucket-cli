@@ -20,10 +20,11 @@ type PullRequestCreator struct {
 }
 
 var createCmd = &cobra.Command{
-	Use:   "create",
-	Short: "create a pullrequest",
-	Args:  cobra.NoArgs,
-	RunE:  createProcess,
+	Use:     "create",
+	Aliases: []string{"add", "new"},
+	Short:   "create a pullrequest",
+	Args:    cobra.NoArgs,
+	RunE:    createProcess,
 }
 
 var createOptions struct {

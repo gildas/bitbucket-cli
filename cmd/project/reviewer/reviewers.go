@@ -12,11 +12,11 @@ func (reviewers Reviewers) GetHeader() []string {
 // GetRowAt gets the row for the list command
 //
 // implements common.Tableables
-func (reviewers Reviewers) GetRowAt(index int) []string {
+func (reviewers Reviewers) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(reviewers) {
 		return []string{}
 	}
-	return reviewers[index].GetRow(nil)
+	return reviewers[index].GetRow(headers)
 }
 
 // Size gets the number of elements

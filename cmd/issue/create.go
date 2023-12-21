@@ -22,10 +22,11 @@ type IssueCreator struct {
 }
 
 var createCmd = &cobra.Command{
-	Use:   "create",
-	Short: "create an issue",
-	Args:  cobra.NoArgs,
-	RunE:  createProcess,
+	Use:     "create",
+	Aliases: []string{"add", "new"},
+	Short:   "create an issue",
+	Args:    cobra.NoArgs,
+	RunE:    createProcess,
 }
 
 var createOptions struct {

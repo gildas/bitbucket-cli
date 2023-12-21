@@ -13,6 +13,7 @@ import (
 
 var updateCmd = &cobra.Command{
 	Use:               "update",
+	Aliases:           []string{"edit"},
 	Short:             "update a profile",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: ValidProfileNames,

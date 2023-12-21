@@ -8,7 +8,7 @@ type Tableable interface {
 
 // Tableables is an interface for array of objects that can be printed as a table
 type Tableables interface {
-	GetHeader() []string         // GetHeader retrieves the headers to show
-	GetRowAt(index int) []string // GetRow retrieves the row to show for the given headers
-	Size() int                   // Size gets the number of elements
+	GetHeader() []string                           // GetHeader retrieves the headers to show
+	GetRowAt(index int, headers []string) []string // GetRow retrieves the row to show for the given headers
+	Size() int                                     // Size gets the number of elements
 }

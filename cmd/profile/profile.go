@@ -81,6 +81,9 @@ func (profile Profile) GetRow(headers []string) []string {
 	if core.Contains(headers, "ClientID") {
 		row = append(row, profile.ClientID)
 	}
+	if core.Contains(headers, "AccessToken") {
+		row = append(row, profile.AccessToken)
+	}
 	return row
 }
 
@@ -188,7 +191,7 @@ func (profile Profile) Print(context context.Context, payload any) error {
 				headers := actual.GetHeader()
 				_ = writer.Write(headers)
 				for i := 0; i < actual.Size(); i++ {
-					_ = writer.Write(actual.GetRowAt(i))
+					_ = writer.Write(actual.GetRowAt(i, headers))
 				}
 			}
 		default:
@@ -211,7 +214,7 @@ func (profile Profile) Print(context context.Context, payload any) error {
 				headers := actual.GetHeader()
 				_ = writer.Write(headers)
 				for i := 0; i < actual.Size(); i++ {
-					_ = writer.Write(actual.GetRowAt(i))
+					_ = writer.Write(actual.GetRowAt(i, headers))
 				}
 			}
 		default:
@@ -234,7 +237,7 @@ func (profile Profile) Print(context context.Context, payload any) error {
 				headers := actual.GetHeader()
 				table.SetHeader(headers)
 				for i := 0; i < actual.Size(); i++ {
-					table.Append(actual.GetRowAt(i))
+					table.Append(actual.GetRowAt(i, headers))
 				}
 			}
 		default:

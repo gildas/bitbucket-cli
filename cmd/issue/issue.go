@@ -8,10 +8,12 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/component"
+	"bitbucket.org/gildas_cherruel/bb/cmd/issue/attachment"
 	"bitbucket.org/gildas_cherruel/bb/cmd/issue/comment"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -52,6 +54,7 @@ var Command = &cobra.Command{
 
 func init() {
 	Command.AddCommand(comment.Command)
+	Command.AddCommand(attachment.Command)
 }
 
 // GetHeader gets the header for a table
@@ -117,9 +120,7 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command, currentProfile *pr
 		log.Errorf("Failed to get issues", err)
 		return []string{}
 	}
-	ids = make([]string, 0, len(issues))
-	for _, issue := range issues {
-		ids = append(ids, fmt.Sprintf("%d", issue.ID))
-	}
-	return
+	return core.Map(issues, func(issue Issue) string {
+		return fmt.Sprintf("%d", issue.ID)
+	})
 }

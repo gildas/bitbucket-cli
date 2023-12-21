@@ -30,7 +30,7 @@ func init() {
 
 	getOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
 	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get an issue comment from. Defaults to the current repository")
-	getCmd.Flags().Var(&getOptions.IssueID, "issue", "Issue to get comments from. Defaults to the current issue")
+	getCmd.Flags().Var(&getOptions.IssueID, "issue", "Issue to get comments from")
 	_ = getCmd.MarkFlagRequired("issue")
 	_ = getCmd.RegisterFlagCompletionFunc("issue", getOptions.IssueID.CompletionFunc())
 }

@@ -12,11 +12,11 @@ func (branches Branches) GetHeader() []string {
 // GetRowAt gets the row for a table
 //
 // implements common.Tableables
-func (branches Branches) GetRowAt(index int) []string {
+func (branches Branches) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(branches) {
 		return []string{}
 	}
-	return branches[index].GetRow(nil)
+	return branches[index].GetRow(headers)
 }
 
 // Size gets the number of elements

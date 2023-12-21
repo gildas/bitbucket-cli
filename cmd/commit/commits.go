@@ -12,11 +12,11 @@ func (commits Commits) GetHeader() []string {
 // GetRowAt gets the row for a table
 //
 // implements common.Tableables
-func (commits Commits) GetRowAt(index int) []string {
+func (commits Commits) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(commits) {
 		return []string{}
 	}
-	return commits[index].GetRow(nil)
+	return commits[index].GetRow(headers)
 }
 
 // Size gets the number of elements
