@@ -322,6 +322,30 @@ You can delete a comment with the `bb issue comment delete` command:
 bb issue comment delete --issue 1 7643545
 ```
 
+You can list the attachments of an issue with the `bb issue attachment list` command:
+
+```bash
+bb issue attachment list --issue 1
+```
+
+You can upload an attachment to an issue with the `bb issue attachment upload` command:
+
+```bash
+bb issue attachment upload --issue 1 myattachment.zip
+```
+
+You can download an attachment with the `bb issue attachment download` command:
+
+```bash
+bb issue attachment download --issue 1 myattachment.zip
+```
+
+You can delete an attachment with the `bb issue attachment delete` command:
+
+```bash
+bb issue attachment delete --issue 1 myattachment.zip
+```
+
 ### Artifacts (Downloads)
 
 You can list artifacts with the `bb artifact list` command:
