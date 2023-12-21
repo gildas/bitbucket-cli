@@ -38,6 +38,12 @@ Or
 bb workspace list --output json
 ```
 
+You can also set the output format with the environment variable `BB_OUTPUT_FORMAT`:
+
+```bash
+export BB_OUTPUT_FORMAT=json
+```
+
 ### Profiles
 
 `bb` uses profiles to store your Bitbucket credentials. You can create a profile with the `bb profile create` command:
@@ -69,6 +75,12 @@ You can get the details of a profile with the `bb profile get` or `bb profile sh
 bb profile get myprofile
 ```
 
+You can ge the details of the current profile:
+
+```bash
+bb profile get --current
+```
+
 You can update a profile with the `bb profile update` command:
 
 ```bash
@@ -87,6 +99,29 @@ You can set the default profile with the `bb profile use` command:
 
 ```bash
 bb profile use myprofile
+```
+
+You can also set the profile with the environment variable `BB_PROFILE`:
+
+```bash
+export BB_PROFILE=myprofile
+```
+
+Profiles are stored in the configuration file. By default, the configuration file is located:
+
+- on Linux: `$XDG_CONFIG_HOME/bitbucket/config-cli.json`, or `~/.config/bitbucket/config-cli.json`, then `~/.bitbucket-cli`
+- on macOS: `$HOME/Library/Application Support/bitbucket/config-cli.json`, then `~/.bitbucket-cli`
+- on Windows: `%AppData%\bitbucket\config-cli.json`, then `$HOME/.bitbucket-cli`
+- on Plan 9: `$home/lib/bitbucket/config-cli.json`, then `~/.bitbucket-cli`
+
+You can also override the location of the configuration file with the environment variable `BB_CONFIG` or the `--config` flag:
+
+```bash
+export BB_CONFIG=~/.bb/config.json
+```
+
+```bash
+bb --config ~/.bb/config.json workspace list
 ```
 
 ### Workspaces
