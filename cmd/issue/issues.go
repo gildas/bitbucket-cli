@@ -12,11 +12,11 @@ func (issues Issues) GetHeader() []string {
 // GetRowAt gets the row for the list command
 //
 // implements common.Tableables
-func (issues Issues) GetRowAt(index int) []string {
+func (issues Issues) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(issues) {
 		return []string{}
 	}
-	return issues[index].GetRow(nil)
+	return issues[index].GetRow(headers)
 }
 
 // Size gets the number of elements

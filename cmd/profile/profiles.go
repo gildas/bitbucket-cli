@@ -47,7 +47,7 @@ func (profiles profiles) GetHeader() []string {
 // GetRowAt gets the row for a table
 //
 // implements common.Tableables
-func (profiles profiles) GetRowAt(index int) []string {
+func (profiles profiles) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(profiles) {
 		return []string{}
 	}

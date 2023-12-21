@@ -12,11 +12,11 @@ func (comments Comments) GetHeader() []string {
 // GetRowAt gets the row for the list command
 //
 // implements common.Tableables
-func (comments Comments) GetRowAt(index int) []string {
+func (comments Comments) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(comments) {
 		return []string{}
 	}
-	return comments[index].GetRow(nil)
+	return comments[index].GetRow(headers)
 }
 
 // Size gets the number of elements

@@ -12,11 +12,11 @@ func (workspaces Workspaces) GetHeader() []string {
 // GetRowAt gets the row for a table
 //
 // implements common.Tableables
-func (workspaces Workspaces) GetRowAt(index int) []string {
+func (workspaces Workspaces) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(workspaces) {
 		return []string{}
 	}
-	return workspaces[index].GetRow(nil)
+	return workspaces[index].GetRow(headers)
 }
 
 // Size gets the number of elements
