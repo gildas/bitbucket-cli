@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -18,8 +19,8 @@ type Comment struct {
 	ID        int                 `json:"id" mapstructure:"id"`
 	Content   common.RenderedText `json:"content" mapstructure:"content"`
 	User      user.Account        `json:"user" mapstructure:"user"`
-	Anchor    *CommentAnchor      `json:"inline" mapstructure:"inline"`
-	Parent    *Comment            `json:"parent" mapstructure:"parent"`
+	Anchor    *CommentAnchor      `json:"inline,omitempty" mapstructure:"inline"`
+	Parent    *Comment            `json:"parent,omitempty" mapstructure:"parent"`
 	CreatedOn time.Time           `json:"created_on" mapstructure:"created_on"`
 	UpdatedOn time.Time           `json:"updated_on" mapstructure:"updated_on"`
 	IsDeleted bool                `json:"deleted"    mapstructure:"deleted"`
@@ -27,8 +28,8 @@ type Comment struct {
 }
 
 type CommentAnchor struct {
-	From int    `json:"from" mapstructure:"from"`
-	To   int    `json:"to" mapstructure:"to"`
+	From uint   `json:"from,omitempty" mapstructure:"from"`
+	To   uint   `json:"to,omitempty" mapstructure:"to"`
 	Path string `json:"path" mapstructure:"path"`
 }
 
@@ -48,16 +49,35 @@ var Command = &cobra.Command{
 //
 // implements common.Tableable
 func (comment Comment) GetHeader(short bool) []string {
-	return []string{"ID", "CreatedOn", "User", "Content"}
+	if short {
+		if comment.UpdatedOn.IsZero() {
+			return []string{"ID", "Created On", "User", "Content"}
+		}
+	}
+	return []string{"ID", "Created On", "Updated On", "User", "Content"}
 }
 
 // GetRow gets the row for a table
 //
 // implements common.Tableable
 func (comment Comment) GetRow(headers []string) []string {
+	if !core.Contains(headers, "Updated On") {
+		return []string{
+			fmt.Sprintf("%d", comment.ID),
+			comment.CreatedOn.Format("2006-01-02 15:04:05"),
+			comment.User.Name,
+			comment.Content.Raw,
+		}
+	}
+
+	updatedOn := ""
+	if !comment.UpdatedOn.IsZero() {
+		updatedOn = comment.UpdatedOn.Format("2006-01-02 15:04:05")
+	}
 	return []string{
 		fmt.Sprintf("%d", comment.ID),
 		comment.CreatedOn.Format("2006-01-02 15:04:05"),
+		updatedOn,
 		comment.User.Name,
 		comment.Content.Raw,
 	}
