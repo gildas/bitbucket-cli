@@ -3,6 +3,7 @@ package comment
 import (
 	"fmt"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
@@ -19,15 +20,17 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Repository string
-	Issue      int
+	IssueID    common.RemoteValueFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
+	listOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issues from. Defaults to the current repository")
-	listCmd.Flags().IntVar(&listOptions.Issue, "issue", 0, "Issue to list comments from. Defaults to the current issue")
+	listCmd.Flags().Var(&listOptions.IssueID, "issue", "Issue to list comments from")
 	_ = listCmd.MarkFlagRequired("issue")
+	_ = listCmd.RegisterFlagCompletionFunc("issue", listOptions.IssueID.CompletionFunc())
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -38,7 +41,12 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all comments from repository %s with profile %s", listOptions.Repository, profile.Current)
-	comments, err := profile.GetAll[Comment](cmd.Context(), cmd, profile.Current, fmt.Sprintf("issues/%d/comments", listOptions.Issue))
+	comments, err := profile.GetAll[Comment](
+		cmd.Context(),
+		cmd,
+		profile.Current,
+		fmt.Sprintf("issues/%s/comments", listOptions.IssueID.Value),
+	)
 	if err != nil {
 		return err
 	}
