@@ -236,6 +236,92 @@ You can `merge` a pull request with the `bb pullrequest merge` command:
 bb pullrequest merge 1
 ```
 
+### Issues
+
+You can list issues with the `bb issue list` command:
+
+```bash
+bb issue list
+```
+
+You can create an issue with the `bb issue create` command:
+
+```bash
+bb issue create \
+  --title "My issue" \
+  --content "My issue content"
+```
+
+You can get the details of an issue with the `bb issue get` or `bb issue show` command:
+
+```bash
+bb issue get 1
+```
+
+You can update an issue with the `bb issue update` command:
+
+```bash
+bb issue update 1 \
+  --title "My issue" \
+  --content "My issue content"
+```
+
+You can delete an issue with the `bb issue delete` command:
+
+```bash
+bb issue delete 1
+```
+
+You can vote for an issue with the `bb issue vote` command:
+
+```bash
+bb issue vote 1
+```
+
+You can unvote for an issue with the `bb issue unvote` command:
+
+```bash
+bb issue unvote 1
+```
+
+You can watch an issue with the `bb issue watch` command:
+
+```bash
+bb issue watch 1
+```
+
+You can unwatch an issue with the `bb issue unwatch` command:
+
+```bash
+bb issue unwatch 1
+```
+
+You can add a comment to an issue with the `bb issue comment create` or `bb issue comment add` command:
+
+```bash
+bb issue comment add --issue 1 \
+  --content "My comment"
+```
+
+You can get the details of a comment with the `bb issue comment get` or `bb issue comment show` command:
+
+```bash
+bb issue comment get --issue 1 7643545
+```
+
+You can update a comment with the `bb issue comment update` command:
+
+```bash
+bb issue comment update --issue 1 7643545 \
+  --content "My comment"
+```
+
+You can delete a comment with the `bb issue comment delete` command:
+
+```bash
+bb issue comment delete --issue 1 7643545
+```
+
 ### Artifacts (Downloads)
 
 You can list artifacts with the `bb artifact list` command:
