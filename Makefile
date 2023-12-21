@@ -261,7 +261,7 @@ endif
 .PHONY: __publish_init__ __publish_binaries__
 __publish_init__:; $(info $(M) Pushing the Docker Image $(DOCKER_IMAGE)...)
 __publish_binaries__: archive
-	$Q $(foreach platform, $(PLATFORMS), echo go run . artifact upload $(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z ; )
+	$Q $(foreach platform, $(PLATFORMS), go run . artifact upload $(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z ; )
 
 .PHONY: __docker_save__
 __docker_save__: $(TMP_DIR)/image.$(DOCKER_BRANCH).$(COMMIT).tar
