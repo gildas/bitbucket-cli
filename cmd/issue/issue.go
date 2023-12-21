@@ -12,6 +12,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -117,9 +118,7 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command, currentProfile *pr
 		log.Errorf("Failed to get issues", err)
 		return []string{}
 	}
-	ids = make([]string, 0, len(issues))
-	for _, issue := range issues {
-		ids = append(ids, fmt.Sprintf("%d", issue.ID))
-	}
-	return
+	return core.Map(issues, func(issue Issue) string {
+		return fmt.Sprintf("%d", issue.ID)
+	})
 }

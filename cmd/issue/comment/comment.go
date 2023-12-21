@@ -127,11 +127,9 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command) (ids []string) {
 		log.Errorf("Failed to get issues", err)
 		return []string{}
 	}
-	ids = make([]string, 0, len(issues))
-	for _, issue := range issues {
-		ids = append(ids, fmt.Sprintf("%d", issue.ID))
-	}
-	return
+	return core.Map(issues, func(issue Issue) string {
+		return fmt.Sprintf("%d", issue.ID)
+	})
 }
 
 // GetIssueCommentIDs gets the IDs of the issues
@@ -143,11 +141,7 @@ func GetIssueCommentIDs(context context.Context, cmd *cobra.Command, currentProf
 		log.Errorf("Failed to get issues", err)
 		return []string{}
 	}
-	ids = make([]string, 0, len(comments))
-	for _, comment := range comments {
-		if len(comment.Content.Raw) > 0 && !comment.IsDeleted {
-			ids = append(ids, fmt.Sprintf("%d", comment.ID))
-		}
-	}
-	return
+	return core.Map(comments, func(comment Comment) string {
+		return fmt.Sprintf("%d", comment.ID)
+	})
 }
