@@ -12,6 +12,7 @@ import (
 
 var deleteCmd = &cobra.Command{
 	Use:               "delete",
+	Aliases:           []string{"remove", "rm"},
 	Short:             "delete an issue by its id",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: deleteValidArgs,

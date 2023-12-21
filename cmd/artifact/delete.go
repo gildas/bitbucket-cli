@@ -12,6 +12,7 @@ import (
 
 var deleteCmd = &cobra.Command{
 	Use:               "delete",
+	Aliases:           []string{"remove", "rm"},
 	Short:             "delete an artifact by its filename",
 	ValidArgsFunction: deleteValidArgs,
 	Args:              cobra.ExactArgs(1),

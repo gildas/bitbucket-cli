@@ -10,6 +10,7 @@ import (
 
 var deleteCmd = &cobra.Command{
 	Use:               "delete",
+	Aliases:           []string{"remove", "rm"},
 	Short:             "delete a profile",
 	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: ValidProfileNames,
