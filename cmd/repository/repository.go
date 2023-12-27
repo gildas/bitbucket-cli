@@ -21,7 +21,7 @@ type Repository struct {
 func GetRepository(context context.Context, cmd *cobra.Command) (*Repository, error) {
 	fullName := cmd.Flag("repository").Value.String()
 	if len(fullName) == 0 {
-		remote, err := remote.GetFromGitConfig("origin")
+		remote, err := remote.GetFromGitConfig(context, "origin")
 		if err != nil {
 			return nil, errors.Join(errors.NotFound.With("current repository"), err)
 		}
