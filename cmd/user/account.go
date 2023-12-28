@@ -13,15 +13,15 @@ import (
 )
 
 type Account struct {
-	Type          string       `json:"type"           mapstructure:"type"`
-	ID            common.UUID  `json:"uuid"           mapstructure:"uuid"`
-	Username      string       `json:"username"       mapstructure:"username"`
-	Name          string       `json:"display_name"   mapstructure:"display_name"`
-	AccountID     string       `json:"account_id"     mapstructure:"account_id"`
-	AccountStatus string       `json:"account_status" mapstructure:"account_status"`
-	Kind          string       `json:"kind"           mapstructure:"kind"`
-	Links         common.Links `json:"links"          mapstructure:"links"`
-	CreatedOn     time.Time    `json:"created_on"     mapstructure:"created_on"`
+	Type          string       `json:"type"                     mapstructure:"type"`
+	ID            common.UUID  `json:"uuid"                     mapstructure:"uuid"`
+	Username      string       `json:"username,omitempty"       mapstructure:"username"`
+	Name          string       `json:"display_name"             mapstructure:"display_name"`
+	AccountID     string       `json:"account_id"               mapstructure:"account_id"`
+	AccountStatus string       `json:"account_status,omitempty" mapstructure:"account_status"`
+	Kind          string       `json:"kind,omitempty"           mapstructure:"kind"`
+	Links         common.Links `json:"links"                    mapstructure:"links"`
+	CreatedOn     time.Time    `json:"created_on"               mapstructure:"created_on"`
 }
 
 // Command represents this folder's command
@@ -91,13 +91,17 @@ func GetAccount(context context.Context, cmd *cobra.Command, currentProfile *pro
 // MarshalJSON implements the json.Marshaler interface.
 func (account Account) MarshalJSON() (data []byte, err error) {
 	type surrogate Account
+	var createdOn string
 
+	if !account.CreatedOn.IsZero() {
+		createdOn = account.CreatedOn.Format("2006-01-02T15:04:05.999999999-07:00")
+	}
 	data, err = json.Marshal(struct {
 		surrogate
-		CreatedOn string `json:"created_on"`
+		CreatedOn string `json:"created_on,omitempty"`
 	}{
 		surrogate: surrogate(account),
-		CreatedOn: account.CreatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
+		CreatedOn: createdOn,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
 }

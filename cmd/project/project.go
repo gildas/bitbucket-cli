@@ -90,15 +90,36 @@ func (project Project) String() string {
 // MarshalJSON implements the json.Marshaler interface.
 func (project Project) MarshalJSON() (data []byte, err error) {
 	type surrogate Project
+	var owner *user.User
+	var wspace *workspace.Workspace
+	var createdOn string
+	var updatedOn string
+
+	if !project.Owner.ID.IsNil() {
+		owner = &project.Owner
+	}
+	if !project.Workspace.ID.IsNil() {
+		wspace = &project.Workspace
+	}
+	if !project.CreatedOn.IsZero() {
+		createdOn = project.CreatedOn.Format("2006-01-02T15:04:05.999999999-07:00")
+	}
+	if !project.UpdatedOn.IsZero() {
+		updatedOn = project.UpdatedOn.Format("2006-01-02T15:04:05.999999999-07:00")
+	}
 
 	data, err = json.Marshal(struct {
 		surrogate
-		CreatedOn string `json:"created_on"`
-		UpdatedOn string `json:"updated_on"`
+		Owner     *user.User           `json:"owner,omitempty"`
+		Workspace *workspace.Workspace `json:"workspace,omitempty"`
+		CreatedOn string               `json:"created_on,omitempty"`
+		UpdatedOn string               `json:"updated_on,omitempty"`
 	}{
 		surrogate: surrogate(project),
-		CreatedOn: project.CreatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
-		UpdatedOn: project.UpdatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
+		Owner:     owner,
+		Workspace: wspace,
+		CreatedOn: createdOn,
+		UpdatedOn: updatedOn,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
 }
