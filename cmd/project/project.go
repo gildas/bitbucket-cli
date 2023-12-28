@@ -32,6 +32,10 @@ type Project struct {
 	UpdatedOn                      time.Time           `json:"updated_on"                 mapstructure:"updated_on"`
 }
 
+type ProjectReference struct {
+	Key string `json:"key" mapstructure:"key"`
+}
+
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "project",
