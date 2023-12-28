@@ -92,16 +92,43 @@ func (project Project) MarshalJSON() (data []byte, err error) {
 	return data, errors.JSONMarshalError.Wrap(err)
 }
 
-// GetProjectKeys gets the keys of the projects in the given workspace
-func GetProjectKeys(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, workspace string) (keys []string) {
+// GetProjectKeys gets the keys of the projects in the workspace given in the command
+func GetProjectKeys(context context.Context, cmd *cobra.Command) (keys []string) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 
-	projects, err := profile.GetAll[Project](context, cmd, currentProfile, fmt.Sprintf("/workspaces/%s/projects", workspace))
+	workspace := cmd.Flag("workspace").Value.String()
+	if len(workspace) == 0 {
+		log.Warnf("No workspace given")
+		return
+	}
+
+	projects, err := profile.GetAll[Project](context, cmd, profile.Current, fmt.Sprintf("/workspaces/%s/projects", workspace))
 	if err != nil {
 		log.Errorf("Failed to get projects", err)
 		return
 	}
 	return core.Map(projects, func(project Project) string {
 		return project.Key
+	})
+}
+
+// GetProjectNames gets the names of the projects in the workspace given in the command
+func GetProjectNames(context context.Context, cmd *cobra.Command) (keys []string) {
+	log := logger.Must(logger.FromContext(context)).Child("project", "names")
+
+	workspace := cmd.Flag("workspace").Value.String()
+	if len(workspace) == 0 {
+		log.Warnf("No workspace given")
+		return
+	}
+
+	log.Infof("Getting all projects from workspace %s", workspace)
+	projects, err := profile.GetAll[Project](context, cmd, profile.Current, fmt.Sprintf("/workspaces/%s/projects", workspace))
+	if err != nil {
+		log.Errorf("Failed to get projects", err)
+		return
+	}
+	return core.Map(projects, func(project Project) string {
+		return project.Name
 	})
 }
