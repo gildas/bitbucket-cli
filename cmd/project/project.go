@@ -52,6 +52,13 @@ func init() {
 	Command.AddCommand(reviewer.Command)
 }
 
+// NewReference creates a new ProjectReference
+func NewReference(key string) *ProjectReference {
+	return &ProjectReference{
+		Key: key,
+	}
+}
+
 // GetHeader gets the header for a table
 //
 // implements common.Tableable

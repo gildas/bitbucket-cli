@@ -18,6 +18,11 @@ type Branch struct {
 	DefaultMergeStrategy string        `json:"default_merge_strategy,omitempty" mapstructure:"default_merge_strategy"`
 }
 
+type BranchReference struct {
+	Type string `json:"type" mapstructure:"type"`
+	Name string `json:"name" mapstructure:"name"`
+}
+
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "branch",
@@ -28,6 +33,14 @@ var Command = &cobra.Command{
 			fmt.Println(command.Name())
 		}
 	},
+}
+
+// NewReference creates a new BranchReference
+func NewReference(name string) *BranchReference {
+	return &BranchReference{
+		Type: "branch",
+		Name: name,
+	}
 }
 
 // GetHeader gets the header for a table
