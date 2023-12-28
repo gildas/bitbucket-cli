@@ -1,0 +1,130 @@
+{
+  "type": "repository",
+  "full_name": "gildas_cherruel/bb",
+  "links": {
+    "self": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/bb"
+    },
+    "html": {
+      "href": "https://bitbucket.org/gildas_cherruel/bb"
+    },
+    "avatar": {
+      "href": "https://bytebucket.org/ravatar/%7Bb8313f5b-2134-488d-9aca-830fb95206c5%7D?ts=go"
+    },
+    "pullrequests": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/bb/pullrequests"
+    },
+    "commits": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/bb/commits"
+    },
+    "forks": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/bb/forks"
+    },
+    "watchers": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/bb/watchers"
+    },
+    "branches": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/bb/refs/branches"
+    },
+    "tags": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/bb/refs/tags"
+    },
+    "downloads": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/bb/downloads"
+    },
+    "source": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/bb/src"
+    },
+    "clone": [
+      {
+        "name": "https",
+        "href": "https://gildas_cherruel@bitbucket.org/gildas_cherruel/bb.git"
+      },
+      {
+        "name": "ssh",
+        "href": "git@bitbucket.org:gildas_cherruel/bb.git"
+      }
+    ],
+    "issues": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/bb/issues"
+    },
+    "hooks": {
+      "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/bb/hooks"
+    }
+  },
+  "name": "bb",
+  "slug": "bb",
+  "description": "",
+  "scm": "git",
+  "website": null,
+  "owner": {
+    "display_name": "Gildas Cherruel",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/users/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D"
+      },
+      "avatar": {
+        "href": "https://secure.gravatar.com/avatar/30dbb120d3b75aaa0cec44e826c85cd7?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGC-0.png"
+      },
+      "html": {
+        "href": "https://bitbucket.org/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D/"
+      }
+    },
+    "type": "user",
+    "uuid": "{4115785a-a1b9-4887-9af2-ca401bc7f168}",
+    "account_id": "557058:ec46c4b2-f245-496e-8c11-1404869e3346",
+    "nickname": "gildas_cherruel"
+  },
+  "workspace": {
+    "type": "workspace",
+    "uuid": "{4115785a-a1b9-4887-9af2-ca401bc7f168}",
+    "name": "Gildas Cherruel",
+    "slug": "gildas_cherruel",
+    "links": {
+      "avatar": {
+        "href": "https://bitbucket.org/workspaces/gildas_cherruel/avatar/?ts=1543531676"
+      },
+      "html": {
+        "href": "https://bitbucket.org/gildas_cherruel/"
+      },
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/workspaces/gildas_cherruel"
+      }
+    }
+  },
+  "is_private": false,
+  "project": {
+    "type": "project",
+    "key": "OS",
+    "uuid": "{e5abc9b3-0ac5-4ae9-add6-a817b1fea161}",
+    "name": "Open Source",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/workspaces/gildas_cherruel/projects/OS"
+      },
+      "html": {
+        "href": "https://bitbucket.org/gildas_cherruel/workspace/projects/OS"
+      },
+      "avatar": {
+        "href": "https://bitbucket.org/account/user/gildas_cherruel/projects/OS/avatar/32?ts=1702034483"
+      }
+    }
+  },
+  "fork_policy": "allow_forks",
+  "created_on": "2023-11-02T09:27:57.558951+00:00",
+  "updated_on": "2023-12-21T19:02:25.884059+00:00",
+  "size": 1874302,
+  "language": "go",
+  "uuid": "{b8313f5b-2134-488d-9aca-830fb95206c5}",
+  "mainbranch": {
+    "name": "master",
+    "type": "branch"
+  },
+  "override_settings": {
+    "default_merge_strategy": false,
+    "branching_model": false
+  },
+  "parent": null,
+  "has_issues": true,
+  "has_wiki": false
+}

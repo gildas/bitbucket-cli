@@ -17,6 +17,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -76,6 +77,7 @@ func init() {
 	RootCmd.AddCommand(component.Command)
 	RootCmd.AddCommand(issue.Command)
 	RootCmd.AddCommand(pullrequest.Command)
+	RootCmd.AddCommand(repository.Command)
 	RootCmd.AddCommand(user.Command)
 	RootCmd.AddCommand(workspace.Command)
 
