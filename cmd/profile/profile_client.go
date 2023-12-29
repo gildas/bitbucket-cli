@@ -110,7 +110,7 @@ func (profile *Profile) Download(context context.Context, cmd *cobra.Command, ur
 		return errors.RuntimeError.Wrap(err)
 	}
 
-	log.Debugf("Downloading artifact to %s", writer.Name())
+	log.Debugf("Downloading data to %s", writer.Name())
 	options := &request.Options{
 		Method:              http.MethodGet,
 		Timeout:             15 * time.Minute,
@@ -220,7 +220,7 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 	if strings.HasPrefix(uripath, "/") {
 		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
 	} else if !strings.HasPrefix(uripath, "http") {
-		repositoryName, err := profile.getRepositoryName(context, cmd)
+		repositoryName, err := profile.getRepositoryFullname(context, cmd)
 		if err != nil {
 			return nil, err
 		}
@@ -253,20 +253,17 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 	return
 }
 
-func (profile Profile) getRepositoryName(context context.Context, cmd *cobra.Command) (string, error) {
+func (profile Profile) getRepositoryFullname(context context.Context, cmd *cobra.Command) (string, error) {
+	log := logger.Must(logger.FromContext(context)).Child("profile", "getrepositoryname")
+
 	fullName := cmd.Flag("repository").Value.String()
 	if len(fullName) == 0 {
+		log.Debugf("No repository name given, trying to get it from the current git repository")
 		remote, err := remote.GetFromGitConfig(context, "origin")
 		if err != nil {
 			return "", errors.Join(errors.NotFound.With("current repository"), err)
 		}
 		fullName = remote.RepositoryName()
-	}
-	components := strings.Split(fullName, "/")
-	if len(components) == 2 {
-		return components[1], nil
-	} else if len(components) == 1 {
-		return components[0], nil
 	}
 	return fullName, nil
 }
