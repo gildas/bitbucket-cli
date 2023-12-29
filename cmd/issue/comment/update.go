@@ -16,9 +16,9 @@ type CommentUpdator struct {
 }
 
 var updateCmd = &cobra.Command{
-	Use:               "update",
+	Use:               "update [flags] <comment-id>",
 	Aliases:           []string{"edit"},
-	Short:             "update an issue comment",
+	Short:             "update an issue comment by its <comment-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: updateValidArgs,
 	RunE:              updateProcess,

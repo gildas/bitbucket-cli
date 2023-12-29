@@ -11,8 +11,8 @@ import (
 )
 
 var unapproveCmd = &cobra.Command{
-	Use:               "unapprove",
-	Short:             "unapprove a pullrequest",
+	Use:               "unapprove [flags] <pullrequest-id>",
+	Short:             "unapprove a pullrequest by its <pullrequest-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: unapproveValidArgs,
 	RunE:              unapproveProcess,
@@ -37,7 +37,7 @@ func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return GetPullRequests(cmd.Context(), cmd, unapproveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequestIDs(cmd.Context(), cmd, unapproveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func unapproveProcess(cmd *cobra.Command, args []string) (err error) {

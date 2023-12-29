@@ -11,8 +11,8 @@ import (
 )
 
 var unwatchCmd = &cobra.Command{
-	Use:               "unwatch",
-	Short:             "stop watching an issue",
+	Use:               "unwatch [flags] <issue-id>",
+	Short:             "stop watching an issue by its <issue-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: unwatchValidArgs,
 	RunE:              unwatchProcess,

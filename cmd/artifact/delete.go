@@ -11,9 +11,9 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete",
+	Use:               "delete [flags] <filename>",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete an artifact by its filename",
+	Short:             "delete an artifact by its <filename>.",
 	ValidArgsFunction: deleteValidArgs,
 	Args:              cobra.ExactArgs(1),
 	RunE:              deleteProcess,

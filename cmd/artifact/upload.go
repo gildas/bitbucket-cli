@@ -11,7 +11,7 @@ import (
 )
 
 var uploadCmd = &cobra.Command{
-	Use:     "upload",
+	Use:     "upload [flags] <filename>",
 	Aliases: []string{"add", "create"},
 	Short:   "upload an artifact",
 	Args:    cobra.ExactArgs(1),

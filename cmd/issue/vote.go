@@ -11,8 +11,8 @@ import (
 )
 
 var voteCmd = &cobra.Command{
-	Use:               "vote",
-	Short:             "vote for an issue",
+	Use:               "vote [flags] <issue-id>",
+	Short:             "vote for an issue by its <issue-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: voteValidArgs,
 	RunE:              voteProcess,

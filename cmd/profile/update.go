@@ -12,9 +12,9 @@ import (
 )
 
 var updateCmd = &cobra.Command{
-	Use:               "update",
+	Use:               "update [flags] <profile-name>",
 	Aliases:           []string{"edit"},
-	Short:             "update a profile",
+	Short:             "update a profile by its <profile-name>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: ValidProfileNames,
 	RunE:              updateProcess,

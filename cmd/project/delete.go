@@ -13,9 +13,9 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete",
+	Use:               "delete [flags] <project-key>",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete a project by its key",
+	Short:             "delete a project by its <project-key>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: deleteValidArgs,
 	RunE:              deleteProcess,

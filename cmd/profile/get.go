@@ -7,9 +7,9 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:               "get",
+	Use:               "get [flags] <profile-name>",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get a profile",
+	Short:             "get a profile by its <profile-name>.",
 	ValidArgsFunction: ValidProfileNames,
 	RunE:              getProcess,
 }

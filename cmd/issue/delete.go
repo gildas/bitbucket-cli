@@ -11,9 +11,9 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete",
+	Use:               "delete [flags] <issue-id>",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete an issue by its id",
+	Short:             "delete an issue by its <issue-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: deleteValidArgs,
 	RunE:              deleteProcess,

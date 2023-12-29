@@ -9,9 +9,9 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete",
+	Use:               "delete [flags] <profile-name>",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete a profile",
+	Short:             "delete a profile by its <profile-name>.",
 	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: ValidProfileNames,
 	RunE:              deleteProcess,

@@ -8,9 +8,9 @@ import (
 )
 
 var useCmd = &cobra.Command{
-	Use:               "use",
+	Use:               "use [flags] <profile-name>",
 	Aliases:           []string{"default"},
-	Short:             "set the default profile",
+	Short:             "set the default profile by its <profile-name>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: ValidProfileNames,
 	RunE:              useProcess,

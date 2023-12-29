@@ -11,8 +11,8 @@ import (
 )
 
 var watchCmd = &cobra.Command{
-	Use:               "watch",
-	Short:             "watch an issue",
+	Use:               "watch [flags] <issue-id>",
+	Short:             "watch an issue by its <issue-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: watchValidArgs,
 	RunE:              watchProcess,

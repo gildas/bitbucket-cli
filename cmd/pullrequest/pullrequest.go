@@ -101,8 +101,8 @@ func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 	return data, errors.JSONMarshalError.Wrap(err)
 }
 
-// GetPullRequests gets the pullrequests for completion
-func GetPullRequests(context context.Context, cmd *cobra.Command, repository string, state string) []string {
+// GetPullRequestIDs gets the pullrequest Ids for completion
+func GetPullRequestIDs(context context.Context, cmd *cobra.Command, repository string, state string) []string {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getpullrequests")
 
 	log.Infof("Getting open pullrequests for repository %s", approveOptions.Repository)

@@ -13,9 +13,9 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:               "get",
+	Use:               "get [flags] <project-key>",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get a project",
+	Short:             "get a project by its <project-key>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
