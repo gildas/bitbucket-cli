@@ -30,8 +30,6 @@ func init() {
 	listOptions.Project = common.RemoteValueFlag{AllowedFunc: GetProjectKeys}
 	listCmd.Flags().Var(&listOptions.Workspace, "workspace", "Workspace to list reviewers from")
 	listCmd.Flags().Var(&listOptions.Project, "project", "Project Key to list reviewers from")
-	_ = listCmd.MarkFlagRequired("workspace")
-	_ = listCmd.MarkFlagRequired("project")
 	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc())
 	_ = getCmd.RegisterFlagCompletionFunc("project", listOptions.Project.CompletionFunc())
 }
@@ -41,6 +39,18 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
+	}
+	if len(listOptions.Workspace.Value) == 0 {
+		listOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(listOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
+	}
+	if len(listOptions.Project.Value) == 0 {
+		listOptions.Project.Value = profile.Current.DefaultProject
+		if len(listOptions.Project.Value) == 0 {
+			return errors.ArgumentMissing.With("project")
+		}
 	}
 
 	log.Infof("Listing all reviewers")

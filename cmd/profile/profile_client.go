@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
+	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -110,7 +110,7 @@ func (profile *Profile) Download(context context.Context, cmd *cobra.Command, ur
 		return errors.RuntimeError.Wrap(err)
 	}
 
-	log.Debugf("Downloading artifact to %s", writer.Name())
+	log.Debugf("Downloading data to %s", writer.Name())
 	options := &request.Options{
 		Method:              http.MethodGet,
 		Timeout:             15 * time.Minute,
@@ -220,12 +220,12 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 	if strings.HasPrefix(uripath, "/") {
 		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
 	} else if !strings.HasPrefix(uripath, "http") {
-		repository, err := repository.GetRepository(context, cmd)
+		repositoryName, err := profile.getRepositoryFullname(context, cmd)
 		if err != nil {
 			return nil, err
 		}
-		log.Infof("Using repository %s", repository)
-		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repository, uripath)
+		log.Infof("Using repository %s", repositoryName)
+		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repositoryName, uripath)
 	}
 
 	options.URL, err = url.Parse(uripath)
@@ -251,4 +251,19 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 		}
 	}
 	return
+}
+
+func (profile Profile) getRepositoryFullname(context context.Context, cmd *cobra.Command) (string, error) {
+	log := logger.Must(logger.FromContext(context)).Child("profile", "getrepositoryname")
+
+	fullName := cmd.Flag("repository").Value.String()
+	if len(fullName) == 0 {
+		log.Debugf("No repository name given, trying to get it from the current git repository")
+		remote, err := remote.GetFromGitConfig(context, "origin")
+		if err != nil {
+			return "", errors.Join(errors.NotFound.With("current repository"), err)
+		}
+		fullName = remote.RepositoryName()
+	}
+	return fullName, nil
 }

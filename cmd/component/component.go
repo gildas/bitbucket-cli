@@ -63,8 +63,8 @@ func GetComponentIDs(context context.Context, cmd *cobra.Command, currentProfile
 		return []string{}
 	}
 	ids = make([]string, 0, len(components))
-	for _, issue := range components {
-		ids = append(ids, fmt.Sprintf("%d", issue.ID))
+	for _, component := range components {
+		ids = append(ids, fmt.Sprintf("%d", component.ID))
 	}
 	return
 }

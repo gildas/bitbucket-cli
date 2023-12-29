@@ -1,6 +1,7 @@
 package remote_test
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCanGetRepositoryWithGitAt(t *testing.T) {
+func TestCanGetRemoteWithGitAt(t *testing.T) {
 	payload := `
 [core]
 	repositoryformatversion = 0
@@ -28,18 +29,18 @@ func TestCanGetRepositoryWithGitAt(t *testing.T) {
 	remote = origin
 	merge = refs/heads/dev
 	`
-	r, err := remote.Get(strings.NewReader(payload), "origin")
+	r, err := remote.Get(context.Background(), strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
 
-	r, err = remote.Get(strings.NewReader(payload), "alternate")
+	r, err = remote.Get(context.Background(), strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
 }
 
-func TestCanGetRepositoryWithHTTPS(t *testing.T) {
+func TestCanGetRemoteWithHTTPS(t *testing.T) {
 	payload := `
 [core]
 	repositoryformatversion = 0
@@ -59,12 +60,12 @@ func TestCanGetRepositoryWithHTTPS(t *testing.T) {
 	remote = origin
 	merge = refs/heads/dev
 	`
-	r, err := remote.Get(strings.NewReader(payload), "origin")
+	r, err := remote.Get(context.Background(), strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
 
-	r, err = remote.Get(strings.NewReader(payload), "alternate")
+	r, err = remote.Get(context.Background(), strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())

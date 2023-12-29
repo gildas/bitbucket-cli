@@ -21,18 +21,20 @@ import (
 
 // Profile describes the configuration needed to connect to BitBucket
 type Profile struct {
-	Name         string    `json:"name"                   mapstructure:"name"`
-	Description  string    `json:"description,omitempty"  mapstructure:"description,omitempty"  yaml:",omitempty"`
-	Default      bool      `json:"default"                mapstructure:"default"                yaml:",omitempty"`
-	OutputFormat string    `json:"outputFormat,omitempty" mapstructure:"outputFormat,omitempty" yaml:",omitempty"`
-	User         string    `json:"user,omitempty"         mapstructure:"user"                   yaml:",omitempty"`
-	Password     string    `json:"password,omitempty"     mapstructure:"password"               yaml:",omitempty"`
-	ClientID     string    `json:"clientID,omitempty"     mapstructure:"clientID"               yaml:",omitempty"`
-	ClientSecret string    `json:"clientSecret,omitempty" mapstructure:"clientSecret"           yaml:",omitempty"`
-	AccessToken  string    `json:"accessToken,omitempty"  mapstructure:"accessToken"            yaml:",omitempty"`
-	RefreshToken string    `json:"-"                      mapstructure:"refreshToken"           yaml:"-"`
-	TokenExpires time.Time `json:"-"                      mapstructure:"tokenExpires"           yaml:"-"`
-	TokenScopes  []string  `json:"-"                      mapstructure:"tokenScopes"            yaml:"-"`
+	Name             string    `json:"name"                       mapstructure:"name"`
+	Description      string    `json:"description,omitempty"      mapstructure:"description,omitempty"  yaml:",omitempty"`
+	Default          bool      `json:"default"                    mapstructure:"default"                yaml:",omitempty"`
+	DefaultWorkspace string    `json:"defaultWorkspace,omitempty" mapstructure:"defaultWorkspace"       yaml:",omitempty"`
+	DefaultProject   string    `json:"defaultProject,omitempty"   mapstructure:"defaultProject"         yaml:",omitempty"`
+	OutputFormat     string    `json:"outputFormat,omitempty"     mapstructure:"outputFormat,omitempty" yaml:",omitempty"`
+	User             string    `json:"user,omitempty"             mapstructure:"user"                   yaml:",omitempty"`
+	Password         string    `json:"password,omitempty"         mapstructure:"password"               yaml:",omitempty"`
+	ClientID         string    `json:"clientID,omitempty"         mapstructure:"clientID"               yaml:",omitempty"`
+	ClientSecret     string    `json:"clientSecret,omitempty"     mapstructure:"clientSecret"           yaml:",omitempty"`
+	AccessToken      string    `json:"accessToken,omitempty"      mapstructure:"accessToken"            yaml:",omitempty"`
+	RefreshToken     string    `json:"-"                          mapstructure:"refreshToken"           yaml:"-"`
+	TokenExpires     time.Time `json:"-"                          mapstructure:"tokenExpires"           yaml:"-"`
+	TokenScopes      []string  `json:"-"                          mapstructure:"tokenScopes"            yaml:"-"`
 }
 
 // Current is the current profile
@@ -121,6 +123,12 @@ func (profile *Profile) Update(other Profile) error {
 		profile.RefreshToken = ""
 		profile.TokenExpires = time.Time{}
 		profile.TokenScopes = []string{}
+	}
+	if len(other.DefaultWorkspace) > 0 {
+		profile.DefaultWorkspace = other.DefaultWorkspace
+	}
+	if len(other.DefaultProject) > 0 {
+		profile.DefaultProject = other.DefaultProject
 	}
 	return profile.Validate()
 }
@@ -374,4 +382,84 @@ func (profile *Profile) getTokenData() (data []byte) {
 	}
 	data, _ = json.Marshal(token)
 	return
+}
+
+// getProfileFromCmd gets the profile from the command line
+func getProfileFromCmd(context context.Context, cmd *cobra.Command, args []string) (profile *Profile, err error) {
+	log := logger.Must(logger.FromContext(context)).Child("profile", "getfromcmd")
+
+	if len(args) > 0 {
+		log.Debugf("Getting profile %s", args[0])
+		var found bool
+
+		profile, found = Profiles.Find(args[0])
+		if !found {
+			log.Infof("Profile %s not found", args[0])
+			return nil, errors.NotFound.With("profile", args[0])
+		}
+	} else {
+		profile = &Profile{}
+	}
+	if clientID := cmd.Flag("client-id").Value.String(); len(clientID) > 0 {
+		profile.ClientID = clientID
+	}
+	if clientSecret := cmd.Flag("client-secret").Value.String(); len(clientSecret) > 0 {
+		profile.ClientSecret = clientSecret
+	}
+	if accessToken := cmd.Flag("access-token").Value.String(); len(accessToken) > 0 {
+		profile.AccessToken = accessToken
+	}
+	return
+}
+
+// getWorkspaceSlugs gets the slugs of all workspaces
+func getWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string) (slugs []string) {
+	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
+	type Workspace struct {
+		Slug string `json:"slug"`
+	}
+
+	profile, err := getProfileFromCmd(context, cmd, args)
+	if err != nil {
+		return []string{}
+	}
+
+	log.Debugf("Getting all workspaces")
+	workspaces, err := GetAll[Workspace](context, cmd, profile, "/workspaces")
+	if err != nil {
+		log.Errorf("Failed to get workspaces for profile %s", profile, err)
+		return []string{}
+	}
+	return core.Map(workspaces, func(workspace Workspace) string {
+		return workspace.Slug
+	})
+}
+
+// getProjectKeys gets the keys of all projects
+func getProjectKeys(context context.Context, cmd *cobra.Command, args []string) (keys []string) {
+	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
+	type Project struct {
+		Key string `json:"key"`
+	}
+
+	profile, err := getProfileFromCmd(context, cmd, args)
+	if err != nil {
+		return []string{}
+	}
+
+	workspace := cmd.Flag("default-workspace").Value.String()
+	if len(workspace) == 0 {
+		log.Warnf("No workspace given")
+		return
+	}
+
+	log.Debugf("Getting all projects in workspace %s", workspace)
+	projects, err := GetAll[Project](context, cmd, profile, fmt.Sprintf("/workspaces/%s/projects", workspace))
+	if err != nil {
+		log.Errorf("Failed to get projects", err)
+		return
+	}
+	return core.Map(projects, func(project Project) string {
+		return project.Key
+	})
 }

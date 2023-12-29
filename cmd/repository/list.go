@@ -1,8 +1,6 @@
-package project
+package repository
 
 import (
-	"fmt"
-
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
@@ -13,20 +11,23 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "list all projects",
+	Short: "list all public repositories",
 	Args:  cobra.NoArgs,
 	RunE:  listProcess,
 }
 
 var listOptions struct {
+	Role      common.EnumFlag
 	Workspace common.RemoteValueFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
+	listOptions.Role = common.EnumFlag{Allowed: []string{"owner", "admin", "contributor", "member", "all"}, Value: "owner"}
 	listOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	listCmd.Flags().Var(&listOptions.Workspace, "workspace", "Workspace to list projects from")
+	listCmd.Flags().Var(&listOptions.Role, "role", "Role of the user in the repository")
+	listCmd.Flags().Var(&listOptions.Workspace, "workspace", "Workspace to list repositories from")
 	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc())
 }
 
@@ -36,26 +37,30 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
 	}
-	if len(listOptions.Workspace.Value) == 0 {
-		listOptions.Workspace.Value = profile.Current.DefaultWorkspace
-		if len(listOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
+
+	filter := ""
+	if listOptions.Role.Value != "all" {
+		filter = "?role=" + listOptions.Role.Value
 	}
 
-	log.Infof("Listing all projects from workspace %s with profile %s", listOptions.Workspace, profile.Current)
-	projects, err := profile.GetAll[Project](
+	workspace := ""
+	if len(listOptions.Workspace.Value) > 0 {
+		workspace = "/" + listOptions.Workspace.Value
+	}
+
+	log.Infof("Listing all repositories, workspace %s, role %s", listOptions.Workspace, listOptions.Role)
+	repositories, err := profile.GetAll[Repository](
 		cmd.Context(),
 		cmd,
 		profile.Current,
-		fmt.Sprintf("/workspaces/%s/projects", listOptions.Workspace),
+		"/repositories"+workspace+filter,
 	)
 	if err != nil {
 		return err
 	}
-	if len(projects) == 0 {
-		log.Infof("No project found")
+	if len(repositories) == 0 {
+		log.Infof("No repository found")
 		return nil
 	}
-	return profile.Current.Print(cmd.Context(), Projects(projects))
+	return profile.Current.Print(cmd.Context(), Repositories(repositories))
 }

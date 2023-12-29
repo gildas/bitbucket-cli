@@ -1,4 +1,4 @@
-package project
+package repository
 
 import (
 	"fmt"
@@ -13,9 +13,9 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:               "get [flags] <project-key>",
+	Use:               "get [flags] <slug_or_uuid",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get a project by its <project-key>.",
+	Short:             "get a repository by its <slug> or <uuid>. With the --forks flag, it will display the forks of the repository.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
@@ -23,13 +23,15 @@ var getCmd = &cobra.Command{
 
 var getOptions struct {
 	Workspace common.RemoteValueFlag
+	ShowForks bool
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
 	getOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	getCmd.Flags().Var(&getOptions.Workspace, "workspace", "Workspace to get projects from")
+	getCmd.Flags().Var(&getOptions.Workspace, "workspace", "Workspace to get repositories from")
+	getCmd.Flags().BoolVar(&getOptions.ShowForks, "forks", false, "Show the forks of the repository")
 	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc())
 }
 
@@ -41,7 +43,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetProjectKeys(cmd.Context(), cmd, args), cobra.ShellCompDirectiveNoFileComp
+	return GetRepositorySlugs(cmd.Context(), cmd, profile.Current, getOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
@@ -57,18 +59,36 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	log.Infof("Displaying project %s", args[0])
-	var project Project
+	if getOptions.ShowForks {
+		log.Infof("Displaying forks of repository %s", args[0])
+		forks, err := profile.GetAll[Repository](
+			cmd.Context(),
+			cmd,
+			profile.Current,
+			fmt.Sprintf("/repositories/%s/%s/forks", getOptions.Workspace, args[0]),
+		)
+		if err != nil {
+			return err
+		}
+		if len(forks) == 0 {
+			log.Infof("No fork found")
+			return nil
+		}
+		return profile.Current.Print(cmd.Context(), Repositories(forks))
+	}
+
+	log.Infof("Displaying repository %s", args[0])
+	var repository Repository
 
 	err := profile.Current.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("/workspaces/%s/projects/%s", getOptions.Workspace, args[0]),
-		&project,
+		fmt.Sprintf("/repositories/%s/%s", getOptions.Workspace, args[0]),
+		&repository,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get project %s: %s\n", args[0], err)
+		fmt.Fprintf(os.Stderr, "Failed to get repository %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), project)
+	return profile.Current.Print(cmd.Context(), repository)
 }

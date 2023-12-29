@@ -12,8 +12,8 @@ import (
 )
 
 var mergeCmd = &cobra.Command{
-	Use:               "merge",
-	Short:             "merge a pullrequest",
+	Use:               "merge [flags] <pullrequest-id>",
+	Short:             "merge a pullrequest by its <pullrequest-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: mergeValidArgs,
 	RunE:              mergeProcess,
@@ -46,7 +46,7 @@ func mergeValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return GetPullRequests(cmd.Context(), cmd, mergeOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequestIDs(cmd.Context(), cmd, mergeOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func mergeProcess(cmd *cobra.Command, args []string) (err error) {

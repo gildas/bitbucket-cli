@@ -34,8 +34,6 @@ func init() {
 	getOptions.Project = common.RemoteValueFlag{AllowedFunc: GetProjectKeys}
 	getCmd.Flags().Var(&getOptions.Workspace, "workspace", "Workspace to get reviewers from")
 	getCmd.Flags().Var(&getOptions.Project, "project", "Project Key to get reviewers from")
-	_ = getCmd.MarkFlagRequired("workspace")
-	_ = getCmd.MarkFlagRequired("project")
 	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc())
 	_ = getCmd.RegisterFlagCompletionFunc("project", getOptions.Project.CompletionFunc())
 }
@@ -48,7 +46,14 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetReviewerUserIDs(cmd.Context(), cmd, profile.Current, getOptions.Workspace.Value, getOptions.Project.Value), cobra.ShellCompDirectiveNoFileComp
+	workspace := getOptions.Workspace.Value
+	if len(workspace) == 0 {
+		workspace = profile.Current.DefaultWorkspace
+		if len(workspace) == 0 {
+			return []string{}, cobra.ShellCompDirectiveNoFileComp
+		}
+	}
+	return GetReviewerUserIDs(cmd.Context(), cmd, profile.Current, workspace, getOptions.Project.Value), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
@@ -56,6 +61,18 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
+	}
+	if len(getOptions.Workspace.Value) == 0 {
+		getOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(getOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
+	}
+	if len(getOptions.Project.Value) == 0 {
+		getOptions.Project.Value = profile.Current.DefaultProject
+		if len(getOptions.Project.Value) == 0 {
+			return errors.ArgumentMissing.With("project")
+		}
 	}
 
 	log.Infof("Displaying reviewer %s", args[0])

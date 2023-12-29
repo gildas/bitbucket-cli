@@ -12,9 +12,9 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:               "download",
+	Use:               "download [flags] <path>",
 	Aliases:           []string{"get", "fetch"},
-	Short:             "download an issue attachment",
+	Short:             "download an issue attachment by its <path>.",
 	ValidArgsFunction: downloadValidArgs,
 	Args:              cobra.ExactArgs(1),
 	RunE:              downloadProcess,

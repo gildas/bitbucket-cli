@@ -12,8 +12,8 @@ import (
 )
 
 var declineCmd = &cobra.Command{
-	Use:               "decline",
-	Short:             "decline a pullrequest",
+	Use:               "decline [flags] <pullrequest-id>",
+	Short:             "decline a pullrequest by its <pullrequest-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: declineValidArgs,
 	RunE:              declineProcess,
@@ -38,7 +38,7 @@ func declineValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return GetPullRequests(cmd.Context(), cmd, declineOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequestIDs(cmd.Context(), cmd, declineOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func declineProcess(cmd *cobra.Command, args []string) (err error) {

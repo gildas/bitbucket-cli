@@ -12,8 +12,8 @@ import (
 )
 
 var approveCmd = &cobra.Command{
-	Use:               "approve",
-	Short:             "approve a pullrequest",
+	Use:               "approve [flags] <pullrequest-id>",
+	Short:             "approve a pullrequest by its <pullrequest-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: approveValidArgs,
 	RunE:              approveProcess,
@@ -38,7 +38,7 @@ func approveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return GetPullRequests(cmd.Context(), cmd, approveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequestIDs(cmd.Context(), cmd, approveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func approveProcess(cmd *cobra.Command, args []string) (err error) {

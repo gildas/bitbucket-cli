@@ -11,9 +11,9 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:               "get",
+	Use:               "get [flags] <component-id>",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get a workspace",
+	Short:             "get a component by its <component-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,

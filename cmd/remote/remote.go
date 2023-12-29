@@ -1,10 +1,14 @@
 package remote
 
 import (
+	"context"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
 	"gopkg.in/ini.v1"
 )
 
@@ -13,20 +17,37 @@ type Remote struct {
 	Fetch string
 }
 
-func OpenGitConfig() (io.ReadCloser, error) {
-	return os.Open(".git/config")
+func OpenGitConfig(context context.Context) (io.ReadCloser, error) {
+	log := logger.Must(logger.FromContext(context)).Child("remote", "opengitconfig")
+	folder := "."
+
+	for {
+		filename := filepath.Join(folder, ".git/config")
+		log.Debugf("opening %s", filename)
+		file, err := os.Open(filename)
+		if err == nil {
+			return file, nil
+		}
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, errors.RuntimeError.Wrap(err)
+		}
+		if folder == "/" {
+			return nil, errors.New("not a git repository")
+		}
+		folder += "/.."
+	}
 }
 
-func GetFromGitConfig(name string) (remote *Remote, err error) {
-	file, err := OpenGitConfig()
+func GetFromGitConfig(context context.Context, name string) (remote *Remote, err error) {
+	file, err := OpenGitConfig(context)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-	return Get(file, name)
+	return Get(context, file, name)
 }
 
-func Get(reader io.Reader, name string) (remote *Remote, err error) {
+func Get(context context.Context, reader io.Reader, name string) (remote *Remote, err error) {
 	payload, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err

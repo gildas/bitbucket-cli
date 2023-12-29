@@ -11,9 +11,9 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:               "get",
+	Use:               "get [flags] <pullrequest-id>",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get a profile",
+	Short:             "get a profile by its <pullrequest-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
@@ -38,7 +38,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return GetPullRequests(cmd.Context(), cmd, getOptions.Repository, "ALL"), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequestIDs(cmd.Context(), cmd, getOptions.Repository, "ALL"), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {

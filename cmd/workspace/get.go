@@ -12,9 +12,9 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:     "get",
+	Use:     "get [flags] <workspace-slug-or-id>",
 	Aliases: []string{"show", "info", "display"},
-	Short:   "get a workspace",
+	Short:   "get a workspace by its <workspace-slug-or-id>. With the --members flag, it will display the members of the workspace. With the --member flag, it will display workspaces for the given user.",
 	Args:    cobra.ExactArgs(1),
 	RunE:    getProcess,
 }

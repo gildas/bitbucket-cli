@@ -24,9 +24,9 @@ type ProjectUpdator struct {
 }
 
 var updateCmd = &cobra.Command{
-	Use:               "update",
+	Use:               "update [flags] <project-key>",
 	Aliases:           []string{"edit"},
-	Short:             "update a project",
+	Short:             "update a project by its <project-key>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: updateValidArgs,
 	RunE:              updateProcess,
@@ -53,7 +53,6 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.AvatarURL, "avatar-url", "", "Avatar of the project")
 	updateCmd.Flags().StringVar(&updateOptions.AvatarPath, "avatar-file", "", "Avatar of the project")
 	updateCmd.Flags().BoolVar(&updateOptions.IsPrivate, "is-private", false, "Is the project private")
-	_ = updateCmd.MarkFlagRequired("workspace")
 	updateCmd.MarkFlagsMutuallyExclusive("avatar-url", "avatar-file")
 	_ = updateCmd.RegisterFlagCompletionFunc("workspace", updateOptions.Workspace.CompletionFunc())
 }
@@ -66,7 +65,7 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetProjectKeys(cmd.Context(), cmd, profile.Current, deleteOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
+	return GetProjectKeys(cmd.Context(), cmd, args), cobra.ShellCompDirectiveNoFileComp
 }
 
 func updateProcess(cmd *cobra.Command, args []string) error {
@@ -74,6 +73,12 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
+	}
+	if len(updateOptions.Workspace.Value) == 0 {
+		updateOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(updateOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
 	}
 
 	payload := ProjectUpdator{

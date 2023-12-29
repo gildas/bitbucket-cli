@@ -11,9 +11,9 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete",
+	Use:               "delete [flags] <filename>",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete an artifact by its filename",
+	Short:             "delete an artifact by its <filename>.",
 	ValidArgsFunction: deleteValidArgs,
 	Args:              cobra.ExactArgs(1),
 	RunE:              deleteProcess,
@@ -47,7 +47,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Deleting artifact %s from repository %s with profile %s", args[0], listOptions.Repository, profile.Current)
+	log.Infof("Deleting artifact %s from repository %s with profile %s", args[0], deleteOptions.Repository, profile.Current)
 	err := profile.Current.Delete(
 		log.ToContext(cmd.Context()),
 		cmd,

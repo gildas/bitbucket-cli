@@ -11,8 +11,8 @@ import (
 )
 
 var unvoteCmd = &cobra.Command{
-	Use:               "unvote",
-	Short:             "remove vote for an issue",
+	Use:               "unvote [flags] <issue-id>",
+	Short:             "remove vote for an issue by its <issue-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: unvoteValidArgs,
 	RunE:              unvoteProcess,

@@ -12,9 +12,9 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:               "get",
+	Use:               "get [flags] <comment-id>",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get an issue comment",
+	Short:             "get an issue comment by its <comment-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,

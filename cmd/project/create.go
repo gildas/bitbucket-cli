@@ -52,7 +52,6 @@ func init() {
 	createCmd.Flags().StringVar(&createOptions.AvatarURL, "avatar-url", "", "Avatar of the project")
 	createCmd.Flags().StringVar(&createOptions.AvatarPath, "avatar-file", "", "Avatar of the project")
 	createCmd.Flags().BoolVar(&createOptions.IsPrivate, "is-private", false, "Is the project private")
-	_ = createCmd.MarkFlagRequired("workspace")
 	_ = createCmd.MarkFlagRequired("name")
 	_ = createCmd.MarkFlagRequired("key")
 	_ = createCmd.MarkFlagFilename("avatar-file")
@@ -65,6 +64,12 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
+	}
+	if len(createOptions.Workspace.Value) == 0 {
+		createOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(createOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
 	}
 
 	payload := ProjectCreator{

@@ -11,9 +11,9 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:               "download",
+	Use:               "download [flags] <filename>",
 	Aliases:           []string{"get", "fetch"},
-	Short:             "download an artifact",
+	Short:             "download an artifact by its <filename>.",
 	ValidArgsFunction: downloadValidArgs,
 	Args:              cobra.ExactArgs(1),
 	RunE:              getProcess,

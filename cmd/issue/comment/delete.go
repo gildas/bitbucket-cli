@@ -12,9 +12,9 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete",
+	Use:               "delete [flags] <comment-id]",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete an issue comment",
+	Short:             "delete an issue comment by its <comment-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: deleteValidArgs,
 	RunE:              deleteProcess,

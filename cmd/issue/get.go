@@ -11,9 +11,9 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:               "get",
+	Use:               "get [flags] <issue-id>",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get an issue",
+	Short:             "get an issue by its <issue-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
