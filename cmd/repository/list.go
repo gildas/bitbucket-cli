@@ -29,6 +29,7 @@ func init() {
 	listCmd.Flags().Var(&listOptions.Role, "role", "Role of the user in the repository")
 	listCmd.Flags().Var(&listOptions.Workspace, "workspace", "Workspace to list repositories from")
 	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc())
+	_ = listCmd.RegisterFlagCompletionFunc("role", listOptions.Role.CompletionFunc())
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
