@@ -52,7 +52,7 @@ func (reviewer *Reviewer) Validate() error {
 }
 
 // GetProjectKeys gets the keys of the projects in the workspace given in the command
-func GetProjectKeys(context context.Context, cmd *cobra.Command) (keys []string) {
+func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) (keys []string) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 
 	workspace := cmd.Flag("workspace").Value.String()

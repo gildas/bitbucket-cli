@@ -125,7 +125,7 @@ func (project Project) MarshalJSON() (data []byte, err error) {
 }
 
 // GetProjectKeys gets the keys of the projects in the workspace given in the command
-func GetProjectKeys(context context.Context, cmd *cobra.Command) (keys []string) {
+func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) (keys []string) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 
 	workspace := cmd.Flag("workspace").Value.String()
@@ -145,7 +145,7 @@ func GetProjectKeys(context context.Context, cmd *cobra.Command) (keys []string)
 }
 
 // GetProjectNames gets the names of the projects in the workspace given in the command
-func GetProjectNames(context context.Context, cmd *cobra.Command) (keys []string) {
+func GetProjectNames(context context.Context, cmd *cobra.Command, args []string) (names []string) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "names")
 
 	workspace := cmd.Flag("workspace").Value.String()

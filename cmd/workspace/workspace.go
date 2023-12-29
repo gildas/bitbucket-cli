@@ -50,7 +50,7 @@ func (workspace Workspace) GetRow(headers []string) []string {
 }
 
 // GetWorkspaceSlugs gets the slugs of all workspaces
-func GetWorkspaceSlugs(context context.Context, cmd *cobra.Command) (slugs []string) {
+func GetWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string) (slugs []string) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
 
 	log.Debugf("Getting all workspaces")
