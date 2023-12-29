@@ -230,6 +230,82 @@ bb project reviewer get \
   userUUID
 ```
 
+### Repositories
+
+You can list repositories with the `bb repo list` command:
+
+```bash
+bb repo list --workspace myworkspace
+```
+
+If you do not provide a workspace, the command will attempt to list all repositories you have access to, which can take a very long time.
+
+You can also get the details of a repository with the `bb repo get` or `bb repo show` command:
+
+```bash
+bb repo get --workspace myworkspace myrepository
+```
+
+You can clone a repository with the `bb repo clone` command:
+
+```bash
+bb repo clone myworkspace/myrepository
+```
+
+or, with the `--workspace` flag:
+
+```bash
+bb repo clone --workspace myworkspace myrepository
+```
+
+By default, the repository is cloned in a folder with the same name as the repository. You can specify a different folder with the `--destination` flag:
+
+```bash
+bb repo clone --workspace myworkspace --destination myfolder myrepository
+```
+
+You can create a repository with the `bb repo create` command:
+
+```bash
+bb repo create myrepository_slug \
+  --name      myrepository \
+  --project   myproject \
+  --workspace myworkspace
+```
+
+If the `--project` flag is not provided, the repository will be created in the default project of the workspace.
+
+You can update a repository with the `bb repo update` command:
+
+```bash
+bb repo update --workspace myworkspace myrepository \
+  --private \
+  --fork-policy no_public_forks
+```
+
+You can delete a repository with the `bb repo delete` command:
+
+```bash
+bb repo delete --workspace myworkspace myrepository
+```
+
+You can fork a repository with the `bb repo fork` command:
+
+```bash
+bb repo fork myrepository \
+  --workspace myworkspace \
+  --project   myproject \
+  --name      myfork
+```
+
+You can list the forks of a repository with the `bb repo get --forks` command:
+
+```bash
+bb repo get myrepository \
+  --workspace myworkspace \
+  --forks
+```
+
 ### Pull Requests
 
 You can list pull requests with the `bb pullrequest list` command:
@@ -475,6 +551,6 @@ On macOS, you can add the completion to the brew functions:
 bb completion zsh > "$(brew --prefix)/share/zsh/site-functions/_bb"
 ```
 
-### TODO
+## TODO
 
 We will add more commands in the future. If you have any suggestions, please open an issue.
