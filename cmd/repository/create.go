@@ -25,7 +25,7 @@ type RepositoryCreator struct {
 
 var createCmd = &cobra.Command{
 	Use:   "create [flags] <slug>",
-	Short: "create a repository in a project and a workspace. The project <slug> must be unique in the workspace.",
+	Short: "create a repository in a project and a workspace. The repository <slug> must be unique in the workspace.",
 	Args:  cobra.ExactArgs(1),
 	RunE:  createProcess,
 }
