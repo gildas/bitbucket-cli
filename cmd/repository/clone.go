@@ -56,6 +56,12 @@ func cloneProcess(cmd *cobra.Command, args []string) error {
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
 	}
+	if len(cloneOptions.Workspace.Value) == 0 {
+		cloneOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(cloneOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
+	}
 
 	if len(cloneOptions.Workspace.Value) == 0 {
 		components := strings.Split(args[0], "/")

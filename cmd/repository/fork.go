@@ -58,7 +58,6 @@ func init() {
 	forkCmd.Flags().StringVar(&forkOptions.MainBranch, "main-branch", "", "Main branch of the repository")
 	forkCmd.Flags().Var(&forkOptions.ForkPolicy, "fork-policy", "Fork policy of the repository. Default: no_public_forks")
 	forkCmd.MarkFlagsMutuallyExclusive("private", "public")
-	_ = forkCmd.MarkFlagRequired("workspace")
 	_ = forkCmd.RegisterFlagCompletionFunc("workspace", forkOptions.Workspace.CompletionFunc())
 	_ = forkCmd.RegisterFlagCompletionFunc("project", forkOptions.Project.CompletionFunc())
 }
@@ -76,6 +75,12 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
+	}
+	if len(forkOptions.Workspace.Value) == 0 {
+		forkOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(forkOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
 	}
 
 	payload := RepositoryForkCreator{

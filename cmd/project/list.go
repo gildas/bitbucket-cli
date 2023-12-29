@@ -27,7 +27,6 @@ func init() {
 
 	listOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
 	listCmd.Flags().Var(&listOptions.Workspace, "workspace", "Workspace to list projects from")
-	_ = listCmd.MarkFlagRequired("workspace")
 	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc())
 }
 
@@ -36,6 +35,12 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
+	}
+	if len(listOptions.Workspace.Value) == 0 {
+		listOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(listOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
 	}
 
 	log.Infof("Listing all projects from workspace %s with profile %s", listOptions.Workspace, profile.Current)

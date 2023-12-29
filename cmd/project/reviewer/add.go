@@ -33,8 +33,6 @@ func init() {
 	addOptions.Project = common.RemoteValueFlag{AllowedFunc: GetProjectKeys}
 	addCmd.Flags().Var(&addOptions.Workspace, "workspace", "Workspace to add reviewers to")
 	addCmd.Flags().Var(&addOptions.Project, "project", "Project Key to add reviewers to")
-	_ = addCmd.MarkFlagRequired("workspace")
-	_ = addCmd.MarkFlagRequired("project")
 	_ = addCmd.RegisterFlagCompletionFunc("workspace", addOptions.Workspace.CompletionFunc())
 	_ = getCmd.RegisterFlagCompletionFunc("project", addOptions.Project.CompletionFunc())
 }
@@ -44,6 +42,18 @@ func addProcess(cmd *cobra.Command, args []string) error {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
+	}
+	if len(addOptions.Workspace.Value) == 0 {
+		addOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(addOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
+	}
+	if len(addOptions.Project.Value) == 0 {
+		addOptions.Project.Value = profile.Current.DefaultProject
+		if len(addOptions.Project.Value) == 0 {
+			return errors.ArgumentMissing.With("project")
+		}
 	}
 
 	log.Infof("Adding reviewer %s", args[0])

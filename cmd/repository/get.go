@@ -32,7 +32,6 @@ func init() {
 	getOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
 	getCmd.Flags().Var(&getOptions.Workspace, "workspace", "Workspace to get repositories from")
 	getCmd.Flags().BoolVar(&getOptions.ShowForks, "forks", false, "Show the forks of the repository")
-	_ = getCmd.MarkFlagRequired("workspace")
 	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc())
 }
 
@@ -52,6 +51,12 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
+	}
+	if len(getOptions.Workspace.Value) == 0 {
+		getOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(getOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
 	}
 
 	if getOptions.ShowForks {

@@ -21,12 +21,16 @@ var createCmd = &cobra.Command{
 
 var createOptions struct {
 	Profile
-	OutputFormat common.EnumFlag
+	DefaultWorkspace common.RemoteValueFlag
+	DefaultProject   common.RemoteValueFlag
+	OutputFormat     common.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(createCmd)
 
+	createOptions.DefaultWorkspace = common.RemoteValueFlag{AllowedFunc: getWorkspaceSlugs}
+	createOptions.DefaultProject = common.RemoteValueFlag{AllowedFunc: getProjectKeys}
 	createOptions.OutputFormat = common.EnumFlag{Allowed: []string{"json", "yaml", "table"}, Value: ""}
 	createCmd.Flags().StringVarP(&createOptions.Name, "name", "n", "", "Name of the profile")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the profile")
@@ -36,6 +40,8 @@ func init() {
 	createCmd.Flags().StringVar(&createOptions.ClientID, "client-id", "", "Client ID of the profile")
 	createCmd.Flags().StringVar(&createOptions.ClientSecret, "client-secret", "", "Client Secret of the profile")
 	createCmd.Flags().StringVar(&createOptions.AccessToken, "access-token", "", "Access Token of the profile")
+	createCmd.Flags().Var(&createOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
+	createCmd.Flags().Var(&createOptions.DefaultProject, "default-project", "Default project of the profile")
 	createCmd.Flags().Var(&createOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	_ = createCmd.MarkFlagRequired("name")
 	createCmd.MarkFlagsRequiredTogether("user", "password")
@@ -47,10 +53,16 @@ func init() {
 func createProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
 
-	log.Infof("Creating profile %s", createOptions.Name)
+	if len(createOptions.DefaultWorkspace.String()) > 0 {
+		createOptions.Profile.DefaultWorkspace = createOptions.DefaultWorkspace.String()
+	}
+	if len(createOptions.DefaultProject.String()) > 0 {
+		createOptions.Profile.DefaultProject = createOptions.DefaultProject.String()
+	}
 	if len(createOptions.OutputFormat.String()) > 0 {
 		createOptions.Profile.OutputFormat = createOptions.OutputFormat.String()
 	}
+	log.Infof("Creating profile %s", createOptions.Name)
 	if err := createOptions.Validate(); err != nil {
 		return err
 	}

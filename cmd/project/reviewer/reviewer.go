@@ -57,8 +57,11 @@ func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) 
 
 	workspace := cmd.Flag("workspace").Value.String()
 	if len(workspace) == 0 {
-		log.Warnf("No workspace given")
-		return
+		workspace = profile.Current.DefaultWorkspace
+		if len(workspace) == 0 {
+			log.Warnf("No workspace given")
+			return
+		}
 	}
 
 	type Project struct {

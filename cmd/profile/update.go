@@ -22,12 +22,16 @@ var updateCmd = &cobra.Command{
 
 var updateOptions struct {
 	Profile
-	OutputFormat common.EnumFlag
+	DefaultWorkspace common.RemoteValueFlag
+	DefaultProject   common.RemoteValueFlag
+	OutputFormat     common.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(updateCmd)
 
+	updateOptions.DefaultWorkspace = common.RemoteValueFlag{AllowedFunc: getWorkspaceSlugs}
+	updateOptions.DefaultProject = common.RemoteValueFlag{AllowedFunc: getProjectKeys}
 	updateOptions.OutputFormat = common.EnumFlag{Allowed: []string{"json", "yaml", "table"}, Value: ""}
 	updateCmd.Flags().StringVarP(&updateOptions.Name, "name", "n", "", "Name of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the profile")
@@ -37,20 +41,30 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.ClientID, "client-id", "", "Client ID of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.ClientSecret, "client-secret", "", "Client Secret of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.AccessToken, "access-token", "", "Access Token of the profile")
+	updateCmd.Flags().Var(&updateOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
+	updateCmd.Flags().Var(&updateOptions.DefaultProject, "default-project", "Default project of the profile")
 	updateCmd.Flags().Var(&updateOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	updateCmd.MarkFlagsRequiredTogether("user", "password")
 	updateCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	updateCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
+	_ = updateCmd.RegisterFlagCompletionFunc("default-workspace", updateOptions.DefaultWorkspace.CompletionFunc())
+	_ = updateCmd.RegisterFlagCompletionFunc("default-project", updateOptions.DefaultProject.CompletionFunc())
 	_ = updateCmd.RegisterFlagCompletionFunc("output", updateOptions.OutputFormat.CompletionFunc())
 }
 
 func updateProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
+	if len(updateOptions.DefaultWorkspace.String()) > 0 {
+		updateOptions.Profile.DefaultWorkspace = updateOptions.DefaultWorkspace.String()
+	}
+	if len(updateOptions.DefaultProject.String()) > 0 {
+		updateOptions.Profile.DefaultProject = updateOptions.DefaultProject.String()
+	}
 	if len(updateOptions.OutputFormat.String()) > 0 {
 		updateOptions.Profile.OutputFormat = updateOptions.OutputFormat.String()
 	}
-	log.Infof("Updating profile %s (Valid Names: %v)", args[0], Profiles.Names())
+	log.Infof("Checking if profile %s exists (Valid Names: %v)", args[0], Profiles.Names())
 	profile, found := Profiles.Find(args[0])
 	if !found {
 		return errors.NotFound.With("profile", args[0])

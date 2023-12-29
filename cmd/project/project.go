@@ -130,8 +130,11 @@ func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) 
 
 	workspace := cmd.Flag("workspace").Value.String()
 	if len(workspace) == 0 {
-		log.Warnf("No workspace given")
-		return
+		workspace = profile.Current.DefaultWorkspace
+		if len(workspace) == 0 {
+			log.Warnf("No workspace given")
+			return
+		}
 	}
 
 	projects, err := profile.GetAll[Project](context, cmd, profile.Current, fmt.Sprintf("/workspaces/%s/projects", workspace))
@@ -150,8 +153,11 @@ func GetProjectNames(context context.Context, cmd *cobra.Command, args []string)
 
 	workspace := cmd.Flag("workspace").Value.String()
 	if len(workspace) == 0 {
-		log.Warnf("No workspace given")
-		return
+		workspace = profile.Current.DefaultWorkspace
+		if len(workspace) == 0 {
+			log.Warnf("No workspace given")
+			return
+		}
 	}
 
 	log.Infof("Getting all projects from workspace %s", workspace)

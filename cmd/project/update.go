@@ -53,7 +53,6 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.AvatarURL, "avatar-url", "", "Avatar of the project")
 	updateCmd.Flags().StringVar(&updateOptions.AvatarPath, "avatar-file", "", "Avatar of the project")
 	updateCmd.Flags().BoolVar(&updateOptions.IsPrivate, "is-private", false, "Is the project private")
-	_ = updateCmd.MarkFlagRequired("workspace")
 	updateCmd.MarkFlagsMutuallyExclusive("avatar-url", "avatar-file")
 	_ = updateCmd.RegisterFlagCompletionFunc("workspace", updateOptions.Workspace.CompletionFunc())
 }
@@ -74,6 +73,12 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
+	}
+	if len(updateOptions.Workspace.Value) == 0 {
+		updateOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(updateOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
 	}
 
 	payload := ProjectUpdator{

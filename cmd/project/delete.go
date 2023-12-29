@@ -30,7 +30,6 @@ func init() {
 
 	deleteOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
 	deleteCmd.Flags().Var(&deleteOptions.Workspace, "workspace", "Workspace to delete projects from")
-	_ = deleteCmd.MarkFlagRequired("workspace")
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -49,6 +48,12 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
+	}
+	if len(deleteOptions.Workspace.Value) == 0 {
+		deleteOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(deleteOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
 	}
 
 	log.Infof("Deleting project %s", args[0])

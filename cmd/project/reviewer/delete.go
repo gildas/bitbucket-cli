@@ -33,8 +33,6 @@ func init() {
 	deleteOptions.Project = common.RemoteValueFlag{AllowedFunc: GetProjectKeys}
 	deleteCmd.Flags().Var(&deleteOptions.Workspace, "workspace", "Workspace to delete reviewers from")
 	deleteCmd.Flags().Var(&deleteOptions.Project, "project", "Project Key to delete reviewers from")
-	_ = deleteCmd.MarkFlagRequired("workspace")
-	_ = deleteCmd.MarkFlagRequired("project")
 	_ = deleteCmd.RegisterFlagCompletionFunc("workspace", deleteOptions.Workspace.CompletionFunc())
 	_ = getCmd.RegisterFlagCompletionFunc("project", deleteOptions.Project.CompletionFunc())
 }
@@ -47,7 +45,14 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetReviewerUserIDs(cmd.Context(), cmd, profile.Current, deleteOptions.Workspace.Value, deleteOptions.Project.Value), cobra.ShellCompDirectiveNoFileComp
+	workspace := deleteOptions.Workspace.Value
+	if len(workspace) == 0 {
+		workspace = profile.Current.DefaultWorkspace
+		if len(workspace) == 0 {
+			return []string{}, cobra.ShellCompDirectiveNoFileComp
+		}
+	}
+	return GetReviewerUserIDs(cmd.Context(), cmd, profile.Current, workspace, deleteOptions.Project.Value), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
@@ -55,6 +60,18 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
+	}
+	if len(deleteOptions.Workspace.Value) == 0 {
+		deleteOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		if len(deleteOptions.Workspace.Value) == 0 {
+			return errors.ArgumentMissing.With("workspace")
+		}
+	}
+	if len(deleteOptions.Project.Value) == 0 {
+		deleteOptions.Project.Value = profile.Current.DefaultProject
+		if len(deleteOptions.Project.Value) == 0 {
+			return errors.ArgumentMissing.With("project")
+		}
 	}
 
 	log.Infof("deleteing reviewer %s", args[0])

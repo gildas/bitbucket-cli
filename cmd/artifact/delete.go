@@ -47,7 +47,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Deleting artifact %s from repository %s with profile %s", args[0], listOptions.Repository, profile.Current)
+	log.Infof("Deleting artifact %s from repository %s with profile %s", args[0], deleteOptions.Repository, profile.Current)
 	err := profile.Current.Delete(
 		log.ToContext(cmd.Context()),
 		cmd,

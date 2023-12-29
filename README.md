@@ -16,6 +16,8 @@ General help is also available by running `bb --help` or `bb help`.
 
 By default `bb` works in the current git repository. You can specify a Bitbucket repository with the `--repository` flag.
 
+See the [Completion](#completion) section for more information about completion. Many commands and flags are dynamically auto-completed.
+
 ### Output
 
 `bb` outputs a table by default and get be set per profile. You can also use the `--output` flag to change the output format manually. The following formats are supported:
@@ -56,6 +58,8 @@ bb profile create \
 ```
 
 You can also pass the `--default` flag to make this profile the default one, or pass a `--output` flag to change the profile output format.
+
+You can also pass the `--default-workspace` and/or `--default-project` flags to set the default workspace and/or project for this profile.
 
 Profiles support the following authentications:
 
@@ -158,7 +162,7 @@ bb workspace get myworkspace --member mymember
 
 ### Projects
 
-You can list projects with the `bb project list` command, the `--workspace` flag is required for all project commands:
+You can list projects with the `bb project list` command. If the `--workspace` flag is not provided, the default workspace of the profile is used (if the profile does not have a default workspace, the command will fail):
 
 ```bash
 bb project list --workspace myworkspace
@@ -177,27 +181,25 @@ You can create a project with the `bb project create` command:
 ```bash
 bb project create \
   --name myproject \
-  --key MYPROJECT \
-  --workspace myworkspace
+  --key MYPROJECT
 ```
 
 You can update a project with the `bb project update` command:
 
 ```bash
 bb project update myproject \
-  --name myproject \
-  --workspace myworkspace
+  --name myproject
 ```
 
 You can delete a project with the `bb project delete` command:
 
 ```bash
-bb project delete myproject --workspace myworkspace
+bb project delete myproject
 ```
 
 #### Project Default Reviewers
 
-You can list the default reviewers of a project with the `bb project reviewer list` command:
+You can list the default reviewers of a project with the `bb project reviewer list` command. In addition to the `--workspace`, if the `--project` flag is not provided, the default project of the workspace is used (if the workspace does not have a default project, the command will fail):
 
 ```bash
 bb project reviewer list --workspace myworkspace --project myproject
@@ -206,19 +208,15 @@ bb project reviewer list --workspace myworkspace --project myproject
 You can add a default reviewer to a project with the `bb project reviewer add` command:
 
 ```bash
-bb project reviewer add \
-  --workspace myworkspace \
-  --project myproject \
-  userUUID
+bb project reviewer add userUUID
 ```
+
+The `{}` around the `userUUID` are optional.
 
 You can remove a default reviewer from a project with the `bb project reviewer remove` command:
 
 ```bash
-bb project reviewer remove \
-  --workspace myworkspace \
-  --project myproject \
-  userUUID
+bb project reviewer remove userUUID
 ```
 
  You can get the details of a default reviewer with the `bb project reviewer get` or `bb project reviewer show` command:
@@ -240,7 +238,7 @@ bb repo list --workspace myworkspace
 
 If you do not provide a workspace, the command will attempt to list all repositories you have access to, which can take a very long time.
 
-You can also get the details of a repository with the `bb repo get` or `bb repo show` command:
+You can also get the details of a repository with the `bb repo get` or `bb repo show` command. If the `--workspace` flag is not provided, the default workspace of the profile is used (if the profile does not have a default workspace, the command will fail):
 
 ```bash
 bb repo get --workspace myworkspace myrepository
@@ -258,6 +256,12 @@ or, with the `--workspace` flag:
 bb repo clone --workspace myworkspace myrepository
 ```
 
+Or, using the profile's default workspace:
+
+```bash
+bb repo clone myrepository
+```
+
 By default, the repository is cloned in a folder with the same name as the repository. You can specify a different folder with the `--destination` flag:
 
 ```bash
@@ -273,7 +277,7 @@ bb repo create myrepository_slug \
   --workspace myworkspace
 ```
 
-If the `--project` flag is not provided, the repository will be created in the default project of the workspace.
+If the `--project` flag is not provided, the repository will be created in the default project of the profile.
 
 You can update a repository with the `bb repo update` command:
 
