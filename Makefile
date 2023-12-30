@@ -22,10 +22,13 @@ VERSION   != awk '/^var +VERSION +=/{gsub("\"", "", $$4) ; print $$4}' version.g
 ifeq ($VERSION,)
 VERSION   != git describe --tags --always --dirty="-dev"
 endif
+REVISION  ?= 1
 PROJECT   != awk '/^const +APP += +/{gsub("\"", "", $$4); print $$4}' version.go
 ifeq (${PROJECT},)
 PROJECT   != basename "$(PWD)"
 endif
+PACKAGE   = bitbucket-cli
+PACKAGE   ?= $(PROJECT)
 PLATFORMS ?= darwin-amd64 darwin-arm64 linux-amd64 linux-arm64 windows
 
 # Files
@@ -261,7 +264,13 @@ endif
 .PHONY: __publish_init__ __publish_binaries__
 __publish_init__:; $(info $(M) Pushing the Docker Image $(DOCKER_IMAGE)...)
 __publish_binaries__: archive
+	$(info $(M) Uploading the binary packages...)
 	$Q $(foreach platform, $(PLATFORMS), go run . artifact upload $(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z ; )
+	$(info $(M) Uploading the Debian packages...)
+	$(info   Uploading amd64 package...)
+	$Q go run . artifact upload $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb
+	$(info   Uploading arm64 package...)
+	$Q go run . artifact upload $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb
 
 .PHONY: __docker_save__
 __docker_save__: $(TMP_DIR)/image.$(DOCKER_BRANCH).$(COMMIT).tar
@@ -291,13 +300,13 @@ $(BIN_DIR)/darwin-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin-arm
 $(BIN_DIR)/linux-amd64: $(BIN_DIR) ; $(MKDIR)
 $(BIN_DIR)/linux-amd64/$(PROJECT): export GOOS=linux
 $(BIN_DIR)/linux-amd64/$(PROJECT): export GOARCH=amd64
-$(BIN_DIR)/linux-amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/amd64; $(info $(M) building application for linux amd64)
+$(BIN_DIR)/linux-amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux-amd64; $(info $(M) building application for linux amd64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 $(BIN_DIR)/linux-arm64: $(BIN_DIR) ; $(MKDIR)
 $(BIN_DIR)/linux-arm64/$(PROJECT): export GOOS=linux
 $(BIN_DIR)/linux-arm64/$(PROJECT): export GOARCH=arm64
-$(BIN_DIR)/linux-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/arm64; $(info $(M) building application for linux arm64)
+$(BIN_DIR)/linux-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux-arm64; $(info $(M) building application for linux arm64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 $(BIN_DIR)/windows: $(BIN_DIR) ; $(MKDIR)
@@ -315,9 +324,10 @@ $(BIN_DIR)/pi/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/pi; $(info $(M) buil
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 # archive recipes
-.PHONY: __archive_all__ __archive_init__
+.PHONY: __archive_debian__  __archive_all__ __archive_init__
 __archive_init__:;     $(info $(M) Archiving binaries for application $(PROJECT))
-__archive_all__:       $(foreach platform, $(PLATFORMS), $(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z);
+__archive_all__:       $(foreach platform, $(PLATFORMS), $(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z) __archive_debian__;
+__archive_debian__:    $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb;
 
 $(BIN_DIR)/darwin-amd64/$(PROJECT)-$(VERSION).darwin-amd64.7z: $(BIN_DIR)/darwin-amd64/$(PROJECT)
 	7z a -r $@ $<
@@ -331,6 +341,34 @@ $(BIN_DIR)/windows/$(PROJECT)-$(VERSION).windows.7z: $(BIN_DIR)/windows/$(PROJEC
 	7z a -r $@ $<
 $(BIN_DIR)/pi/$(PROJECT)-$(VERSION).pi.7z: $(BIN_DIR)/pi/$(PROJECT)
 	7z a -r $@ $<
+
+$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64 ; $(MKDIR)
+$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr/bin: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr ; $(MKDIR)
+$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr/bin/$(PROJECT): $(BIN_DIR)/linux-amd64/$(PROJECT)
+	$(info $(M) Copying the binary to the Debian package...)
+	$Q cp $< $@
+$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64: $(BIN_DIR)/linux-amd64 ; $(MKDIR)
+$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64 ; $(MKDIR)
+$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN/control: debian/control $(BIN_DIR)/linux-amd64/$(PROJECT)
+	$(info $(M) Creating the package control for the Debian package...)
+	$Q sed -e 's/{{.Version}}/$(VERSION)/g' -e 's/{{.Arch}}/amd64/g' $< >| $@
+$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN/control $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr/bin/$(PROJECT)
+	$(info $(M) Building the Debian package...)
+	$Q ( cd $(BIN_DIR)/linux-amd64 && dpkg --build $(PACKAGE)_$(VERSION)-$(REVISION)_amd64)
+
+$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64 ; $(MKDIR)
+$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr/bin: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr ; $(MKDIR)
+$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr/bin/$(PROJECT): $(BIN_DIR)/linux-arm64/$(PROJECT)
+	$(info $(M) Copying the binary to the Debian package...)
+	$Q cp $< $@
+$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64: $(BIN_DIR)/linux-arm64 ; $(MKDIR)
+$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64 ; $(MKDIR)
+$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN/control: debian/control $(BIN_DIR)/linux-arm64/$(PROJECT)
+	$(info $(M) Creating the package control for the Debian package...)
+	$Q sed -e 's/{{.Version}}/$(VERSION)/g' -e 's/{{.Arch}}/arm64/g' $< >| $@
+$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN/control $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr/bin/$(PROJECT)
+	$(info $(M) Building the Debian package...)
+	$Q ( cd $(BIN_DIR)/linux-arm64 && dpkg --build $(PACKAGE)_$(VERSION)-$(REVISION)_arm64)
 
 # Watch recipes
 watch: watch-tools | $(TMP_DIR); @ ## Run a command continuously: make watch run="go test"
