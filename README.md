@@ -16,6 +16,8 @@ You can also install `bb` with snap:
 snap install bitbucket-cli
 ```
 
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bitbucket-cli)
+
 ## Usage
 
 `bb` is a modern command line interface. It uses subcommands to perform actions. You can get help on any subcommand by running `bb <subcommand> --help`.
