@@ -1,0 +1,33 @@
+name: bitbucket-cli
+summary: Bitbucket CLI
+description: |
+      The Bitbucket Command Line Interface brings the power of the Bitbucket
+      platform to your command line. Creating and merging Pull Requests, cloning
+      repositories, and more are now just a few keystrokes away.
+version: git
+base: core22
+grade: stable
+confinement: strict
+
+plugs:
+  dot-config-bb:
+    interface: personal-files
+    write:
+      - $HOME/.config/bitbucket/config-cli.yml
+      - $HOME/.bitbucket-cli
+
+apps:
+  bb:
+    command: bin/bb
+    plugs:
+      - home
+      - dot-config-bb
+      - network
+
+parts:
+  bb:
+    plugin: go
+    source-type: git
+    source: https://bitbucket.org/gildas_cherruel/bb
+    build-snaps:
+      - go

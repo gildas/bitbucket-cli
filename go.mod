@@ -1,6 +1,6 @@
 module bitbucket.org/gildas_cherruel/bb
 
-go 1.21.3
+go 1.21
 
 require (
 	github.com/gildas/go-core v0.5.6
