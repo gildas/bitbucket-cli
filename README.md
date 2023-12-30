@@ -2,11 +2,19 @@
 
 [bb](https://bitbucket.org/gildas_cherruel/bb) is the missing command line interface for Bitbucket.
 
+The [Bitbucket Command Line Interface](https://bitbucket.org/gildas_cherruel/b) brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
+
 ## Installation
 
 You can download the latest version of `bb` from the [downloads](https://bitbucket.org/gildas_cherruel/bb/downloads/) page.
 
-Once you get the `bb` executable, you can install it anywhere in your `$PATH`:
+Once you get the `bb` executable, you can install it anywhere in your `$PATH`.
+
+You can also install `bb` with snap:
+
+```bash
+snap install bitbucket-cli
+```
 
 ## Usage
 
