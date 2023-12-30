@@ -4,6 +4,10 @@ description: |
       The Bitbucket Command Line Interface brings the power of the Bitbucket
       platform to your command line. Creating and merging Pull Requests, cloning
       repositories, and more are now just a few keystrokes away.
+website: https://bitbucket.org/gildas_cherruel/bb
+source-code: https://bitbucket.org/gildas_cherruel/bb
+issues: https://bitbucket.org/gildas_cherruel/bb/issues
+license: MIT
 version: git
 base: core22
 grade: stable
