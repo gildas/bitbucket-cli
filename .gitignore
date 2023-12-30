@@ -10,6 +10,9 @@ bin/
 node_modules/
 dist/
 
+# Snapcraft artifacts
+*.snap
+
 # Compiled Java class files
 *.class
 
