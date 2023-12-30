@@ -52,8 +52,6 @@ GOLINT  ?= golangci-lint
 YOLO     = $(BIN_DIR)/yolo
 GOCOV    = $(BIN_DIR)/gocov
 GOCOVXML = $(BIN_DIR)/gocov-xml
-DOCKER  ?= docker
-KUBECTL ?= kubectl
 PANDOC  ?= pandoc
 
 # Flags
@@ -67,40 +65,6 @@ else
 TEST_ARG :=
 endif
 
-# Docker
-export DOCKER_BUILDKIT = 1
-DOCKER_REGISTRY     ?= gildas
-DOCKER_REPOSITORY    = $(PROJECT)
-DOCKER_IMAGE         = $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)
-DOCKER_BRANCH       := $(subst /,_,$(shell git symbolic-ref --short HEAD))
-ifeq ($(BRANCH), master)
-DOCKER_BUILD_TYPE        := production
-DOCKER_FILE              ?= Dockerfile
-DOCKER_IMAGE_VERSION     := $(VERSION)
-DOCKER_IMAGE_VERSION_MIN := $(subst $S,.,$(wordlist 1,2,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the last .[0-9]+ part of the version
-DOCKER_IMAGE_VERSION_MAJ := $(subst $S,.,$(wordlist 1,1,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the 2 last .[0-9]+ parts of the version
-DOCKER_IMAGE_TAG         := latest
-else ifeq ($(BRANCH), $(filter release/%, $(BRANCH)))
-DOCKER_BUILD_TYPE        := production
-DOCKER_FILE              ?= Dockerfile
-DOCKER_IMAGE_VERSION     := $(VERSION)-rc.$(STAMP)
-DOCKER_IMAGE_VERSION_MIN := $(subst $S,.,$(wordlist 1,2,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the last .[0-9]+ part of the version
-DOCKER_IMAGE_VERSION_MAJ := $(subst $S,.,$(wordlist 1,1,$(subst .,$S,$(DOCKER_IMAGE_VERSION)))) # Removes the 2 last .[0-9]+ parts of the version
-DOCKER_IMAGE_TAG         := rc
-else
-DOCKER_BUILD_TYPE        := dev
-ifneq ("$(wildcard Dockerfile.$(DOCKER_BRANCH))", "")
-DOCKER_FILE              ?= Dockerfile.$(DOCKER_BRANCH)
-else ifneq ("$(wildcard Dockerfile.dev)", "")
-DOCKER_FILE              ?= Dockerfile.dev
-endif
-DOCKER_IMAGE_VERSION     := $(VERSION)-$(STAMP)-$(COMMIT)
-DOCKER_IMAGE_TAG         := dev
-endif
-DOCKER_FLAGS += --build-arg=GOPRIVATE="$(GOPRIVATE)"
-DOCKER_FLAGS += --label="org.opencontainers.image.revision"="$(COMMIT)"
-DOCKER_FLAGS += --label="org.opencontainers.image.created"="$(NOW)"
-
 ifeq ($(OS), Windows_NT)
   include Makefile.windows
 else ifeq ($(OS_TYPE), linux-gnu)
@@ -112,7 +76,7 @@ else
 endif
 
 # Main Recipes
-.PHONY: all archive build dep docker fmt gendoc help lint logview publish run start stop test version vet watch
+.PHONY: all archive build dep fmt gendoc help lint logview publish run start stop test version vet watch
 
 help: Makefile; ## Display this help
 	@echo
@@ -127,24 +91,7 @@ all: test build; ## Test and Build the application
 
 gendoc: __gendoc_init__ $(BIN_DIR)/$(PROJECT).pdf; @ ## Generate the PDF documentation
 
-publish: __publish_init__ __publish_binaries__ docker; @ ## Publish the binaries and the Docker image to the Repository
-ifeq ($(DOCKER_REGISTRY),)
-	$(error     DOCKER_REGISTRY is undefined, we cannot push the Docker image $(DOCKER_REPOSITORY))
-else
-	$Q $(DOCKER) push $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION)
-ifneq ($(DOCKER_IMAGE_VERSION_MIN),)
-	$Q $(DOCKER) push $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION_MIN)
-endif
-ifneq ($(DOCKER_IMAGE_VERSION_MAJ),)
-	$Q $(DOCKER) push $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION_MAJ)
-endif
-	$Q $(DOCKER) push $(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)
-endif
-
-scan: docker ; @ ## Scan the docker images with Trivy
-	$Q $(DOCKER) run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/.cache/:/root/.cache/ aquasec/trivy:0.18.3 $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION)
-
-docker: $(TMP_DIR)/__docker_$(DOCKER_BRANCH)__; @ ## Build the Docker image
+publish: __publish_init__ __publish_binaries__; @ ## Publish the binaries to the Repository
 
 archive: __archive_init__ __archive_all__; @ ## Archive the binaries
 
@@ -230,39 +177,9 @@ __start__: stop $(BIN_DIR)/$(GOOS)/$(PROJECT) | $(TMP_DIR) $(LOG_DIR); $(info $(
 	$(info $(M)   Check the logs in $(LOG_DIR) with `make logview`)
 	$Q DEBUG=1 LOG_DESTINATION="$(LOG_DIR)/$(PROJECT).log" $(BIN_DIR)/$(GOOS)/$(PROJECT) & echo $$! > $(TMP_DIR)/$(PROJECT).pid
 
-# Docker recipes
-# @see https://www.gnu.org/software/make/manual/html_node/Empty-Targets.html
-# TODO: Pass LDFLAGS!!!
-ifeq ($(DOCKER_BUILD_TYPE), production)
-$(TMP_DIR)/__docker_$(DOCKER_BRANCH)__: $(GOFILES) $(ASSETS) $(DOCKER_FILE) | $(TMP_DIR); $(info $(M) Building the Docker Image...)
-	$(info $(M)  Image: $(DOCKER_IMAGE), Version: $(DOCKER_IMAGE_VERSION), Tag: $(DOCKER_IMAGE_TAG), Branch: $(BRANCH))
-	$Q $(DOCKER) build $(DOCKER_FLAGS) --ssh default --progress plain -t $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) .
-	$Q $(DOCKER) tag $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION_MIN)
-	$Q $(DOCKER) tag $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION_MAJ)
-	$Q $(DOCKER) tag $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) $(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)
-	$Q $(TOUCH)
-else ifeq ($(DOCKER_BUILD_TYPE), candidate)
-$(TMP_DIR)/__docker_$(DOCKER_BRANCH)__: $(GOFILES) $(ASSETS) $(DOCKER_FILE) | $(TMP_DIR); $(info $(M) Building the Docker Image...)
-	$(info $(M)  Image: $(DOCKER_IMAGE), Version: $(DOCKER_IMAGE_VERSION), Tag: $(DOCKER_IMAGE_TAG), Branch: $(BRANCH))
-	$Q $(DOCKER) build $(DOCKER_FLAGS) --ssh default --progress plain -t $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) .
-	$Q $(DOCKER) tag $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) $(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)
-	$Q $(TOUCH)
-else
-$(TMP_DIR)/__docker_$(DOCKER_BRANCH)__: $(GOFILES) $(ASSETS) $(DOCKER_FILE) $(BIN_DIR)/linux/$(PROJECT) | $(TMP_DIR); $(info $(M) Building the Docker Image...)
-	$(info $(M)  Image: $(DOCKER_IMAGE), Version: $(DOCKER_IMAGE_VERSION), Tag: $(DOCKER_IMAGE_TAG), Branch: $(BRANCH))
-	$(info   Dockerfile: $(DOCKER_FILE))
-ifeq ($(OS), Windows_NT)
-	$Q $(DOCKER) build $(DOCKER_FLAGS) -f "$(DOCKER_FILE)" -t $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) .
-else
-	$Q $(DOCKER) build $(DOCKER_FLAGS) -f "$(DOCKER_FILE)" --ssh default -t $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) .
-endif
-	$Q $(DOCKER) tag $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) $(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)
-	$Q $(TOUCH)
-endif
-
 # publish recipes
 .PHONY: __publish_init__ __publish_binaries__
-__publish_init__:; $(info $(M) Pushing the Docker Image $(DOCKER_IMAGE)...)
+__publish_init__:;
 __publish_binaries__: archive
 	$(info $(M) Uploading the binary packages...)
 	$Q $(foreach platform, $(PLATFORMS), go run . artifact upload $(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z ; )
@@ -271,12 +188,6 @@ __publish_binaries__: archive
 	$Q go run . artifact upload $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb
 	$(info   Uploading arm64 package...)
 	$Q go run . artifact upload $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb
-
-.PHONY: __docker_save__
-__docker_save__: $(TMP_DIR)/image.$(DOCKER_BRANCH).$(COMMIT).tar
-
-$(TMP_DIR)/image.$(DOCKER_BRANCH).$(COMMIT).tar: $(TMP_DIR)/__docker_$(DOCKER_BRANCH)__ | $(TMP_DIR); $(info $(M)   Saving Docker image)
-	$Q $(DOCKER) save --output=$(TMP_DIR)/image.$(DOCKER_BRANCH).$(COMMIT).tar $(DOCKER_IMAGE)
 
 # build recipes for various platforms
 .PHONY: __build_all__ __build_init__ __fetch_modules__
