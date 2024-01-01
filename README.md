@@ -6,17 +6,39 @@ The [Bitbucket Command Line Interface](https://bitbucket.org/gildas_cherruel/b) 
 
 ## Installation
 
-You can download the latest version of `bb` from the [downloads](https://bitbucket.org/gildas_cherruel/bb/downloads/) page.
+### Linux
 
-Once you get the `bb` executable, you can install it anywhere in your `$PATH`.
+You can grab the latest Debian/Ubuntu package on the [Downloads](https://bitbucket.org/gildas_cherruel/bb/downloads) pages.
 
-You can also install `bb` with snap:
+If you use [Homebrew](https://brew.sh), you can install `bb` with:
+
+```bash
+brew install gildas/tap/bitbucket-cli
+```
+
+You can also install `bb` with snap (The snap is currently under review with [snapcraft.io](https://snapcraft.io/bitbucket-cli/releases)):
 
 ```bash
 snap install bitbucket-cli
 ```
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bitbucket-cli)
+
+### macOS
+
+You can get `bb` from [Homebrew](https://brew.sh) with:
+
+```bash
+brew install gildas/tap/bitbucket-cli
+```
+
+### Windows
+
+### Binaries
+
+You can download the latest version of `bb` from the [downloads](https://bitbucket.org/gildas_cherruel/bb/downloads/) page.
+
+Once you get the `bb` executable, you can install/copy it anywhere in your `$PATH`.
 
 ## Usage
 
