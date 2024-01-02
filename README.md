@@ -2,7 +2,7 @@
 
 [bb](https://bitbucket.org/gildas_cherruel/bb) is the missing command line interface for Bitbucket.
 
-The [Bitbucket Command Line Interface](https://bitbucket.org/gildas_cherruel/b) brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
+The [Bitbucket Command Line Interface](https://bitbucket.org/gildas_cherruel/bb) brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
 
 ## Installation
 
@@ -33,6 +33,18 @@ brew install gildas/tap/bitbucket-cli
 ```
 
 ### Windows
+
+You can get `bb` from [Chocolatey](https://chocolatey.org) with:
+
+```bash
+choco install bitbucket-cli
+```
+
+**Note:** The Chocolatey package is currently under review with [chocolatey.org](https://chocolatey.org/packages/bitbucket-cli). You can still install it manually. Download the nupkg file from the [Downloads page](https://bitbucket.org/gildas_cherruel/bb/downloads) and install it with:
+
+  ```pwsh
+  choco install bitbucket --source ~\Downloads\bitbucket-cli.0.8.0.nupkg
+  ```
 
 ### Binaries
 
