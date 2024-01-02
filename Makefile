@@ -29,7 +29,7 @@ PROJECT   != basename "$(PWD)"
 endif
 PACKAGE   = bitbucket-cli
 PACKAGE   ?= $(PROJECT)
-PLATFORMS ?= darwin-amd64 darwin-arm64 linux-amd64 linux-arm64 windows
+PLATFORMS ?= darwin-amd64 darwin-arm64 linux-amd64 linux-arm64 windows-amd64 windows-arm64
 
 # Files
 GOTESTS   := $(call rwildcard,,*_test.go)
@@ -220,11 +220,18 @@ $(BIN_DIR)/linux-arm64/$(PROJECT): export GOARCH=arm64
 $(BIN_DIR)/linux-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux-arm64; $(info $(M) building application for linux arm64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/windows: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/windows/$(PROJECT): $(BIN_DIR)/windows/$(PROJECT).exe;
-$(BIN_DIR)/windows/$(PROJECT).exe: export GOOS=windows
-$(BIN_DIR)/windows/$(PROJECT).exe: export GOARCH=amd64
-$(BIN_DIR)/windows/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows; $(info $(M) building application for windows)
+$(BIN_DIR)/windows-amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/windows-amd64/$(PROJECT): $(BIN_DIR)/windows-amd64/$(PROJECT).exe;
+$(BIN_DIR)/windows-amd64/$(PROJECT).exe: export GOOS=windows
+$(BIN_DIR)/windows-amd64/$(PROJECT).exe: export GOARCH=amd64
+$(BIN_DIR)/windows-amd64/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows-amd64; $(info $(M) building application for windows amd64)
+	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
+
+$(BIN_DIR)/windows-arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/windows-arm64/$(PROJECT): $(BIN_DIR)/windows-arm64/$(PROJECT).exe;
+$(BIN_DIR)/windows-arm64/$(PROJECT).exe: export GOOS=windows
+$(BIN_DIR)/windows-arm64/$(PROJECT).exe: export GOARCH=arm64
+$(BIN_DIR)/windows-arm64/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows-arm64; $(info $(M) building application for windows arm64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 $(BIN_DIR)/pi:   $(BIN_DIR) ; $(MKDIR)
@@ -235,10 +242,11 @@ $(BIN_DIR)/pi/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/pi; $(info $(M) buil
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 # archive recipes
-.PHONY: __archive_debian__  __archive_all__ __archive_init__
-__archive_init__:;     $(info $(M) Archiving binaries for application $(PROJECT))
-__archive_all__:       $(foreach platform, $(PLATFORMS), $(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z) __archive_debian__;
-__archive_debian__:    $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb;
+.PHONY: __archive_debian__ __archive_chocolatey__  __archive_all__ __archive_init__
+__archive_init__:;      $(info $(M) Archiving binaries for application $(PROJECT))
+__archive_all__:        $(foreach platform, $(PLATFORMS), $(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z) __archive_debian__ __archive_chocolatey__;
+__archive_debian__:     $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb;
+__archive_chocolatey__: $(BIN_DIR)/windows-amd64/$(PROJECT)-$(VERSION)-windows-amd64.zip $(BIN_DIR)/windows-arm64/$(PROJECT)-$(VERSION)-windows-arm64.zip;
 
 $(BIN_DIR)/darwin-amd64/$(PROJECT)-$(VERSION).darwin-amd64.7z: $(BIN_DIR)/darwin-amd64/$(PROJECT)
 	7z a -r $@ $<
@@ -248,8 +256,14 @@ $(BIN_DIR)/linux-amd64/$(PROJECT)-$(VERSION).linux-amd64.7z: $(BIN_DIR)/linux-am
 	7z a -r $@ $<
 $(BIN_DIR)/linux-arm64/$(PROJECT)-$(VERSION).linux-arm64.7z: $(BIN_DIR)/linux-arm64/$(PROJECT)
 	7z a -r $@ $<
-$(BIN_DIR)/windows/$(PROJECT)-$(VERSION).windows.7z: $(BIN_DIR)/windows/$(PROJECT).exe
+$(BIN_DIR)/windows-amd64/$(PROJECT)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
 	7z a -r $@ $<
+$(BIN_DIR)/windows-amd64/$(PROJECT)-$(VERSION)-windows-amd64.zip: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
+	zip -9 -D  $@ $<
+$(BIN_DIR)/windows-arm64/$(PROJECT)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
+	7z a -r $@ $<
+$(BIN_DIR)/windows-arm64/$(PROJECT)-$(VERSION)-windows-arm64.zip: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
+	zip -9 -D  $@ $<
 $(BIN_DIR)/pi/$(PROJECT)-$(VERSION).pi.7z: $(BIN_DIR)/pi/$(PROJECT)
 	7z a -r $@ $<
 
@@ -260,7 +274,7 @@ $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr/bin/$(PROJECT
 	$Q cp $< $@
 $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64: $(BIN_DIR)/linux-amd64 ; $(MKDIR)
 $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64 ; $(MKDIR)
-$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN/control: debian/control $(BIN_DIR)/linux-amd64/$(PROJECT)
+$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN/control: packaging/debian/control $(BIN_DIR)/linux-amd64/$(PROJECT)
 	$(info $(M) Creating the package control for the Debian package...)
 	$Q sed -e 's/{{.Version}}/$(VERSION)/g' -e 's/{{.Arch}}/amd64/g' $< >| $@
 $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN/control $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr/bin/$(PROJECT)
@@ -274,7 +288,7 @@ $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr/bin/$(PROJECT
 	$Q cp $< $@
 $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64: $(BIN_DIR)/linux-arm64 ; $(MKDIR)
 $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64 ; $(MKDIR)
-$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN/control: debian/control $(BIN_DIR)/linux-arm64/$(PROJECT)
+$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN/control: packaging/debian/control $(BIN_DIR)/linux-arm64/$(PROJECT)
 	$(info $(M) Creating the package control for the Debian package...)
 	$Q sed -e 's/{{.Version}}/$(VERSION)/g' -e 's/{{.Arch}}/arm64/g' $< >| $@
 $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN/control $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr/bin/$(PROJECT)
