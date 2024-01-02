@@ -4,12 +4,11 @@
   <metadata>
     <id>bitbucket-cli</id>
     <version>0.8.0</version>
-    <owners>gildas@breizh.org</owners>
+    <owners>Gildas Cherruel</owners>
     <title>bitbucket-cli (Install)</title>
     <authors>Gildas Cherruel</authors>
     <projectUrl>https://bitbucket.org/gildas_cherruel/bb</projectUrl>
     <packageSourceUrl>https://bitbucket.org/gildas_cherruel/bb/src/master/packaging/chocolatey</packageSourceUrl>
-    <copyright>2023</copyright>
     <licenseUrl>https://bitbucket.org/gildas_cherruel/bb/src/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <projectSourceUrl>https://bitbucket.org/gildas_cherruel/bb/src/master</projectSourceUrl>
@@ -18,6 +17,7 @@
     <tags>bitbucket cli</tags>
     <summary>Command line interface for Bitbucket</summary>
     <description>The Bitbucket Command Line Interface brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.</description>
+    <releaseNotes>Initial Public Release</releaseNotes>
   </metadata>
   <files>
     <file src="tools\**" target="tools" />
