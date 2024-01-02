@@ -260,7 +260,7 @@ $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr/bin/$(PROJECT
 	$Q cp $< $@
 $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64: $(BIN_DIR)/linux-amd64 ; $(MKDIR)
 $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64 ; $(MKDIR)
-$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN/control: debian/control $(BIN_DIR)/linux-amd64/$(PROJECT)
+$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN/control: packaging/debian/control $(BIN_DIR)/linux-amd64/$(PROJECT)
 	$(info $(M) Creating the package control for the Debian package...)
 	$Q sed -e 's/{{.Version}}/$(VERSION)/g' -e 's/{{.Arch}}/amd64/g' $< >| $@
 $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN/control $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr/bin/$(PROJECT)
@@ -274,7 +274,7 @@ $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr/bin/$(PROJECT
 	$Q cp $< $@
 $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64: $(BIN_DIR)/linux-arm64 ; $(MKDIR)
 $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64 ; $(MKDIR)
-$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN/control: debian/control $(BIN_DIR)/linux-arm64/$(PROJECT)
+$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN/control: packaging/debian/control $(BIN_DIR)/linux-arm64/$(PROJECT)
 	$(info $(M) Creating the package control for the Debian package...)
 	$Q sed -e 's/{{.Version}}/$(VERSION)/g' -e 's/{{.Arch}}/arm64/g' $< >| $@
 $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN/control $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr/bin/$(PROJECT)
