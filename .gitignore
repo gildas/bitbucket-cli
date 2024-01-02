@@ -13,6 +13,14 @@ dist/
 # Snapcraft artifacts
 *.snap
 
+# Chocolatey artifacs
+*.nupkg
+
+# Archives
+*.tar.gz
+*.7z
+*.zip
+
 # Compiled Java class files
 *.class
 
