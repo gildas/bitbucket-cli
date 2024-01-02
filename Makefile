@@ -246,7 +246,7 @@ $(BIN_DIR)/pi/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/pi; $(info $(M) buil
 __archive_init__:;      $(info $(M) Archiving binaries for application $(PROJECT))
 __archive_all__:        $(foreach platform, $(PLATFORMS), $(BIN_DIR)/$(platform)/$(PROJECT)-$(VERSION).$(platform).7z) __archive_debian__ __archive_chocolatey__;
 __archive_debian__:     $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb;
-__archive_chocolatey__: $(BIN_DIR)/windows-amd64/$(PROJECT)-$(VERSION)-windows-amd64.zip $(BIN_DIR)/windows-arm64/$(PROJECT)-$(VERSION)-windows-arm64.zip;
+__archive_chocolatey__: packaging/chocolatey/tools/$(PROJECT)-$(VERSION)-windows-amd64.zip packaging/chocolatey/tools/$(PROJECT)-$(VERSION)-windows-arm64.zip;
 
 $(BIN_DIR)/darwin-amd64/$(PROJECT)-$(VERSION).darwin-amd64.7z: $(BIN_DIR)/darwin-amd64/$(PROJECT)
 	7z a -r $@ $<
@@ -258,12 +258,12 @@ $(BIN_DIR)/linux-arm64/$(PROJECT)-$(VERSION).linux-arm64.7z: $(BIN_DIR)/linux-ar
 	7z a -r $@ $<
 $(BIN_DIR)/windows-amd64/$(PROJECT)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
 	7z a -r $@ $<
-$(BIN_DIR)/windows-amd64/$(PROJECT)-$(VERSION)-windows-amd64.zip: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
-	zip -9 -D  $@ $<
+packaging/chocolatey/tools/$(PROJECT)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows-amd64/$(PROJECT)-$(VERSION)-windows-amd64.7z
+	cp -f $< $@
 $(BIN_DIR)/windows-arm64/$(PROJECT)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
 	7z a -r $@ $<
-$(BIN_DIR)/windows-arm64/$(PROJECT)-$(VERSION)-windows-arm64.zip: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
-	zip -9 -D  $@ $<
+packaging/chocolatey/tools/$(PROJECT)-$(VERSION)-windows-arm64.zip: $(BIN_DIR)/windows-arm64/$(PROJECT)-$(VERSION)-windows-arm64.7z
+	cp -f $< $@
 $(BIN_DIR)/pi/$(PROJECT)-$(VERSION).pi.7z: $(BIN_DIR)/pi/$(PROJECT)
 	7z a -r $@ $<
 
