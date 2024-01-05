@@ -10,7 +10,7 @@ website: https://bitbucket.org/gildas_cherruel/bb
 source-code: https://bitbucket.org/gildas_cherruel/bb
 issues: https://bitbucket.org/gildas_cherruel/bb/issues
 license: MIT
-version: git
+version: 0.8.0
 base: core22
 grade: stable
 confinement: strict
