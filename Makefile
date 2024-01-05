@@ -30,6 +30,7 @@ endif
 PACKAGE   = bitbucket-cli
 PACKAGE   ?= $(PROJECT)
 PLATFORMS ?= darwin-amd64 darwin-arm64 linux-amd64 linux-arm64 windows-amd64 windows-arm64
+export PACKAGE PROJECT VERSION BRANCH COMMIT BUILD REVISION
 
 # Files
 GOTESTS   := $(call rwildcard,,*_test.go)
@@ -52,6 +53,8 @@ GOLINT  ?= golangci-lint
 YOLO     = $(BIN_DIR)/yolo
 GOCOV    = $(BIN_DIR)/gocov
 GOCOVXML = $(BIN_DIR)/gocov-xml
+NFPM     = nfpm
+GOMPLATE = gomplate
 PANDOC  ?= pandoc
 TAR     ?= tar
 7ZIP    ?= 7z
@@ -98,7 +101,7 @@ gendoc: __gendoc_init__ $(BIN_DIR)/$(PROJECT).pdf; @ ## Generate the PDF documen
 
 publish: __publish_init__ __publish_binaries__; @ ## Publish the binaries to the Repository
 
-archive: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__; @ ## Archive the binaries
+archive: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ ; @ ## Archive the binaries
 
 build: __build_init__ __build_all__; @ ## Build the application for all platforms
 
@@ -191,9 +194,11 @@ __publish_binaries__: archive
 	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.zip), go run . artifact upload $(archive) ;)
 	$(info $(M) Uploading the Debian packages...)
 	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.deb), go run . artifact upload $(archive) ;)
+	$(info $(M) Uploading the RPM packages...)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.rpm), go run . artifact upload $(archive) ;)
 
 # archive recipes
-.PHONY: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__
+.PHONY: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__
 __archive_init__:;      $(info $(M) Archiving binaries for application $(PROJECT))
 __archive_all__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz \
@@ -203,13 +208,17 @@ __archive_all__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_windows_amd64.zip \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_windows_arm64.zip \
 	;
+__archive_chocolatey__: \
+	packaging/chocolatey/tools/$(PACKAGE)_$(VERSION)_windows_amd64.7z \
+	packaging/chocolatey/tools/$(PACKAGE)_$(VERSION)_windows_arm64.7z \
+	;
 __archive_debian__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb \
 	;
-__archive_chocolatey__: \
-	packaging/chocolatey/tools/$(PACKAGE)_$(VERSION)_windows_amd64.7z \
-	packaging/chocolatey/tools/$(PACKAGE)_$(VERSION)_windows_arm64.7z \
+__archive_rpm__: \
+	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm \
+	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm \
 	;
 
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz: $(BIN_DIR)/darwin-amd64/$(PROJECT)
@@ -230,35 +239,15 @@ packaging/chocolatey/tools/$(PACKAGE)_$(VERSION)_windows_amd64.7z: $(BIN_DIR)/wi
 packaging/chocolatey/tools/$(PACKAGE)_$(VERSION)_windows_arm64.7z: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
 	$Q $(7ZIP) a -r $@ $<
 
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN/control $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr/bin/$(PROJECT)
-	$(info $(M) Building the Debian package...)
-	$Q (cd $(BIN_DIR)/linux-amd64 && dpkg --build $(PACKAGE)_$(VERSION)-$(REVISION)_amd64)
-	$Q $(MOVE) $(BIN_DIR)/linux-amd64/$(@F) $(@D)
-$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN/control: packaging/debian/control $(BIN_DIR)/linux-amd64/$(PROJECT)
-	$(info $(M) Creating the package control for the Debian package...)
-	$Q sed -e 's/{{.Version}}/$(VERSION)/g' -e 's/{{.Arch}}/amd64/g' $< >| $@
-$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr/bin/$(PROJECT): $(BIN_DIR)/linux-amd64/$(PROJECT)
-	$(info $(M) Copying the binary to the Debian package...)
-	$Q $(COPY) $< $@
-$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64: $(BIN_DIR)/linux-amd64 ; $(MKDIR)
-$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64 ; $(MKDIR)
-$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr/bin: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/usr ; $(MKDIR)
-$(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64/DEBIAN: $(BIN_DIR)/linux-amd64/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64 ; $(MKDIR)
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux-amd64/$(PROJECT)
+	$Q PLATFORM=linux-amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux-arm64/$(PROJECT)
+	$Q PLATFORM=linux-arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
 
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN/control $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr/bin/$(PROJECT)
-	$(info $(M) Building the Debian package...)
-	$Q (cd $(BIN_DIR)/linux-arm64 && dpkg --build $(PACKAGE)_$(VERSION)-$(REVISION)_arm64)
-	$Q $(MOVE) $(BIN_DIR)/linux-arm64/$(@F) $(@D)
-$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN/control: packaging/debian/control $(BIN_DIR)/linux-arm64/$(PROJECT)
-	$(info $(M) Creating the package control for the Debian package...)
-	$Q sed -e 's/{{.Version}}/$(VERSION)/g' -e 's/{{.Arch}}/arm64/g' $< >| $@
-$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr/bin/$(PROJECT): $(BIN_DIR)/linux-arm64/$(PROJECT)
-	$(info $(M) Copying the binary to the Debian package...)
-	$Q $(COPY) $< $@
-$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64: $(BIN_DIR)/linux-arm64 ; $(MKDIR)
-$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64 ; $(MKDIR)
-$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr/bin: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/usr ; $(MKDIR)
-$(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64/DEBIAN: $(BIN_DIR)/linux-arm64/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64 ; $(MKDIR)
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux-amd64/$(PROJECT)
+	$Q PLATFORM=linux-amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux-arm64/$(PROJECT)
+	$Q PLATFORM=linux-arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
 
 # build recipes for various platforms
 .PHONY: __build_all__ __build_init__ __fetch_modules__
@@ -330,6 +319,8 @@ watch: watch-tools | $(TMP_DIR); @ ## Run a command continuously: make watch run
 $(BIN_DIR)/yolo:      PACKAGE=github.com/azer/yolo
 $(BIN_DIR)/gocov:     PACKAGE=github.com/axw/gocov/...
 $(BIN_DIR)/gocov-xml: PACKAGE=github.com/AlekSi/gocov-xml
+$(BIN_DIR)/nfpm:      PACKAGE=github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+$(BIN_DIR)/gomplate:  PACKAGE=github.com/hairyhenderson/gomplate/v4/cmd/gomplate@latest
 
 watch-tools:    | $(YOLO)
 coverage-tools: | $(GOCOV) $(GOCOVXML)

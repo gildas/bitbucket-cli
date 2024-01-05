@@ -1,6 +1,0 @@
-Package: bitbucket-cli
-Version: {{.Version}}
-Maintainer: Gildas Cherruel <gildas_cherruel@gmail.com>
-Architecture: {{.Arch}}
-Homepage: https://bitbuchet.org/gildas_cherruel/bb
-Description: Bitbucket CLI

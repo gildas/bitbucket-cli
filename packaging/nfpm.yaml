@@ -1,0 +1,22 @@
+name:     {{.Env.PACKAGE}}
+platform: {{index (.Env.PLATFORM | strings.Split "-") 0 }}
+arch:     {{index (.Env.PLATFORM | strings.Split "-") 1 }}
+version:  {{.Env.VERSION}}
+release: {{.Env.REVISION}}
+section: default
+priority: extra
+replaces:
+- {{.Env.PACKAGE}}
+provides:
+- {{.Env.PACKAGE}}
+maintainer: "Gildas Cherruel <gildas@breizh.org>"
+description: |
+  The Bitbucket Command Line Interface brings the power of the Bitbucket
+  platform to your command line. Creating and merging Pull Requests, cloning
+  repositories, and more are now just a few keystrokes away.
+vendor: "Gildas Cherruel"
+homepage: "https://bitbucket.org/gildas_cherruel/bb"
+license: "MIT"
+contents:
+- src: ./bin/{{.Env.PLATFORM}}/{{.Env.PROJECT}}
+  dst: /usr/bin/{{.Env.PROJECT}}
