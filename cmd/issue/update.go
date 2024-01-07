@@ -107,16 +107,18 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Record("payload", payload).Infof("Updating issue %s", args[0])
 	var issue Issue
 
-	err = profile.Current.Put(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("issues/%s", args[0]),
-		payload,
-		&issue,
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to update issue %s: %s\n", args[0], err)
-		os.Exit(1)
+	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating issue %s", args[0]) {
+		err = profile.Current.Put(
+			log.ToContext(cmd.Context()),
+			cmd,
+			fmt.Sprintf("issues/%s", args[0]),
+			payload,
+			&issue,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to update issue %s: %s\n", args[0], err)
+			os.Exit(1)
+		}
 	}
 	return profile.Current.Print(cmd.Context(), issue)
 }

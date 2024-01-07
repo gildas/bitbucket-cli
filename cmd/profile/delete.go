@@ -2,6 +2,7 @@ package profile
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -33,15 +34,18 @@ func deleteProcess(cmd *cobra.Command, args []string) (err error) {
 
 	if deleteOptions.All {
 		log.Infof("Deleting all profiles")
-		deleted = Profiles.Delete(Profiles.Names()...)
+		if Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting all profiles") {
+			deleted = Profiles.Delete(Profiles.Names()...)
+		}
 	} else if len(args) == 0 {
 		return errors.New("accepts 1 arg(s), received 0")
 	} else {
-		log.Infof("Deleting profiles %s", args)
-		deleted = Profiles.Delete(args...)
+		if Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting profiles %s", strings.Join(args, ", ")) {
+			deleted = Profiles.Delete(args...)
+		}
 	}
 	log.Infof("Deleted %d profiles", deleted)
-	if deleted == 0 {
+	if deleted == 0 || cmd.Flag("dry-run").Changed {
 		return nil
 	}
 	viper.Set("profiles", Profiles)

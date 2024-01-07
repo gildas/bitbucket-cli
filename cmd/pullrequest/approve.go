@@ -48,7 +48,9 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Approving pullrequest %s", args[0])
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Approving pullrequest %s", args[0]) {
+		return nil
+	}
 	var participant user.Participant
 
 	err = profile.Current.Post(

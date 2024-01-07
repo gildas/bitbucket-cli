@@ -97,7 +97,10 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		payload.Project = project.NewReference(updateOptions.Project.Value)
 	}
 
-	log.Record("payload", payload).Infof("Updating repository %s/%s in project %s", updateOptions.Workspace.String(), updateOptions.Name, updateOptions.Project.String())
+	log.Record("payload", payload).Infof("Updating repository %s/%s in project %s", updateOptions.Workspace, updateOptions.Name, updateOptions.Project)
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating repository %s/%s in projecct %s", updateOptions.Workspace, updateOptions.Name, updateOptions.Project) {
+		return nil
+	}
 	var repository Repository
 
 	err = profile.Current.Put(

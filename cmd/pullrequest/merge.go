@@ -69,6 +69,9 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Merging pullrequest %s", args[0])
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Merging pullrequest %s", args[0]) {
+		return nil
+	}
 	err = profile.Current.Post(
 		log.ToContext(cmd.Context()),
 		cmd,

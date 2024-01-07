@@ -58,17 +58,18 @@ func watchProcess(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 
-	log.Infof("watch for issue %s", args[0])
-	err = profile.Current.Put(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("issues/%s/watch", args[0]),
-		nil,
-		nil,
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to watch issue %s: %s\n", args[0], err)
-		os.Exit(1)
+	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Watching issue %s", args[0]) {
+		err = profile.Current.Put(
+			log.ToContext(cmd.Context()),
+			cmd,
+			fmt.Sprintf("issues/%s/watch", args[0]),
+			nil,
+			nil,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to watch issue %s: %s\n", args[0], err)
+			os.Exit(1)
+		}
 	}
 	return
 }

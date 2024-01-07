@@ -56,17 +56,17 @@ func downloadProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Downloading artifact %s to %s", args[0], downloadOptions.Destination)
-
-	err := profile.Current.Download(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("issues/%s/attachments/%s", downloadOptions.IssueID.Value, args[0]),
-		downloadOptions.Destination,
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to download attachment %s: %s\n", args[0], err)
-		os.Exit(1)
+	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Downloading attachment %s from issue %s to %s", args[0], downloadOptions.IssueID, downloadOptions.Destination) {
+		err := profile.Current.Download(
+			log.ToContext(cmd.Context()),
+			cmd,
+			fmt.Sprintf("issues/%s/attachments/%s", downloadOptions.IssueID.Value, args[0]),
+			downloadOptions.Destination,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to download attachment %s: %s\n", args[0], err)
+			os.Exit(1)
+		}
 	}
 	return nil
 }

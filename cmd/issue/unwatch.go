@@ -46,16 +46,17 @@ func unwatchProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("unwatch for issue %s", args[0])
-	err = profile.Current.Delete(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("issues/%s/watch", args[0]),
-		nil,
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to unwatch issue %s: %s\n", args[0], err)
-		os.Exit(1)
+	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Unwatching issue %s", args[0]) {
+		err = profile.Current.Delete(
+			log.ToContext(cmd.Context()),
+			cmd,
+			fmt.Sprintf("issues/%s/watch", args[0]),
+			nil,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to unwatch issue %s: %s\n", args[0], err)
+			os.Exit(1)
+		}
 	}
 	return
 }

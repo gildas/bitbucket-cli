@@ -89,7 +89,10 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		payload.Project = project.NewReference(createOptions.Project.Value)
 	}
 
-	log.Record("payload", payload).Infof("Creating repository %s/%s in project %s", createOptions.Workspace.String(), createOptions.Name, createOptions.Project.String())
+	log.Record("payload", payload).Infof("Creating repository %s/%s in project %s", createOptions.Workspace, createOptions.Name, createOptions.Project)
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating repository %s/%s in project %s", createOptions.Workspace, createOptions.Name, createOptions.Project) {
+		return nil
+	}
 	var repository Repository
 
 	err = profile.Current.Post(

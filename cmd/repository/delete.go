@@ -56,16 +56,16 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	log.Infof("Deleting repository %s", args[0])
-
-	err := profile.Current.Delete(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("/repositories/%s/%s", deleteOptions.Workspace, args[0]),
-		nil,
-	)
-	if err != nil {
-		return err
+	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting repository %s", args[0]) {
+		err := profile.Current.Delete(
+			log.ToContext(cmd.Context()),
+			cmd,
+			fmt.Sprintf("/repositories/%s/%s", deleteOptions.Workspace, args[0]),
+			nil,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	log.Infof("Repository %s deleted", args[0])

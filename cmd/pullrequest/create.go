@@ -74,6 +74,9 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Creating pullrequest")
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating pullrequest") {
+		return nil
+	}
 	var pullrequest PullRequest
 
 	err = profile.Current.Post(

@@ -50,17 +50,17 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Downloading artifact %s to %s", args[0], downloadOptions.Destination)
-
-	err := profile.Current.Download(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("downloads/%s", args[0]),
-		downloadOptions.Destination,
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to download artifact %s: %s\n", args[0], err)
-		os.Exit(1)
+	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Downloading artifact %s to %s", args[0], downloadOptions.Destination) {
+		err := profile.Current.Download(
+			log.ToContext(cmd.Context()),
+			cmd,
+			fmt.Sprintf("downloads/%s", args[0]),
+			downloadOptions.Destination,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to download artifact %s: %s\n", args[0], err)
+			os.Exit(1)
+		}
 	}
 	return nil
 }

@@ -71,6 +71,9 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Record("profile", profile).Debugf("Updating profile %s", profile.Name)
+	if !Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating profile %s", profile.Name) {
+		return nil
+	}
 	err := profile.Update(updateOptions.Profile)
 	if err != nil {
 		return err

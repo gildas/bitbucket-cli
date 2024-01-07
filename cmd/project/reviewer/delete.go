@@ -74,17 +74,17 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	log.Infof("deleteing reviewer %s", args[0])
-
-	err := profile.Current.Delete(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers/%s", deleteOptions.Workspace, deleteOptions.Project, args[0]),
-		nil,
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to delete reviewer: %s\n", err)
-		os.Exit(1)
+	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting default reviewer %s from project %s", args[0], deleteOptions.Project) {
+		err := profile.Current.Delete(
+			log.ToContext(cmd.Context()),
+			cmd,
+			fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers/%s", deleteOptions.Workspace, deleteOptions.Project, args[0]),
+			nil,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to delete reviewer: %s\n", err)
+			os.Exit(1)
+		}
 	}
 	return nil
 }

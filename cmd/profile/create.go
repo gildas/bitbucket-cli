@@ -70,6 +70,9 @@ func createProcess(cmd *cobra.Command, args []string) error {
 		return errors.DuplicateFound.With("name", createOptions.Name)
 	}
 
+	if !Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating profile %s", createOptions.Name) {
+		return nil
+	}
 	Profiles.Add(&createOptions.Profile)
 	viper.Set("profiles", Profiles)
 	if len(viper.ConfigFileUsed()) > 0 {

@@ -56,16 +56,17 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	log.Infof("Deleting project %s", args[0])
-	err := profile.Current.Delete(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("/workspaces/%s/projects/%s", deleteOptions.Workspace, args[0]),
-		nil,
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to delete project %s: %s\n", args[0], err)
-		os.Exit(1)
+	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting project %s", args[0]) {
+		err := profile.Current.Delete(
+			log.ToContext(cmd.Context()),
+			cmd,
+			fmt.Sprintf("/workspaces/%s/projects/%s", deleteOptions.Workspace, args[0]),
+			nil,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to delete project %s: %s\n", args[0], err)
+			os.Exit(1)
+		}
 	}
 	return nil
 }

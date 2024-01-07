@@ -35,17 +35,17 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Uploading artifact %s", args[0])
-
-	err := profile.Current.Upload(
-		log.ToContext(cmd.Context()),
-		cmd,
-		"downloads",
-		args[0],
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to upload artifact %s: %s\n", args[0], err)
-		os.Exit(1)
+	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading artifact %s", args[0]) {
+		err := profile.Current.Upload(
+			log.ToContext(cmd.Context()),
+			cmd,
+			"downloads",
+			args[0],
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to upload artifact %s: %s\n", args[0], err)
+			os.Exit(1)
+		}
 	}
 	return nil
 }

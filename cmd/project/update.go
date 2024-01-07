@@ -114,6 +114,9 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Record("payload", payload).Infof("Updating project %s", args[0])
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating project %s", args[0]) {
+		return nil
+	}
 	var project Project
 
 	err := profile.Current.Put(

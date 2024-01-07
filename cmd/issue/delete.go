@@ -47,16 +47,17 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Deleting project %s", args[0])
-	err := profile.Current.Delete(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("issues/%s", args[0]),
-		nil,
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to delete project %s: %s\n", args[0], err)
-		os.Exit(1)
+	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting issue %s", args[0]) {
+		err := profile.Current.Delete(
+			log.ToContext(cmd.Context()),
+			cmd,
+			fmt.Sprintf("issues/%s", args[0]),
+			nil,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to delete project %s: %s\n", args[0], err)
+			os.Exit(1)
+		}
 	}
 	return nil
 }

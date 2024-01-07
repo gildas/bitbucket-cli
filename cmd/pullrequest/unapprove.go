@@ -47,7 +47,9 @@ func unapproveProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Unapproving pullrequest %s", args[0])
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Unapproving pullrequest %s", args[0]) {
+		return nil
+	}
 	err = profile.Current.Delete(
 		log.ToContext(cmd.Context()),
 		cmd,
