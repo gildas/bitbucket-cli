@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"os"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -12,16 +13,19 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete [flags] <slug_or_uuid>",
+	Use:               "delete [flags] <slug_or_uuid...>",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete a repository by its <slug> or <uuid>.",
-	Args:              cobra.ExactArgs(1),
+	Short:             "delete repositories by their <slug> or <uuid>.",
+	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: deleteValidArgs,
 	RunE:              deleteProcess,
 }
 
 var deleteOptions struct {
-	Workspace common.RemoteValueFlag
+	Workspace    common.RemoteValueFlag
+	StopOnError  bool
+	WarnOnError  bool
+	IgnoreErrors bool
 }
 
 func init() {
@@ -29,6 +33,10 @@ func init() {
 
 	deleteOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
 	deleteCmd.Flags().Var(&deleteOptions.Workspace, "workspace", "Workspace to delete repositories from")
+	deleteCmd.Flags().BoolVar(&deleteOptions.StopOnError, "stop-on-error", false, "Stop on error")
+	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
+	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
+	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 	_ = deleteCmd.RegisterFlagCompletionFunc("workspace", deleteOptions.Workspace.CompletionFunc())
 }
 
@@ -56,18 +64,33 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting repository %s", args[0]) {
-		err := profile.Current.Delete(
-			log.ToContext(cmd.Context()),
-			cmd,
-			fmt.Sprintf("/repositories/%s/%s", deleteOptions.Workspace, args[0]),
-			nil,
-		)
-		if err != nil {
-			return err
+	var merr errors.MultiError
+	for _, repositorySlug := range args {
+		if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting repository %s", repositorySlug) {
+			err := profile.Current.Delete(
+				log.ToContext(cmd.Context()),
+				cmd,
+				fmt.Sprintf("/repositories/%s/%s", deleteOptions.Workspace, repositorySlug),
+				nil,
+			)
+			if err != nil {
+				if profile.Current.ShouldStopOnError(cmd) {
+					fmt.Fprintf(os.Stderr, "Failed to delete repository %s: %s\n", repositorySlug, err)
+					os.Exit(1)
+				} else {
+					merr.Append(err)
+				}
+			}
 		}
+		log.Infof("Repository %s deleted", repositorySlug)
 	}
-
-	log.Infof("Repository %s deleted", args[0])
-	return nil
+	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+		fmt.Fprintf(os.Stderr, "Failed to delete these repositories: %s\n", merr)
+		return nil
+	}
+	if profile.Current.ShouldIgnoreErrors(cmd) {
+		log.Warnf("Failed to delete these repositories, but ignoring errors: %s", merr)
+		return nil
+	}
+	return merr.AsError()
 }

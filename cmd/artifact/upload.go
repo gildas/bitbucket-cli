@@ -11,21 +11,28 @@ import (
 )
 
 var uploadCmd = &cobra.Command{
-	Use:     "upload [flags] <filename>",
+	Use:     "upload [flags] <filename...>",
 	Aliases: []string{"add", "create"},
-	Short:   "upload an artifact",
-	Args:    cobra.ExactArgs(1),
+	Short:   "upload artifacts",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    uploadProcess,
 }
 
 var uploadOptions struct {
-	Repository string
+	Repository   string
+	StopOnError  bool
+	WarnOnError  bool
+	IgnoreErrors bool
 }
 
 func init() {
 	Command.AddCommand(uploadCmd)
 
 	uploadCmd.Flags().StringVar(&uploadOptions.Repository, "repository", "", "Repository to upload artifacts to. Defaults to the current repository")
+	uploadCmd.Flags().BoolVar(&uploadOptions.StopOnError, "stop-on-error", false, "Stop on error")
+	uploadCmd.Flags().BoolVar(&uploadOptions.WarnOnError, "warn-on-error", false, "Warn on error")
+	uploadCmd.Flags().BoolVar(&uploadOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
+	uploadCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 }
 
 func uploadProcess(cmd *cobra.Command, args []string) error {
@@ -35,17 +42,33 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading artifact %s", args[0]) {
-		err := profile.Current.Upload(
-			log.ToContext(cmd.Context()),
-			cmd,
-			"downloads",
-			args[0],
-		)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to upload artifact %s: %s\n", args[0], err)
-			os.Exit(1)
+	var merr errors.MultiError
+	for _, artifactName := range args {
+		if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading artifact %s to %s", artifactName, downloadOptions.Destination) {
+			err := profile.Current.Upload(
+				log.ToContext(cmd.Context()),
+				cmd,
+				"downloads",
+				args[0],
+			)
+			if err != nil {
+				if profile.Current.ShouldStopOnError(cmd) {
+					fmt.Fprintf(os.Stderr, "Failed to upload artifact %s: %s\n", artifactName, err)
+					os.Exit(1)
+				} else {
+					merr.Append(err)
+				}
+			}
+			log.Infof("Artifact %s downloaded", artifactName)
 		}
 	}
-	return nil
+	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+		fmt.Fprintf(os.Stderr, "Failed to upload these artifacts: %s\n", merr)
+		return nil
+	}
+	if profile.Current.ShouldIgnoreErrors(cmd) {
+		log.Warnf("Failed to upload these artifacts, but ignoring errors: %s", merr)
+		return nil
+	}
+	return merr.AsError()
 }

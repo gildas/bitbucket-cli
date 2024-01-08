@@ -11,17 +11,20 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:               "download [flags] <filename>",
+	Use:               "download [flags] <filename...>",
 	Aliases:           []string{"get", "fetch"},
-	Short:             "download an artifact by its <filename>.",
+	Short:             "download artifacts by their <filename>.",
 	ValidArgsFunction: downloadValidArgs,
-	Args:              cobra.ExactArgs(1),
+	Args:              cobra.MinimumNArgs(1),
 	RunE:              getProcess,
 }
 
 var downloadOptions struct {
-	Repository  string
-	Destination string
+	Repository   string
+	Destination  string
+	StopOnError  bool
+	WarnOnError  bool
+	IgnoreErrors bool
 }
 
 func init() {
@@ -29,6 +32,10 @@ func init() {
 
 	downloadCmd.Flags().StringVar(&downloadOptions.Repository, "repository", "", "Repository to download artifacts from. Defaults to the current repository")
 	downloadCmd.Flags().StringVar(&downloadOptions.Destination, "destination", "", "Destination folder to download the artifact to. Defaults to the current folder")
+	downloadCmd.Flags().BoolVar(&downloadOptions.StopOnError, "stop-on-error", false, "Stop on error")
+	downloadCmd.Flags().BoolVar(&downloadOptions.WarnOnError, "warn-on-error", false, "Warn on error")
+	downloadCmd.Flags().BoolVar(&downloadOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
+	downloadCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 	_ = downloadCmd.MarkFlagDirname("destination")
 }
 
@@ -50,17 +57,33 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Downloading artifact %s to %s", args[0], downloadOptions.Destination) {
-		err := profile.Current.Download(
-			log.ToContext(cmd.Context()),
-			cmd,
-			fmt.Sprintf("downloads/%s", args[0]),
-			downloadOptions.Destination,
-		)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to download artifact %s: %s\n", args[0], err)
-			os.Exit(1)
+	var merr errors.MultiError
+	for _, artifactName := range args {
+		if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Downloading artifact %s to %s", artifactName, downloadOptions.Destination) {
+			err := profile.Current.Download(
+				log.ToContext(cmd.Context()),
+				cmd,
+				fmt.Sprintf("downloads/%s", artifactName),
+				downloadOptions.Destination,
+			)
+			if err != nil {
+				if profile.Current.ShouldStopOnError(cmd) {
+					fmt.Fprintf(os.Stderr, "Failed to download artifact %s: %s\n", artifactName, err)
+					os.Exit(1)
+				} else {
+					merr.Append(err)
+				}
+			}
+			log.Infof("Artifact %s downloaded", artifactName)
 		}
 	}
-	return nil
+	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+		fmt.Fprintf(os.Stderr, "Failed to download these artifacts: %s\n", merr)
+		return nil
+	}
+	if profile.Current.ShouldIgnoreErrors(cmd) {
+		log.Warnf("Failed to download these artifacts, but ignoring errors: %s", merr)
+		return nil
+	}
+	return merr.AsError()
 }

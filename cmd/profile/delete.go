@@ -1,7 +1,6 @@
 package profile
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/gildas/go-logger"
@@ -19,13 +18,20 @@ var deleteCmd = &cobra.Command{
 }
 
 var deleteOptions struct {
-	All bool
+	All          bool
+	StopOnError  bool
+	WarnOnError  bool
+	IgnoreErrors bool
 }
 
 func init() {
 	Command.AddCommand(deleteCmd)
 
 	deleteCmd.Flags().BoolVar(&deleteOptions.All, "all", false, "Delete all profiles")
+	deleteCmd.Flags().BoolVar(&deleteOptions.StopOnError, "stop-on-error", false, "Stop on error")
+	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
+	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
+	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) (err error) {
@@ -37,8 +43,6 @@ func deleteProcess(cmd *cobra.Command, args []string) (err error) {
 		if Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting all profiles") {
 			deleted = Profiles.Delete(Profiles.Names()...)
 		}
-	} else if len(args) == 0 {
-		return errors.New("accepts 1 arg(s), received 0")
 	} else {
 		if Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting profiles %s", strings.Join(args, ", ")) {
 			deleted = Profiles.Delete(args...)

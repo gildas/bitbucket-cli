@@ -12,17 +12,20 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete [flags] <path>",
+	Use:               "delete [flags] <path...>",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete an issue attachment by its <path>.",
-	Args:              cobra.ExactArgs(1),
+	Short:             "delete issue attachments by their <path>.",
+	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: deleteValidArgs,
 	RunE:              deleteProcess,
 }
 
 var deleteOptions struct {
-	IssueID    common.RemoteValueFlag
-	Repository string
+	IssueID      common.RemoteValueFlag
+	Repository   string
+	StopOnError  bool
+	WarnOnError  bool
+	IgnoreErrors bool
 }
 
 func init() {
@@ -31,6 +34,10 @@ func init() {
 	deleteOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
 	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete an issue attachment from. Defaults to the current repository")
 	deleteCmd.Flags().Var(&deleteOptions.IssueID, "issue", "Issue to delete attachments from")
+	deleteCmd.Flags().BoolVar(&deleteOptions.StopOnError, "stop-on-error", false, "Stop on error")
+	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
+	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
+	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 	_ = deleteCmd.MarkFlagRequired("issue")
 	_ = deleteCmd.RegisterFlagCompletionFunc("issue", deleteOptions.IssueID.CompletionFunc())
 }
@@ -53,17 +60,33 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting attachment %s from issue %s", args[0], deleteOptions.IssueID) {
-		err := profile.Current.Delete(
-			log.ToContext(cmd.Context()),
-			cmd,
-			fmt.Sprintf("issues/%s/attachments/%s", deleteOptions.IssueID.Value, args[0]),
-			nil,
-		)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to delete issue artifact %s: %s\n", args[0], err)
-			os.Exit(1)
+	var merr errors.MultiError
+	for _, attachmentID := range args {
+		if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting attachment %s from issue %s", attachmentID, deleteOptions.IssueID) {
+			err := profile.Current.Delete(
+				log.ToContext(cmd.Context()),
+				cmd,
+				fmt.Sprintf("issues/%s/attachments/%s", deleteOptions.IssueID.Value, attachmentID),
+				nil,
+			)
+			if err != nil {
+				if profile.Current.ShouldStopOnError(cmd) {
+					fmt.Fprintf(os.Stderr, "Failed to delete issue attachment %s: %s\n", attachmentID, err)
+					os.Exit(1)
+				} else {
+					merr.Append(err)
+				}
+			}
+			log.Infof("Issue attachment %s deleted", attachmentID)
 		}
 	}
-	return nil
+	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+		fmt.Fprintf(os.Stderr, "Failed to delete these attachments: %s\n", merr)
+		return nil
+	}
+	if profile.Current.ShouldIgnoreErrors(cmd) {
+		log.Warnf("Failed to delete these attachments, but ignoring errors: %s", merr)
+		return nil
+	}
+	return merr.AsError()
 }

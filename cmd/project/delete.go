@@ -13,16 +13,19 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete [flags] <project-key>",
+	Use:               "delete [flags] <project-key...>",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete a project by its <project-key>.",
-	Args:              cobra.ExactArgs(1),
+	Short:             "delete projects by their <project-key>.",
+	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: deleteValidArgs,
 	RunE:              deleteProcess,
 }
 
 var deleteOptions struct {
-	Workspace common.RemoteValueFlag
+	Workspace    common.RemoteValueFlag
+	StopOnError  bool
+	WarnOnError  bool
+	IgnoreErrors bool
 }
 
 func init() {
@@ -30,6 +33,10 @@ func init() {
 
 	deleteOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
 	deleteCmd.Flags().Var(&deleteOptions.Workspace, "workspace", "Workspace to delete projects from")
+	deleteCmd.Flags().BoolVar(&deleteOptions.StopOnError, "stop-on-error", false, "Stop on error")
+	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
+	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
+	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -56,17 +63,33 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting project %s", args[0]) {
-		err := profile.Current.Delete(
-			log.ToContext(cmd.Context()),
-			cmd,
-			fmt.Sprintf("/workspaces/%s/projects/%s", deleteOptions.Workspace, args[0]),
-			nil,
-		)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to delete project %s: %s\n", args[0], err)
-			os.Exit(1)
+	var merr errors.MultiError
+	for _, projectKey := range args {
+		if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting project %s", projectKey) {
+			err := profile.Current.Delete(
+				log.ToContext(cmd.Context()),
+				cmd,
+				fmt.Sprintf("/workspaces/%s/projects/%s", deleteOptions.Workspace, projectKey),
+				nil,
+			)
+			if err != nil {
+				if profile.Current.ShouldStopOnError(cmd) {
+					fmt.Fprintf(os.Stderr, "Failed to delete project %s: %s\n", projectKey, err)
+					os.Exit(1)
+				} else {
+					merr.Append(err)
+				}
+			}
+			log.Infof("Project %s deleted", projectKey)
 		}
 	}
-	return nil
+	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+		fmt.Fprintf(os.Stderr, "Failed to delete these projects: %s\n", merr)
+		return nil
+	}
+	if profile.Current.ShouldIgnoreErrors(cmd) {
+		log.Warnf("Failed to delete these projects, but ignoring errors: %s", merr)
+		return nil
+	}
+	return merr.AsError()
 }
