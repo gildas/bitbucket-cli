@@ -40,5 +40,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No branch found")
 		return
 	}
-	return profile.Current.Print(cmd.Context(), Branches(branches))
+	return profile.Current.Print(cmd.Context(), cmd, Branches(branches))
 }

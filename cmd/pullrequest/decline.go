@@ -64,5 +64,5 @@ func declineProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to decline pullrequest %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), participant)
+	return profile.Current.Print(cmd.Context(), cmd, participant)
 }

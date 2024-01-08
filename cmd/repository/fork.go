@@ -112,5 +112,5 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return profile.Current.Print(cmd.Context(), forked)
+	return profile.Current.Print(cmd.Context(), cmd, forked)
 }

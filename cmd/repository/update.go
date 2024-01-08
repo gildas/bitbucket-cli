@@ -114,5 +114,5 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to update repository %s/%s: %s\n", updateOptions.Workspace, args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), repository)
+	return profile.Current.Print(cmd.Context(), cmd, repository)
 }

@@ -120,5 +120,5 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 			os.Exit(1)
 		}
 	}
-	return profile.Current.Print(cmd.Context(), issue)
+	return profile.Current.Print(cmd.Context(), cmd, issue)
 }

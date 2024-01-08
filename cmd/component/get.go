@@ -60,5 +60,5 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to get component %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), component)
+	return profile.Current.Print(cmd.Context(), cmd, component)
 }

@@ -40,5 +40,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No component found")
 		return nil
 	}
-	return profile.Current.Print(cmd.Context(), Components(components))
+	return profile.Current.Print(cmd.Context(), cmd, Components(components))
 }

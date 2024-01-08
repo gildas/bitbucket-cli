@@ -66,5 +66,5 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to get issue comment %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), comment)
+	return profile.Current.Print(cmd.Context(), cmd, comment)
 }

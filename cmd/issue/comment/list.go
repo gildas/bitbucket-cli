@@ -56,6 +56,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	return profile.Current.Print(
 		cmd.Context(),
+		cmd,
 		Comments(core.Filter(comments, func(comment Comment) bool {
 			return len(comment.Content.Raw) > 0
 		})),

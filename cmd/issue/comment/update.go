@@ -84,6 +84,5 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to update comment for issue %s: %s\n", updateOptions.IssueID.Value, err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), comment)
-
+	return profile.Current.Print(cmd.Context(), cmd, comment)
 }

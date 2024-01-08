@@ -154,10 +154,6 @@ func initConfig() {
 		} else {
 			profile.Current = profile.Profiles.Current()
 		}
-		if len(CmdOptions.OutputFormat.String()) > 0 {
-			log.Debugf("Setting output format to %s (was: %s)", CmdOptions.OutputFormat.String(), profile.Current.OutputFormat)
-			profile.Current.OutputFormat = CmdOptions.OutputFormat.String()
-		}
 		log.Record("profile", profile.Current).Infof("Current Profile: %s", profile.Current)
 	}
 }

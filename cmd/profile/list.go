@@ -24,5 +24,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No profiles found")
 		return
 	}
-	return Current.Print(cmd.Context(), Profiles)
+	return Current.Print(cmd.Context(), cmd, Profiles)
 }

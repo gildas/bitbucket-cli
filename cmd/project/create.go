@@ -121,5 +121,5 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to create project: %s\n", err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), project)
+	return profile.Current.Print(cmd.Context(), cmd, project)
 }

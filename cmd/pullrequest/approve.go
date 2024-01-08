@@ -64,5 +64,5 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to approve pullrequest %s: %s\n", args[0], err)
 		return nil
 	}
-	return profile.Current.Print(cmd.Context(), participant)
+	return profile.Current.Print(cmd.Context(), cmd, participant)
 }

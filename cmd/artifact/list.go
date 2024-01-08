@@ -40,5 +40,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No artifact found")
 		return nil
 	}
-	return profile.Current.Print(cmd.Context(), Artifacts(artifacts))
+	return profile.Current.Print(cmd.Context(), cmd, Artifacts(artifacts))
 }

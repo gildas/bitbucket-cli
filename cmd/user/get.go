@@ -45,5 +45,5 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return err
 	}
-	return profile.Current.Print(cmd.Context(), account)
+	return profile.Current.Print(cmd.Context(), cmd, account)
 }

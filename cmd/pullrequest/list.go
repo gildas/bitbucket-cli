@@ -52,5 +52,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No pullrequest found")
 		return
 	}
-	return profile.Current.Print(cmd.Context(), PullRequests(pullrequests))
+	return profile.Current.Print(cmd.Context(), cmd, PullRequests(pullrequests))
 }

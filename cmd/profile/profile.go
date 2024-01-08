@@ -190,10 +190,15 @@ func (profile Profile) String() string {
 }
 
 // Print prints the given payload to the console
-func (profile Profile) Print(context context.Context, payload any) error {
+func (profile Profile) Print(context context.Context, cmd *cobra.Command, payload any) error {
 	log := logger.Must(logger.FromContext(context)).Child("profile", "print", "format", profile.OutputFormat)
+	outputFormat := profile.OutputFormat
 
-	switch profile.OutputFormat {
+	if cmd.Flag("output").Changed {
+		outputFormat = cmd.Flag("output").Value.String()
+		log.Debugf("Command output format: %s (was: %s)", outputFormat, profile.OutputFormat)
+	}
+	switch outputFormat {
 	case "json":
 		log.Debugf("Printing payload as JSON")
 		data, err := json.MarshalIndent(payload, "", "  ")
