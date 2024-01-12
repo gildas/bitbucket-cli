@@ -9,17 +9,18 @@ M = $(shell printf "\033[34;1m▶\033[0m")
 rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 
 # Folders
-BIN_DIR ?= $(CURDIR)/bin
-LOG_DIR ?= log
-TMP_DIR ?= tmp
-COV_DIR ?= tmp/coverage
+BIN_DIR  ?= $(CURDIR)/bin
+DEST_DIR ?= /usr/bin
+LOG_DIR  ?= log
+TMP_DIR  ?= tmp
+COV_DIR  ?= tmp/coverage
 
 # Version, branch, and project
 BRANCH    != git symbolic-ref --short HEAD
 COMMIT    != git rev-parse --short HEAD
 BUILD     := "$(STAMP).$(COMMIT)"
 VERSION   != awk '/^var +VERSION +=/{gsub("\"", "", $$4) ; print $$4}' version.go
-ifeq ($VERSION,)
+ifeq ($(VERSION),)
 VERSION   != git describe --tags --always --dirty="-dev"
 endif
 REVISION  ?= 1
@@ -104,7 +105,7 @@ else
 endif
 
 # Main Recipes
-.PHONY: all archive build dep fmt gendoc help lint logview publish run start stop test version vet watch
+.PHONY: all archive build dep fmt gendoc help install lint logview publish run start stop test version vet watch
 
 help: Makefile; ## Display this help
 	@echo
@@ -124,6 +125,10 @@ publish: __publish_init__ __publish_binaries__; @ ## Publish the binaries to the
 archive: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ ; @ ## Archive the binaries
 
 build: __build_init__ __build_all__; @ ## Build the application for all platforms
+
+install: $(BIN_DIR)/$(OSTYPE)-$(OSARCH)/$(PROJECT); @ ## Install the application
+	$(info $(M) Installing application for $(OSTYPE) on $(OSARCH) in $(DEST_DIR)...)
+	$Q install $(BIN_DIR)/$(OSTYPE)-$(OSARCH)/$(PROJECT) $(DEST_DIR)/$(PROJECT)
 
 dep:; $(info $(M) Updating Modules...) @ ## Updates the GO Modules
 	$Q $(GO) get -u ./...
