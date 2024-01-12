@@ -74,13 +74,33 @@ TEST_ARG :=
 endif
 
 ifeq ($(OS), Windows_NT)
+  OSTYPE = windows
+  OSARCH = amd64
   include Makefile.windows
-else ifeq ($(OS_TYPE), linux-gnu)
-  include Makefile.linux
-else ifeq ($(findstring darwin, $(OS_TYPE)),)
-  include Makefile.linux
 else
-  $(error Unsupported Operating System)
+  OSTYPE != uname -s
+  OSARCH != uname -p
+  ifeq ($(OSTYPE), Linux)
+    OSTYPE = linux
+    ifeq ($(OSARCH), x86_64)
+      OSARCH = amd64
+    else ifeq ($(OSARCH), aarch64)
+      OSARCH = arm64
+    endif
+    include Makefile.linux
+  else ifeq ($(OSTYPE), Darwin)
+    OSTYPE = darwin
+    ifeq ($(OSARCH), x86_64)
+      OSARCH = amd64
+    else ifeq ($(OSARCH), aarch64)
+      OSARCH = arm64
+    endif
+    include Makefile.linux
+  else ifeq ($(OSTYPE),)
+    $(error Please use GNU Make 4 at least)
+  else
+    $(error Unsupported Operating System)
+  endif
 endif
 
 # Main Recipes
