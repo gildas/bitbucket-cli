@@ -16,7 +16,7 @@ If you use [Homebrew](https://brew.sh), you can install `bb` with:
 brew install gildas/tap/bitbucket-cli
 ```
 
-You can also install `bb` with snap (The snap is currently under review with [snapcraft.io](https://snapcraft.io/bitbucket-cli/releases)):
+You can also install `bb` with snap:
 
 ```bash
 snap install bitbucket-cli
