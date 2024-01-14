@@ -16,21 +16,15 @@ import (
 )
 
 type Comment struct {
-	ID        int                 `json:"id" mapstructure:"id"`
-	Content   common.RenderedText `json:"content" mapstructure:"content"`
-	User      user.Account        `json:"user" mapstructure:"user"`
-	Anchor    *CommentAnchor      `json:"inline,omitempty" mapstructure:"inline"`
+	ID        int                 `json:"id"               mapstructure:"id"`
+	Content   common.RenderedText `json:"content"          mapstructure:"content"`
+	User      user.Account        `json:"user"             mapstructure:"user"`
+	Anchor    *common.FileAnchor  `json:"inline,omitempty" mapstructure:"inline"`
 	Parent    *Comment            `json:"parent,omitempty" mapstructure:"parent"`
-	CreatedOn time.Time           `json:"created_on" mapstructure:"created_on"`
-	UpdatedOn time.Time           `json:"updated_on" mapstructure:"updated_on"`
-	IsDeleted bool                `json:"deleted"    mapstructure:"deleted"`
-	Links     common.Links        `json:"links"      mapstructure:"links"`
-}
-
-type CommentAnchor struct {
-	From uint   `json:"from,omitempty" mapstructure:"from"`
-	To   uint   `json:"to,omitempty" mapstructure:"to"`
-	Path string `json:"path" mapstructure:"path"`
+	CreatedOn time.Time           `json:"created_on"       mapstructure:"created_on"`
+	UpdatedOn time.Time           `json:"updated_on"       mapstructure:"updated_on"`
+	IsDeleted bool                `json:"deleted"          mapstructure:"deleted"`
+	Links     common.Links        `json:"links"            mapstructure:"links"`
 }
 
 // Command represents this folder's command
@@ -50,37 +44,46 @@ var Command = &cobra.Command{
 // implements common.Tableable
 func (comment Comment) GetHeader(short bool) []string {
 	if short {
-		if comment.UpdatedOn.IsZero() {
-			return []string{"ID", "Created On", "User", "Content"}
+		headers := []string{"ID", "Created On"}
+		if !comment.UpdatedOn.IsZero() {
+			headers = append(headers, "Updated On")
 		}
+		if comment.Anchor != nil {
+			headers = append(headers, "File")
+		}
+		return append(headers, "User", "Content")
 	}
-	return []string{"ID", "Created On", "Updated On", "User", "Content"}
+	return []string{"ID", "Created On", "Updated On", "File", "User", "Content"}
 }
 
 // GetRow gets the row for a table
 //
 // implements common.Tableable
 func (comment Comment) GetRow(headers []string) []string {
-	if !core.Contains(headers, "Updated On") {
-		return []string{
-			fmt.Sprintf("%d", comment.ID),
-			comment.CreatedOn.Format("2006-01-02 15:04:05"),
-			comment.User.Name,
-			comment.Content.Raw,
-		}
-	}
-
-	updatedOn := ""
-	if !comment.UpdatedOn.IsZero() {
-		updatedOn = comment.UpdatedOn.Format("2006-01-02 15:04:05")
-	}
-	return []string{
+	rows := []string{
 		fmt.Sprintf("%d", comment.ID),
 		comment.CreatedOn.Format("2006-01-02 15:04:05"),
-		updatedOn,
+	}
+	if core.Contains(headers, "Updated On") {
+		updatedOn := ""
+		if !comment.UpdatedOn.IsZero() {
+			updatedOn = comment.UpdatedOn.Format("2006-01-02 15:04:05")
+		}
+		rows = append(rows, updatedOn)
+	}
+
+	if core.Contains(headers, "File") {
+		file := ""
+		if comment.Anchor != nil {
+			file = comment.Anchor.String()
+		}
+		rows = append(rows, file)
+	}
+
+	return append(rows,
 		comment.User.Name,
 		comment.Content.Raw,
-	}
+	)
 }
 
 // Validate validates a Comment
