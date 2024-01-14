@@ -53,7 +53,7 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Displaying issue %s", args[0])
+	log.Infof("Displaying issue comment %s", args[0])
 	var comment Comment
 
 	err = profile.Current.Get(

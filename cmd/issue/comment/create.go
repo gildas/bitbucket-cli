@@ -33,7 +33,7 @@ func init() {
 	Command.AddCommand(createCmd)
 
 	createOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
-	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create an issue into. Defaults to the current repository")
+	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create an issue comment into. Defaults to the current repository")
 	createCmd.Flags().Var(&createOptions.IssueID, "issue", "Issue to create comments to")
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the issue")
 	_ = createCmd.MarkFlagRequired("issue")

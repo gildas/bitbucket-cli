@@ -51,7 +51,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 	if len(comments) == 0 {
-		log.Infof("No issue found")
+		log.Infof("No comment found")
 		return nil
 	}
 	return profile.Current.Print(
