@@ -41,17 +41,17 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Uploading issue attachment %s", args[0])
-
-	err := profile.Current.Upload(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("issues/%s/attachments", uploadOptions.IssueID.Value),
-		args[0],
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to upload attachment %s: %s\n", args[0], err)
-		os.Exit(1)
+	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading attachment %s to issue %s", args[0], uploadOptions.IssueID) {
+		err := profile.Current.Upload(
+			log.ToContext(cmd.Context()),
+			cmd,
+			fmt.Sprintf("issues/%s/attachments", uploadOptions.IssueID.Value),
+			args[0],
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to upload attachment %s: %s\n", args[0], err)
+			os.Exit(1)
+		}
 	}
 	return nil
 }

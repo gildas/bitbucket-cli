@@ -1,4 +1,4 @@
-package repository
+package comment
 
 import (
 	"fmt"
@@ -6,38 +6,39 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete [flags] <slug_or_uuid...>",
+	Use:               "delete [flags] <comment-id...>",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete repositories by their <slug> or <uuid>.",
+	Short:             "delete pullrequest comments by their <comment-id>.",
 	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: deleteValidArgs,
 	RunE:              deleteProcess,
 }
 
 var deleteOptions struct {
-	Workspace    common.RemoteValueFlag
-	StopOnError  bool
-	WarnOnError  bool
-	IgnoreErrors bool
+	PullRequestID common.RemoteValueFlag
+	Repository    string
+	StopOnError   bool
+	WarnOnError   bool
+	IgnoreErrors  bool
 }
 
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	deleteCmd.Flags().Var(&deleteOptions.Workspace, "workspace", "Workspace to delete repositories from")
+	deleteOptions.PullRequestID = common.RemoteValueFlag{AllowedFunc: GetPullRequestIDs}
+	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete a pullrequest comment from. Defaults to the current repository")
+	deleteCmd.Flags().Var(&deleteOptions.PullRequestID, "pullrequest", "Pullrequest to delete comments from")
 	deleteCmd.Flags().BoolVar(&deleteOptions.StopOnError, "stop-on-error", false, "Stop on error")
 	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
 	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
-	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
-	_ = deleteCmd.RegisterFlagCompletionFunc("workspace", deleteOptions.Workspace.CompletionFunc())
+	_ = deleteCmd.MarkFlagRequired("pullrequest")
+	_ = deleteCmd.RegisterFlagCompletionFunc("pullrequest", deleteOptions.PullRequestID.CompletionFunc())
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -48,7 +49,7 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetRepositorySlugs(cmd.Context(), cmd, profile.Current, deleteOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequestCommentIDs(cmd.Context(), cmd, profile.Current, deleteOptions.PullRequestID.Value), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
@@ -57,39 +58,33 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
 	}
-	if len(deleteOptions.Workspace.Value) == 0 {
-		deleteOptions.Workspace.Value = profile.Current.DefaultWorkspace
-		if len(deleteOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
-	}
 
 	var merr errors.MultiError
-	for _, repositorySlug := range args {
-		if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting repository %s", repositorySlug) {
+	for _, commentID := range args {
+		if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting comment %s from pullrequest %s", commentID, deleteOptions.PullRequestID) {
 			err := profile.Current.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
-				fmt.Sprintf("/repositories/%s/%s", deleteOptions.Workspace, repositorySlug),
+				fmt.Sprintf("pullrequests/%s/comments/%s", deleteOptions.PullRequestID.Value, commentID),
 				nil,
 			)
 			if err != nil {
 				if profile.Current.ShouldStopOnError(cmd) {
-					fmt.Fprintf(os.Stderr, "Failed to delete repository %s: %s\n", repositorySlug, err)
+					fmt.Fprintf(os.Stderr, "Failed to delete pullrequest comment %s: %s\n", commentID, err)
 					os.Exit(1)
 				} else {
 					merr.Append(err)
 				}
 			}
+			log.Infof("Pullrequest comment %s deleted", commentID)
 		}
-		log.Infof("Repository %s deleted", repositorySlug)
 	}
 	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
-		fmt.Fprintf(os.Stderr, "Failed to delete these repositories: %s\n", merr)
+		fmt.Fprintf(os.Stderr, "Failed to delete these comments: %s\n", merr)
 		return nil
 	}
 	if profile.Current.ShouldIgnoreErrors(cmd) {
-		log.Warnf("Failed to delete these repositories, but ignoring errors: %s", merr)
+		log.Warnf("Failed to delete these comments, but ignoring errors: %s", merr)
 		return nil
 	}
 	return merr.AsError()

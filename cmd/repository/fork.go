@@ -97,7 +97,9 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 		payload.Project = project.NewReference(forkOptions.Project.Value)
 	}
 
-	log.Infof("Forking repository %s", args[0])
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Forking repository %s/%s", forkOptions.Workspace, args[0]) {
+		return nil
+	}
 	var forked Repository
 
 	err := profile.Current.Post(
@@ -110,5 +112,5 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return profile.Current.Print(cmd.Context(), forked)
+	return profile.Current.Print(cmd.Context(), cmd, forked)
 }

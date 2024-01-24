@@ -13,24 +13,24 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "list all issue comments",
+	Short: "list all pullrequest comments",
 	Args:  cobra.NoArgs,
 	RunE:  listProcess,
 }
 
 var listOptions struct {
-	Repository string
-	IssueID    common.RemoteValueFlag
+	Repository    string
+	PullRequestID common.RemoteValueFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
-	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issue comments from. Defaults to the current repository")
-	listCmd.Flags().Var(&listOptions.IssueID, "issue", "Issue to list comments from")
-	_ = listCmd.MarkFlagRequired("issue")
-	_ = listCmd.RegisterFlagCompletionFunc("issue", listOptions.IssueID.CompletionFunc())
+	listOptions.PullRequestID = common.RemoteValueFlag{AllowedFunc: GetPullRequestIDs}
+	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequest comments from. Defaults to the current repository")
+	listCmd.Flags().Var(&listOptions.PullRequestID, "pullrequest", "pullrequest to list comments from")
+	_ = listCmd.MarkFlagRequired("pullrequest")
+	_ = listCmd.RegisterFlagCompletionFunc("pullrequest", listOptions.PullRequestID.CompletionFunc())
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -45,7 +45,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		cmd.Context(),
 		cmd,
 		profile.Current,
-		fmt.Sprintf("issues/%s/comments", listOptions.IssueID.Value),
+		fmt.Sprintf("pullrequests/%s/comments", listOptions.PullRequestID.Value),
 	)
 	if err != nil {
 		return err

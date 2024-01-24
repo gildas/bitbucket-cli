@@ -23,6 +23,7 @@ import (
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -32,6 +33,7 @@ type RootOptions struct {
 	LogDestination string          `mapstructure:"-"`
 	ProfileName    string          `mapstructure:"-"`
 	OutputFormat   common.EnumFlag `mapstructure:"-"`
+	DryRun         bool            `mapstructure:"-"`
 	Verbose        bool            `mapstructure:"-"`
 	Debug          bool            `mapstructure:"-"`
 }
@@ -61,6 +63,7 @@ func init() {
 	RootCmd.PersistentFlags().StringVar(&CmdOptions.ConfigFile, "config", core.GetEnvAsString("BB_CONFIG", ""), "config file (default is .env, "+filepath.Join(configDir, "bitbucket", "config-cli.yml"))
 	RootCmd.PersistentFlags().StringVarP(&CmdOptions.ProfileName, "profile", "p", core.GetEnvAsString("BB_PROFILE", ""), "Profile to use. Overrides the default profile")
 	RootCmd.PersistentFlags().StringVarP(&CmdOptions.LogDestination, "log", "l", "", "Log destination (stdout, stderr, file, none), overrides LOG_DESTINATION environment variable")
+	RootCmd.PersistentFlags().BoolVar(&CmdOptions.DryRun, "dry-run", false, "Dry run, the command will not modify anything but tell what it would do. \nAlso known as --noop, --what-if, or --whatif")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.Debug, "debug", false, "logs are written at DEBUG level, overrides DEBUG environment variable")
 	RootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
 	RootCmd.PersistentFlags().VarP(&CmdOptions.OutputFormat, "output", "o", "Output format (json, yaml, table). Overrides the default output format of the profile")
@@ -68,6 +71,13 @@ func init() {
 	_ = RootCmd.MarkFlagFilename("log")
 	_ = RootCmd.RegisterFlagCompletionFunc("profile", profile.ValidProfileNames)
 	_ = RootCmd.RegisterFlagCompletionFunc("output", CmdOptions.OutputFormat.CompletionFunc())
+	RootCmd.PersistentFlags().SetNormalizeFunc(func(f *pflag.FlagSet, name string) pflag.NormalizedName {
+		switch name {
+		case "noop", "dryrun", "whatif", "what-if":
+			name = "dry-run"
+		}
+		return pflag.NormalizedName(name)
+	})
 
 	RootCmd.AddCommand(artifact.Command)
 	RootCmd.AddCommand(profile.Command)
@@ -143,10 +153,6 @@ func initConfig() {
 			}
 		} else {
 			profile.Current = profile.Profiles.Current()
-		}
-		if len(CmdOptions.OutputFormat.String()) > 0 {
-			log.Debugf("Setting output format to %s (was: %s)", CmdOptions.OutputFormat.String(), profile.Current.OutputFormat)
-			profile.Current.OutputFormat = CmdOptions.OutputFormat.String()
 		}
 		log.Record("profile", profile.Current).Infof("Current Profile: %s", profile.Current)
 	}

@@ -21,20 +21,21 @@ import (
 
 // Profile describes the configuration needed to connect to BitBucket
 type Profile struct {
-	Name             string    `json:"name"                       mapstructure:"name"`
-	Description      string    `json:"description,omitempty"      mapstructure:"description,omitempty"  yaml:",omitempty"`
-	Default          bool      `json:"default"                    mapstructure:"default"                yaml:",omitempty"`
-	DefaultWorkspace string    `json:"defaultWorkspace,omitempty" mapstructure:"defaultWorkspace"       yaml:",omitempty"`
-	DefaultProject   string    `json:"defaultProject,omitempty"   mapstructure:"defaultProject"         yaml:",omitempty"`
-	OutputFormat     string    `json:"outputFormat,omitempty"     mapstructure:"outputFormat,omitempty" yaml:",omitempty"`
-	User             string    `json:"user,omitempty"             mapstructure:"user"                   yaml:",omitempty"`
-	Password         string    `json:"password,omitempty"         mapstructure:"password"               yaml:",omitempty"`
-	ClientID         string    `json:"clientID,omitempty"         mapstructure:"clientID"               yaml:",omitempty"`
-	ClientSecret     string    `json:"clientSecret,omitempty"     mapstructure:"clientSecret"           yaml:",omitempty"`
-	AccessToken      string    `json:"accessToken,omitempty"      mapstructure:"accessToken"            yaml:",omitempty"`
-	RefreshToken     string    `json:"-"                          mapstructure:"refreshToken"           yaml:"-"`
-	TokenExpires     time.Time `json:"-"                          mapstructure:"tokenExpires"           yaml:"-"`
-	TokenScopes      []string  `json:"-"                          mapstructure:"tokenScopes"            yaml:"-"`
+	Name             string                 `json:"name"                       mapstructure:"name"`
+	Description      string                 `json:"description,omitempty"      mapstructure:"description,omitempty"  yaml:",omitempty"`
+	Default          bool                   `json:"default"                    mapstructure:"default"                yaml:",omitempty"`
+	DefaultWorkspace string                 `json:"defaultWorkspace,omitempty" mapstructure:"defaultWorkspace"       yaml:",omitempty"`
+	DefaultProject   string                 `json:"defaultProject,omitempty"   mapstructure:"defaultProject"         yaml:",omitempty"`
+	ErrorProcessing  common.ErrorProcessing `json:"errorProcessing,omitempty"  mapstructure:"errorProcessing,omitempty" yaml:",omitempty"`
+	OutputFormat     string                 `json:"outputFormat,omitempty"     mapstructure:"outputFormat,omitempty" yaml:",omitempty"`
+	User             string                 `json:"user,omitempty"             mapstructure:"user"                   yaml:",omitempty"`
+	Password         string                 `json:"password,omitempty"         mapstructure:"password"               yaml:",omitempty"`
+	ClientID         string                 `json:"clientID,omitempty"         mapstructure:"clientID"               yaml:",omitempty"`
+	ClientSecret     string                 `json:"clientSecret,omitempty"     mapstructure:"clientSecret"           yaml:",omitempty"`
+	AccessToken      string                 `json:"accessToken,omitempty"      mapstructure:"accessToken"            yaml:",omitempty"`
+	RefreshToken     string                 `json:"-"                          mapstructure:"refreshToken"           yaml:"-"`
+	TokenExpires     time.Time              `json:"-"                          mapstructure:"tokenExpires"           yaml:"-"`
+	TokenScopes      []string               `json:"-"                          mapstructure:"tokenScopes"            yaml:"-"`
 }
 
 // Current is the current profile
@@ -157,6 +158,30 @@ func (profile *Profile) Validate() error {
 	return merr.AsError()
 }
 
+// ShouldStopOnError tells if the command should stop on error
+func (profile Profile) ShouldStopOnError(cmd *cobra.Command) bool {
+	if cmd.Flag("stop-on-error").Changed {
+		return cmd.Flag("stop-on-error").Value.String() == "true"
+	}
+	return profile.ErrorProcessing == common.StopOnError
+}
+
+// ShouldWarnOnError tells if the command should warn on error
+func (profile Profile) ShouldWarnOnError(cmd *cobra.Command) bool {
+	if cmd.Flag("warn-on-error").Changed {
+		return cmd.Flag("warn-on-error").Value.String() == "true"
+	}
+	return profile.ErrorProcessing == common.WarnOnError
+}
+
+// ShouldIgnoreErrors tells if the command should ignore errors
+func (profile Profile) ShouldIgnoreErrors(cmd *cobra.Command) bool {
+	if cmd.Flag("ignore-errors").Changed {
+		return cmd.Flag("ignore-errors").Value.String() == "true"
+	}
+	return profile.ErrorProcessing == common.IgnoreErrors
+}
+
 // String gets a string representation of this profile
 //
 // implements fmt.Stringer
@@ -165,10 +190,15 @@ func (profile Profile) String() string {
 }
 
 // Print prints the given payload to the console
-func (profile Profile) Print(context context.Context, payload any) error {
+func (profile Profile) Print(context context.Context, cmd *cobra.Command, payload any) error {
 	log := logger.Must(logger.FromContext(context)).Child("profile", "print", "format", profile.OutputFormat)
+	outputFormat := profile.OutputFormat
 
-	switch profile.OutputFormat {
+	if cmd.Flag("output").Changed {
+		outputFormat = cmd.Flag("output").Value.String()
+		log.Debugf("Command output format: %s (was: %s)", outputFormat, profile.OutputFormat)
+	}
+	switch outputFormat {
 	case "json":
 		log.Debugf("Printing payload as JSON")
 		data, err := json.MarshalIndent(payload, "", "  ")
@@ -256,6 +286,19 @@ func (profile Profile) Print(context context.Context, payload any) error {
 	return nil
 }
 
+// WhatIf prints what would be done by the command
+//
+// If the DryRun flag is set, it prints what would be done by the command
+// otherwise it does nothing
+func (profile Profile) WhatIf(context context.Context, cmd *cobra.Command, format string, args ...any) (proceed bool) {
+	if cmd.Flag("dry-run").Changed {
+		logger.Must(logger.FromContext(context)).Infof("Dry run: "+format, args...)
+		fmt.Fprintf(os.Stderr, "Dry run: "+format+"\n", args...)
+		return false
+	}
+	return true
+}
+
 // MarshalJSON marshals this profile to JSON
 //
 // implements json.Marshaler
@@ -265,12 +308,18 @@ func (profile Profile) MarshalJSON() ([]byte, error) {
 	if outputFormat == "table" {
 		outputFormat = ""
 	}
+	errorProcessing := profile.ErrorProcessing.String()
+	if errorProcessing == common.StopOnError.String() {
+		errorProcessing = ""
+	}
 	data, err := json.Marshal(struct {
 		surrogate
-		OutputFormat string `json:"outputFormat,omitempty"`
+		OutputFormat    string `json:"outputFormat,omitempty"`
+		ErrorProcessing string `json:"errorProcessing,omitempty"`
 	}{
-		surrogate:    surrogate(profile),
-		OutputFormat: outputFormat,
+		surrogate:       surrogate(profile),
+		OutputFormat:    outputFormat,
+		ErrorProcessing: errorProcessing,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
 }

@@ -48,7 +48,9 @@ func declineProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Declining pullrequest %s", args[0])
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Declining pullrequest %s", args[0]) {
+		return nil
+	}
 	var participant user.Participant
 
 	err = profile.Current.Post(
@@ -62,5 +64,5 @@ func declineProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to decline pullrequest %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), participant)
+	return profile.Current.Print(cmd.Context(), cmd, participant)
 }

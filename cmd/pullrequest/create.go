@@ -74,6 +74,9 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Creating pullrequest")
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating pullrequest") {
+		return nil
+	}
 	var pullrequest PullRequest
 
 	err = profile.Current.Post(
@@ -87,5 +90,5 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to create pullrequest: %s\n", err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), pullrequest)
+	return profile.Current.Print(cmd.Context(), cmd, pullrequest)
 }

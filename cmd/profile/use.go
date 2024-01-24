@@ -28,7 +28,10 @@ func useProcess(cmd *cobra.Command, args []string) error {
 	if !found {
 		return errors.NotFound.With("profile", args[0])
 	}
-	Profiles.SetCurrent(profile.Name)
-	viper.Set("profiles", Profiles)
-	return viper.WriteConfig()
+	if Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Using profile %s as default", args[0]) {
+		Profiles.SetCurrent(profile.Name)
+		viper.Set("profiles", Profiles)
+		return viper.WriteConfig()
+	}
+	return nil
 }

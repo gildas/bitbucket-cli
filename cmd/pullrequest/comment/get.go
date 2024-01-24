@@ -14,25 +14,25 @@ import (
 var getCmd = &cobra.Command{
 	Use:               "get [flags] <comment-id>",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get an issue comment by its <comment-id>.",
+	Short:             "get a pullrequest comment by its <comment-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
 }
 
 var getOptions struct {
-	IssueID    common.RemoteValueFlag
-	Repository string
+	PullRequestID common.RemoteValueFlag
+	Repository    string
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get an issue comment from. Defaults to the current repository")
-	getCmd.Flags().Var(&getOptions.IssueID, "issue", "Issue to get comments from")
-	_ = getCmd.MarkFlagRequired("issue")
-	_ = getCmd.RegisterFlagCompletionFunc("issue", getOptions.IssueID.CompletionFunc())
+	listOptions.PullRequestID = common.RemoteValueFlag{AllowedFunc: GetPullRequestIDs}
+	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get a pullrequest comment from. Defaults to the current repository")
+	getCmd.Flags().Var(&getOptions.PullRequestID, "pullrequest", "Pullrequest to get comments from")
+	_ = getCmd.MarkFlagRequired("pullrequest")
+	_ = getCmd.RegisterFlagCompletionFunc("pullrequest", getOptions.PullRequestID.CompletionFunc())
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -43,7 +43,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, getOptions.IssueID.Value), cobra.ShellCompDirectiveNoFileComp
+	return GetPullRequestCommentIDs(cmd.Context(), cmd, profile.Current, getOptions.PullRequestID.Value), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) (err error) {
@@ -53,17 +53,17 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Displaying issue comment %s", args[0])
+	log.Infof("Displaying pullrequest comment %s", args[0])
 	var comment Comment
 
 	err = profile.Current.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("issues/%s/comments/%s", getOptions.IssueID.Value, args[0]),
+		fmt.Sprintf("pullrequests/%s/comments/%s", getOptions.PullRequestID.Value, args[0]),
 		&comment,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get issue comment %s: %s\n", args[0], err)
+		fmt.Fprintf(os.Stderr, "Failed to get pullrequest comment %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
 	return profile.Current.Print(cmd.Context(), cmd, comment)

@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/comment"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
@@ -48,6 +49,10 @@ var Command = &cobra.Command{
 			fmt.Println(command.Name())
 		}
 	},
+}
+
+func init() {
+	Command.AddCommand(comment.Command)
 }
 
 // GetHeader gets the header for a table

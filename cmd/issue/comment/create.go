@@ -33,7 +33,7 @@ func init() {
 	Command.AddCommand(createCmd)
 
 	createOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
-	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create an issue into. Defaults to the current repository")
+	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create an issue comment into. Defaults to the current repository")
 	createCmd.Flags().Var(&createOptions.IssueID, "issue", "Issue to create comments to")
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the issue")
 	_ = createCmd.MarkFlagRequired("issue")
@@ -56,6 +56,9 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Creating issue comment")
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating comment for issue %s", createOptions.IssueID) {
+		return nil
+	}
 	var comment Comment
 
 	err = profile.Current.Post(
@@ -69,5 +72,5 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to create comment for issue %s: %s\n", createOptions.IssueID.Value, err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), comment)
+	return profile.Current.Print(cmd.Context(), cmd, comment)
 }

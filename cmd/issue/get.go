@@ -61,7 +61,7 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 			fmt.Fprintf(os.Stderr, "Failed to get issue %s: %s\n", args[0], err)
 			os.Exit(1)
 		}
-		return profile.Current.Print(cmd.Context(), IssueChanges(changes))
+		return profile.Current.Print(cmd.Context(), cmd, IssueChanges(changes))
 	}
 
 	log.Infof("Displaying issue %s", args[0])
@@ -77,5 +77,5 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to get issue %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), issue)
+	return profile.Current.Print(cmd.Context(), cmd, issue)
 }

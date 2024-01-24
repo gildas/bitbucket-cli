@@ -88,5 +88,5 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to get reviewer: %s\n", err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), user)
+	return profile.Current.Print(cmd.Context(), cmd, user)
 }

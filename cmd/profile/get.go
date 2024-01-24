@@ -29,7 +29,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	if getOptions.Current {
 		log.Infof("Displaying current profile")
-		return Current.Print(cmd.Context(), Current)
+		return Current.Print(cmd.Context(), cmd, Current)
 	}
 
 	if len(args) == 0 {
@@ -41,5 +41,5 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	if !found {
 		return errors.NotFound.With("profile", args[0])
 	}
-	return Current.Print(cmd.Context(), profile)
+	return Current.Print(cmd.Context(), cmd, profile)
 }

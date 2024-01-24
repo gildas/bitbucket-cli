@@ -43,11 +43,13 @@ func init() {
 	createCmd.Flags().Var(&createOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
 	createCmd.Flags().Var(&createOptions.DefaultProject, "default-project", "Default project of the profile")
 	createCmd.Flags().Var(&createOptions.OutputFormat, "output", "Output format (json, yaml, table).")
+	createCmd.Flags().Var(&createOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
 	_ = createCmd.MarkFlagRequired("name")
 	createCmd.MarkFlagsRequiredTogether("user", "password")
 	createCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	createCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
 	_ = updateCmd.RegisterFlagCompletionFunc("output", updateOptions.OutputFormat.CompletionFunc())
+	_ = updateCmd.RegisterFlagCompletionFunc("error-processing", updateOptions.ErrorProcessing.CompletionFunc())
 }
 
 func createProcess(cmd *cobra.Command, args []string) error {
@@ -70,6 +72,9 @@ func createProcess(cmd *cobra.Command, args []string) error {
 		return errors.DuplicateFound.With("name", createOptions.Name)
 	}
 
+	if !Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating profile %s", createOptions.Name) {
+		return nil
+	}
 	Profiles.Add(&createOptions.Profile)
 	viper.Set("profiles", Profiles)
 	if len(viper.ConfigFileUsed()) > 0 {

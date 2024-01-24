@@ -76,8 +76,10 @@ func cloneProcess(cmd *cobra.Command, args []string) error {
 		cloneOptions.Destination = strings.TrimSuffix(args[0], ".git")
 	}
 
-	log.Infof("Cloning repository %s/%s", cloneOptions.Workspace.String(), args[0])
-	_, err := git.PlainCloneContext(cmd.Context(), cloneOptions.Destination, cloneOptions.Bare, &git.CloneOptions{
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Cloning repository %s/%s", cloneOptions.Workspace, args[0]) {
+		return nil
+	}
+	_, err := git.PlainCloneContext(log.ToContext(cmd.Context()), cloneOptions.Destination, cloneOptions.Bare, &git.CloneOptions{
 		URL:      fmt.Sprintf("https://bitbucket.org/%s/%s.git", cloneOptions.Workspace.String(), args[0]),
 		Progress: os.Stdout,
 	})

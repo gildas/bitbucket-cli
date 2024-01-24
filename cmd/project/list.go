@@ -57,5 +57,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No project found")
 		return nil
 	}
-	return profile.Current.Print(cmd.Context(), Projects(projects))
+	return profile.Current.Print(cmd.Context(), cmd, Projects(projects))
 }

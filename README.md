@@ -19,7 +19,8 @@ brew install gildas/tap/bitbucket-cli
 You can also install `bb` with snap:
 
 ```bash
-snap install bitbucket-cli
+sudo snap install bitbucket-cli
+sudo snap alias bitbucket-cli bb
 ```
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bitbucket-cli)
@@ -61,6 +62,20 @@ General help is also available by running `bb --help` or `bb help`.
 By default `bb` works in the current git repository. You can specify a Bitbucket repository with the `--repository` flag.
 
 See the [Completion](#completion) section for more information about completion. Many commands and flags are dynamically auto-completed.
+
+Most `delete`, `upload`, and `download` commands support multiple arguments. You can pass a list of arguments or a file with one argument per line:
+
+```bash
+bb repo delete myrepository1 myrepository2 myrepository3
+```
+
+You can tell `bb` to stop on the first error, warn on errorsm or ignore errors when processing multiple arguments with the `--stop-on-error`, `--warn-on-error`, or `--ignore-errors` flags.
+
+All commands that would modify something on Bitbucket now allow you to preview the changes before applying them. You can use the `--dry-run` flag to see what would happen.
+
+```bash
+bb repo delete myrepository3 --dry-run
+```
 
 ### Output
 
@@ -393,6 +408,52 @@ You can `merge` a pull request with the `bb pullrequest merge` command:
 
 ```bash
 bb pullrequest merge 1
+```
+
+You can list the comments of a pull request with the `bb pullrequest comment list` command:
+
+```bash
+bb pullrequest comment list --pullrequest 1
+```
+
+You can add a comment to a pull request with the `bb pullrequest comment create` or `bb pullrequest comment add` command:
+
+```bash
+bb pullrequest comment add --pullrequest 1 \
+  --comment "My comment" \
+  --file    README.md \
+  --line    404
+```
+
+You can resolve a comment with the `bb pullrequest comment resolve` command:
+
+```bash
+bb pullrequest comment resolve --pullrequest 1 452466
+```
+
+You can re-open a comment with the `bb pullrequest comment reopen` command:
+
+```bash
+bb pullrequest comment reopen --pullrequest 1 452466
+```
+
+You can get the details of a comment with the `bb pullrequest comment get` or `bb pullrequest comment show` command:
+
+```bash
+bb pullrequest comment get --pullrequest 1 452466
+```
+
+You can update a comment with the `bb pullrequest comment update` command:
+
+```bash
+bb pullrequest comment update --pullrequest 1 452466 \
+  --comment "My comment"
+```
+
+You can delete a comment with the `bb pullrequest comment delete` command:
+
+```bash
+bb pullrequest comment delete --pullrequest 1 452466
 ```
 
 ### Issues

@@ -44,12 +44,14 @@ func init() {
 	updateCmd.Flags().Var(&updateOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
 	updateCmd.Flags().Var(&updateOptions.DefaultProject, "default-project", "Default project of the profile")
 	updateCmd.Flags().Var(&updateOptions.OutputFormat, "output", "Output format (json, yaml, table).")
+	updateCmd.Flags().Var(&updateOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
 	updateCmd.MarkFlagsRequiredTogether("user", "password")
 	updateCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	updateCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
 	_ = updateCmd.RegisterFlagCompletionFunc("default-workspace", updateOptions.DefaultWorkspace.CompletionFunc())
 	_ = updateCmd.RegisterFlagCompletionFunc("default-project", updateOptions.DefaultProject.CompletionFunc())
 	_ = updateCmd.RegisterFlagCompletionFunc("output", updateOptions.OutputFormat.CompletionFunc())
+	_ = updateCmd.RegisterFlagCompletionFunc("error-processing", updateOptions.ErrorProcessing.CompletionFunc())
 }
 
 func updateProcess(cmd *cobra.Command, args []string) error {
@@ -71,6 +73,9 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Record("profile", profile).Debugf("Updating profile %s", profile.Name)
+	if !Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating profile %s", profile.Name) {
+		return nil
+	}
 	err := profile.Update(updateOptions.Profile)
 	if err != nil {
 		return err
@@ -105,5 +110,5 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	} else {
 		return err
 	}
-	return Current.Print(cmd.Context(), profile)
+	return Current.Print(cmd.Context(), cmd, profile)
 }

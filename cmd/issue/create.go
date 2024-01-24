@@ -89,6 +89,9 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Creating issue")
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating issue") {
+		return nil
+	}
 	var issue Issue
 
 	err = profile.Current.Post(
@@ -102,5 +105,5 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to create project: %s\n", err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), issue)
+	return profile.Current.Print(cmd.Context(), cmd, issue)
 }

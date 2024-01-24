@@ -67,5 +67,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No reviewer found")
 		return nil
 	}
-	return profile.Current.Print(cmd.Context(), Reviewers(reviewers))
+	return profile.Current.Print(cmd.Context(), cmd, Reviewers(reviewers))
 }

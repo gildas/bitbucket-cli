@@ -69,6 +69,9 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Merging pullrequest %s", args[0])
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Merging pullrequest %s", args[0]) {
+		return nil
+	}
 	err = profile.Current.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
@@ -80,5 +83,5 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to merge pullrequest %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), pullrequest)
+	return profile.Current.Print(cmd.Context(), cmd, pullrequest)
 }

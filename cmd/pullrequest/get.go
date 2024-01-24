@@ -62,5 +62,5 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 
-	return profile.Current.Print(cmd.Context(), pullrequest)
+	return profile.Current.Print(cmd.Context(), cmd, pullrequest)
 }

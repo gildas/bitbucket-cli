@@ -41,7 +41,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 			log.Infof("No workspace found")
 			return nil
 		}
-		return profile.Current.Print(cmd.Context(), Memberships(memberships))
+		return profile.Current.Print(cmd.Context(), cmd, Memberships(memberships))
 	}
 
 	log.Infof("Listing all workspaces")
@@ -58,5 +58,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No workspace found")
 		return nil
 	}
-	return profile.Current.Print(cmd.Context(), Workspaces(workspaces))
+	return profile.Current.Print(cmd.Context(), cmd, Workspaces(workspaces))
 }

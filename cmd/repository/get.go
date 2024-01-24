@@ -74,7 +74,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("No fork found")
 			return nil
 		}
-		return profile.Current.Print(cmd.Context(), Repositories(forks))
+		return profile.Current.Print(cmd.Context(), cmd, Repositories(forks))
 	}
 
 	log.Infof("Displaying repository %s", args[0])
@@ -90,5 +90,5 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to get repository %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), repository)
+	return profile.Current.Print(cmd.Context(), cmd, repository)
 }

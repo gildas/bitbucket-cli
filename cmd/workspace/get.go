@@ -54,7 +54,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("No member found")
 			return nil
 		}
-		return profile.Current.Print(cmd.Context(), Members(members))
+		return profile.Current.Print(cmd.Context(), cmd, Members(members))
 	}
 
 	if len(getOptions.Member) != 0 {
@@ -64,7 +64,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			fmt.Fprintf(os.Stderr, "Failed to get workspace member %s: %s\n", getOptions.Member, err)
 			os.Exit(1)
 		}
-		return profile.Current.Print(cmd.Context(), member)
+		return profile.Current.Print(cmd.Context(), cmd, member)
 	}
 
 	log.Infof("Displaying workspace %s", args[0])
@@ -73,7 +73,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to get workspace %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), workspace)
+	return profile.Current.Print(cmd.Context(), cmd, workspace)
 }
 
 func getWorkspaceMember(context context.Context, cmd *cobra.Command, profile *profile.Profile, workspace string, member string) (*Member, error) {

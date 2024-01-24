@@ -9,17 +9,18 @@ M = $(shell printf "\033[34;1m▶\033[0m")
 rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 
 # Folders
-BIN_DIR ?= $(CURDIR)/bin
-LOG_DIR ?= log
-TMP_DIR ?= tmp
-COV_DIR ?= tmp/coverage
+BIN_DIR  ?= $(CURDIR)/bin
+DEST_DIR ?= /usr/bin
+LOG_DIR  ?= log
+TMP_DIR  ?= tmp
+COV_DIR  ?= tmp/coverage
 
 # Version, branch, and project
 BRANCH    != git symbolic-ref --short HEAD
 COMMIT    != git rev-parse --short HEAD
 BUILD     := "$(STAMP).$(COMMIT)"
 VERSION   != awk '/^var +VERSION +=/{gsub("\"", "", $$4) ; print $$4}' version.go
-ifeq ($VERSION,)
+ifeq ($(VERSION),)
 VERSION   != git describe --tags --always --dirty="-dev"
 endif
 REVISION  ?= 1
@@ -74,17 +75,37 @@ TEST_ARG :=
 endif
 
 ifeq ($(OS), Windows_NT)
+  OSTYPE = windows
+  OSARCH = amd64
   include Makefile.windows
-else ifeq ($(OS_TYPE), linux-gnu)
-  include Makefile.linux
-else ifeq ($(findstring darwin, $(OS_TYPE)),)
-  include Makefile.linux
 else
-  $(error Unsupported Operating System)
+  OSTYPE != uname -s
+  OSARCH != uname -p
+  ifeq ($(OSTYPE), Linux)
+    OSTYPE = linux
+    ifeq ($(OSARCH), x86_64)
+      OSARCH = amd64
+    else ifeq ($(OSARCH), aarch64)
+      OSARCH = arm64
+    endif
+    include Makefile.linux
+  else ifeq ($(OSTYPE), Darwin)
+    OSTYPE = darwin
+    ifeq ($(OSARCH), x86_64)
+      OSARCH = amd64
+    else ifeq ($(OSARCH), aarch64)
+      OSARCH = arm64
+    endif
+    include Makefile.linux
+  else ifeq ($(OSTYPE),)
+    $(error Please use GNU Make 4 at least)
+  else
+    $(error Unsupported Operating System)
+  endif
 endif
 
 # Main Recipes
-.PHONY: all archive build dep fmt gendoc help lint logview publish run start stop test version vet watch
+.PHONY: all archive build dep fmt gendoc help install lint logview publish run start stop test version vet watch
 
 help: Makefile; ## Display this help
 	@echo
@@ -104,6 +125,10 @@ publish: __publish_init__ __publish_binaries__; @ ## Publish the binaries to the
 archive: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ ; @ ## Archive the binaries
 
 build: __build_init__ __build_all__; @ ## Build the application for all platforms
+
+install: $(BIN_DIR)/$(OSTYPE)-$(OSARCH)/$(PROJECT); @ ## Install the application
+	$(info $(M) Installing application for $(OSTYPE) on $(OSARCH) in $(DEST_DIR)...)
+	$Q install $(BIN_DIR)/$(OSTYPE)-$(OSARCH)/$(PROJECT) $(DEST_DIR)/$(PROJECT)
 
 dep:; $(info $(M) Updating Modules...) @ ## Updates the GO Modules
 	$Q $(GO) get -u ./...
@@ -198,7 +223,7 @@ __publish_binaries__: archive
 	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.rpm), go run . artifact upload $(archive) ;)
 
 # archive recipes
-.PHONY: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__
+.PHONY: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ __archive_snap__
 __archive_init__:;      $(info $(M) Archiving binaries for application $(PROJECT))
 __archive_all__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz \
@@ -219,6 +244,10 @@ __archive_debian__: \
 __archive_rpm__: \
 	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm \
 	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm \
+	;
+
+__archive_snap__: \
+	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap \
 	;
 
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz: $(BIN_DIR)/darwin-amd64/$(PROJECT)
@@ -248,6 +277,11 @@ $(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm: packaging/nfpm.yaml $(B
 	$Q PLATFORM=linux-amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
 $(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux-arm64/$(PROJECT)
 	$Q PLATFORM=linux-arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
+
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap: packaging/snap/snapcraft.yaml
+	$Q $(RM) $@
+	$Q (cd packaging && snapcraft)
+	$Q $(MOVE) packaging/$(@F) $(@D)
 
 # build recipes for various platforms
 .PHONY: __build_all__ __build_init__ __fetch_modules__

@@ -16,15 +16,25 @@ import (
 )
 
 type Comment struct {
-	ID        int                 `json:"id"               mapstructure:"id"`
-	Content   common.RenderedText `json:"content"          mapstructure:"content"`
-	User      user.Account        `json:"user"             mapstructure:"user"`
-	Anchor    *common.FileAnchor  `json:"inline,omitempty" mapstructure:"inline"`
-	Parent    *Comment            `json:"parent,omitempty" mapstructure:"parent"`
-	CreatedOn time.Time           `json:"created_on"       mapstructure:"created_on"`
-	UpdatedOn time.Time           `json:"updated_on"       mapstructure:"updated_on"`
-	IsDeleted bool                `json:"deleted"          mapstructure:"deleted"`
-	Links     common.Links        `json:"links"            mapstructure:"links"`
+	Type        string                `json:"type"             mapstructure:"type"`
+	ID          int                   `json:"id"               mapstructure:"id"`
+	Content     common.RenderedText   `json:"content"          mapstructure:"content"`
+	User        user.Account          `json:"user"             mapstructure:"user"`
+	Anchor      *common.FileAnchor    `json:"inline,omitempty" mapstructure:"inline"`
+	Parent      *Comment              `json:"parent,omitempty" mapstructure:"parent"`
+	CreatedOn   time.Time             `json:"created_on"       mapstructure:"created_on"`
+	UpdatedOn   time.Time             `json:"updated_on"       mapstructure:"updated_on"`
+	IsDeleted   bool                  `json:"deleted"          mapstructure:"deleted"`
+	IsPending   bool                  `json:"pending"          mapstructure:"pending"`
+	PullRequest *PullRequestReference `json:"pullrequest"      mapstructure:"pullrequest"`
+	Links       common.Links          `json:"links"            mapstructure:"links"`
+}
+
+type PullRequestReference struct {
+	Type  string       `json:"type"  mapstructure:"type"`
+	ID    int          `json:"id"    mapstructure:"id"`
+	Title string       `json:"title" mapstructure:"title"`
+	Links common.Links `json:"links" mapstructure:"links"`
 }
 
 // Command represents this folder's command
@@ -116,32 +126,32 @@ func (comment Comment) MarshalJSON() (data []byte, err error) {
 	return data, errors.JSONMarshalError.Wrap(err)
 }
 
-// GetIssueIDs gets the IDs of the issues
-func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string) (ids []string) {
-	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
+// GetPullRequestIDs gets the IDs of the pullrequests
+func GetPullRequestIDs(context context.Context, cmd *cobra.Command, args []string) (ids []string) {
+	log := logger.Must(logger.FromContext(context)).Child("pullrequest", "getids")
 
-	type Issue struct {
+	type PullRequest struct {
 		ID int `json:"id" mapstructure:"id"`
 	}
 
-	log.Infof("Getting all issues")
-	issues, err := profile.GetAll[Issue](context, cmd, profile.Current, "issues")
+	log.Infof("Getting all pullrequests")
+	pullrequests, err := profile.GetAll[PullRequest](context, cmd, profile.Current, "pullrequests")
 	if err != nil {
-		log.Errorf("Failed to get issues", err)
+		log.Errorf("Failed to get pullrequests", err)
 		return []string{}
 	}
-	return core.Map(issues, func(issue Issue) string {
-		return fmt.Sprintf("%d", issue.ID)
+	return core.Map(pullrequests, func(pullrequest PullRequest) string {
+		return fmt.Sprintf("%d", pullrequest.ID)
 	})
 }
 
-// GetIssueCommentIDs gets the IDs of the issues
-func GetIssueCommentIDs(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, issueID string) (ids []string) {
-	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
+// GetPullRequestCommentIDs gets the IDs of the comments for a pullrequest
+func GetPullRequestCommentIDs(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, PullRequestID string) (ids []string) {
+	log := logger.Must(logger.FromContext(context)).Child("pullrequest", "getids")
 
-	comments, err := profile.GetAll[Comment](context, cmd, currentProfile, fmt.Sprintf("issues/%s/comments", issueID))
+	comments, err := profile.GetAll[Comment](context, cmd, currentProfile, fmt.Sprintf("pullrequests/%s/comments", PullRequestID))
 	if err != nil {
-		log.Errorf("Failed to get issues", err)
+		log.Errorf("Failed to get pullrequests", err)
 		return []string{}
 	}
 	return core.Map(comments, func(comment Comment) string {

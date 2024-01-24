@@ -63,5 +63,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No repository found")
 		return nil
 	}
-	return profile.Current.Print(cmd.Context(), Repositories(repositories))
+	return profile.Current.Print(cmd.Context(), cmd, Repositories(repositories))
 }

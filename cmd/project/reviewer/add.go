@@ -56,7 +56,9 @@ func addProcess(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	log.Infof("Adding reviewer %s", args[0])
+	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Adding default reviewer %s to project %s", args[0], addOptions.Project) {
+		return nil
+	}
 	var user user.User
 
 	err := profile.Current.Put(
@@ -70,5 +72,5 @@ func addProcess(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to add reviewer: %s\n", err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), user)
+	return profile.Current.Print(cmd.Context(), cmd, user)
 }
