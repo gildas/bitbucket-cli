@@ -10,7 +10,7 @@ website: https://bitbucket.org/gildas_cherruel/bb
 source-code: https://bitbucket.org/gildas_cherruel/bb
 issues: https://bitbucket.org/gildas_cherruel/bb/issues
 license: MIT
-version: 0.8.0
+version: 0.9.0
 base: core22
 grade: stable
 confinement: strict
@@ -32,8 +32,7 @@ apps:
 
 parts:
   bb:
-    plugin: go
+    plugin:      go
     source-type: git
-    source: https://bitbucket.org/gildas_cherruel/bb
-    build-snaps:
-      - go
+    source:      https://bitbucket.org/gildas_cherruel/bb
+    build-snaps: [go]
