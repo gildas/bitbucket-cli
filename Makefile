@@ -223,7 +223,7 @@ __publish_binaries__: archive
 	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.rpm), go run . artifact upload $(archive) ;)
 
 # archive recipes
-.PHONY: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__
+.PHONY: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ __archive_snap__
 __archive_init__:;      $(info $(M) Archiving binaries for application $(PROJECT))
 __archive_all__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz \
@@ -244,6 +244,10 @@ __archive_debian__: \
 __archive_rpm__: \
 	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm \
 	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm \
+	;
+
+__archive_snap__: \
+	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap \
 	;
 
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz: $(BIN_DIR)/darwin-amd64/$(PROJECT)
@@ -273,6 +277,11 @@ $(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm: packaging/nfpm.yaml $(B
 	$Q PLATFORM=linux-amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
 $(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux-arm64/$(PROJECT)
 	$Q PLATFORM=linux-arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
+
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap: packaging/snap/snapcraft.yaml
+	$Q $(RM) $@
+	$Q (cd packaging && snapcraft)
+	$Q $(MOVE) packaging/$(@F) $(@D)
 
 # build recipes for various platforms
 .PHONY: __build_all__ __build_init__ __fetch_modules__
