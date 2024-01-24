@@ -3,12 +3,12 @@ module bitbucket.org/gildas_cherruel/bb
 go 1.21
 
 require (
-	github.com/gildas/go-core v0.5.6
+	github.com/gildas/go-core v0.5.7
 	github.com/gildas/go-errors v0.3.6
-	github.com/gildas/go-logger v1.6.10
-	github.com/gildas/go-request v0.7.19
+	github.com/gildas/go-logger v1.6.11
+	github.com/gildas/go-request v0.8.0
 	github.com/go-git/go-git/v5 v5.11.0
-	github.com/google/uuid v1.5.0
+	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kataras/tablewriter v0.0.0-20180708051242-e063d29b7c23
 	github.com/spf13/cobra v1.8.0
@@ -82,10 +82,10 @@ require (
 	golang.org/x/tools v0.17.0 // indirect
 	google.golang.org/api v0.157.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto v0.0.0-20240116215550-a9fa1716bcac // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240116215550-a9fa1716bcac // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240116215550-a9fa1716bcac // indirect
-	google.golang.org/grpc v1.60.1 // indirect
+	google.golang.org/genproto v0.0.0-20240123012728-ef4313101c80 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240123012728-ef4313101c80 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80 // indirect
+	google.golang.org/grpc v1.61.0 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
