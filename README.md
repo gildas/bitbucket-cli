@@ -164,6 +164,26 @@ You can also set the profile with the environment variable `BB_PROFILE`:
 export BB_PROFILE=myprofile
 ```
 
+The profile can also come from your current `.git/config` file. You can set the `bb.profile` variable in the `[bitbucket "cli"]` section of your `.git/config` file:
+
+```ini
+[bitbucket "cli"]
+  profile = myprofile
+```
+
+```bash
+git config --local bitbucket.cli.profile myprofile
+```
+
+The current profile comes in order from:
+
+- the `--profile` flag
+- the `BB_PROFILE` environment variable
+- the `profile` variable in the `[bitbucket "cli"]` section of your `.git/config` file,  
+  if the profile does not exist, the command will print a warning and use the default profile
+- the profile marked `default` in the configuration file
+- the first profile in the configuration file
+
 Profiles are stored in the configuration file. By default, the configuration file is located:
 
 - on Linux: `$XDG_CONFIG_HOME/bitbucket/config-cli.json`, or `~/.config/bitbucket/config-cli.json`, then `~/.bitbucket-cli`
