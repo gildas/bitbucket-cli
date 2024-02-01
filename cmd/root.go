@@ -152,7 +152,7 @@ func initConfig() {
 				os.Exit(1)
 			}
 		} else {
-			profile.Current = profile.Profiles.Current()
+			profile.Current = profile.Profiles.Current(RootCmd.Context())
 		}
 		log.Record("profile", profile.Current).Infof("Current Profile: %s", profile.Current)
 	}

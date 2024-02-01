@@ -3,13 +3,9 @@ package remote
 import (
 	"context"
 	"io"
-	"os"
-	"path/filepath"
 	"strings"
 
-	"github.com/gildas/go-errors"
-	"github.com/gildas/go-logger"
-	"gopkg.in/ini.v1"
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 )
 
 type Remote struct {
@@ -17,29 +13,8 @@ type Remote struct {
 	Fetch string
 }
 
-func OpenGitConfig(context context.Context) (io.ReadCloser, error) {
-	log := logger.Must(logger.FromContext(context)).Child("remote", "opengitconfig")
-	folder := "."
-
-	for {
-		filename := filepath.Join(folder, ".git/config")
-		log.Debugf("opening %s", filename)
-		file, err := os.Open(filename)
-		if err == nil {
-			return file, nil
-		}
-		if !errors.Is(err, os.ErrNotExist) {
-			return nil, errors.RuntimeError.Wrap(err)
-		}
-		if folder == "/" {
-			return nil, errors.New("not a git repository")
-		}
-		folder += "/.."
-	}
-}
-
 func GetFromGitConfig(context context.Context, name string) (remote *Remote, err error) {
-	file, err := OpenGitConfig(context)
+	file, err := common.OpenGitConfig(context)
 	if err != nil {
 		return nil, err
 	}
@@ -48,15 +23,10 @@ func GetFromGitConfig(context context.Context, name string) (remote *Remote, err
 }
 
 func Get(context context.Context, reader io.Reader, name string) (remote *Remote, err error) {
-	payload, err := io.ReadAll(reader)
+	section, err := common.GetGitSection(context, reader, "remote \""+name+"\"")
 	if err != nil {
 		return nil, err
 	}
-	data, err := ini.Load(payload)
-	if err != nil {
-		return nil, err
-	}
-	section := data.Section("remote \"" + name + "\"")
 	return &Remote{
 		URL:   section.Key("url").String(),
 		Fetch: section.Key("fetch").String(),
