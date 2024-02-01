@@ -2,6 +2,7 @@ package issue
 
 import (
 	"fmt"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -19,15 +20,15 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Repository string
-	State      common.EnumFlag
+	States     common.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.State = common.EnumFlag{Allowed: []string{"all", "closed", "duplicate", "invalid", "on hold", "new", "open", "resolved", "submitted", "wontfix"}, Value: "all"}
+	listOptions.States = common.EnumSliceFlag{Allowed: []string{"closed", "duplicate", "invalid", "on hold", "new", "open", "resolved", "submitted", "wontfix"}, AllAllowed: true, Default: []string{"new", "open"}}
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issues from. Defaults to the current repository")
-	listCmd.Flags().Var(&listOptions.State, "state", "State of the issues to list")
+	listCmd.Flags().Var(&listOptions.States, "state", "State of the issues to list. Can be repeated. One of: all, closed, duplicate, invalid, on hold, new, open, resolved, submitted, wontfix. Default: open, new")
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -38,8 +39,16 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	filter := ""
-	if listOptions.State.Value != "all" {
-		filter = fmt.Sprintf(`?q=state="%s"`, listOptions.State.Value)
+	if !listOptions.States.Contains("all") {
+		if states := listOptions.States.Get(); len(states) > 0 {
+			filter = "?q="
+			for index, state := range states {
+				if index > 0 {
+					filter += "+OR+"
+				}
+				filter += fmt.Sprintf(`state="%s"`, strings.ReplaceAll(state, " ", "+"))
+			}
+		}
 	}
 
 	log.Infof("Listing all issues from repository %s with profile %s", listOptions.Repository, profile.Current)

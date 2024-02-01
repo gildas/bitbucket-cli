@@ -484,6 +484,18 @@ You can list issues with the `bb issue list` command:
 bb issue list
 ```
 
+By default, all open and new issues are listed. You can use the `--state` flag to filter the issues by state:
+
+```bash
+bb issue list --state open
+```
+
+The flag `--state` can be used multiple times to filter by multiple states:
+
+```bash
+bb issue list --state open --state new --state resolved,wontfix
+```
+
 You can create an issue with the `bb issue create` command:
 
 ```bash
