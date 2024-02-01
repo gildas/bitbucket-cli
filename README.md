@@ -138,6 +138,12 @@ You can ge the details of the current profile:
 bb profile get --current
 ```
 
+Or:
+
+```bash
+bb profile which
+```
+
 You can update a profile with the `bb profile update` command:
 
 ```bash
