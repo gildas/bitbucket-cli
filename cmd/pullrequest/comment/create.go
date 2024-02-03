@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +30,7 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
-	PullRequestID common.RemoteValueFlag
+	PullRequestID *flags.EnumFlag
 	Repository    string
 	Comment       string
 	File          string
@@ -40,9 +41,9 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.PullRequestID = common.RemoteValueFlag{AllowedFunc: GetPullRequestIDs}
+	createOptions.PullRequestID = flags.NewEnumFlagWithFunc("", GetPullRequestIDs)
 	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create a pullrequest comment into. Defaults to the current repository")
-	createCmd.Flags().Var(&createOptions.PullRequestID, "pullrequest", "Pullrequest to create comments to")
+	createCmd.Flags().Var(createOptions.PullRequestID, "pullrequest", "Pullrequest to create comments to")
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.File, "file", "", "File to comment on")
 	createCmd.Flags().IntVar(&createOptions.From, "line", 0, "From line to comment on. Cannot be used with --to")
@@ -52,7 +53,7 @@ func init() {
 	createCmd.MarkFlagsMutuallyExclusive("line", "to")
 	_ = createCmd.MarkFlagRequired("pullrequest")
 	_ = createCmd.MarkFlagRequired("comment")
-	_ = createCmd.RegisterFlagCompletionFunc("pullrequest", createOptions.PullRequestID.CompletionFunc())
+	_ = createCmd.RegisterFlagCompletionFunc("pullrequest", createOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {

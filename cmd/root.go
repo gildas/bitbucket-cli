@@ -11,7 +11,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/artifact"
 	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/component"
 	"bitbucket.org/gildas_cherruel/bb/cmd/issue"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -21,6 +20,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -29,13 +29,13 @@ import (
 
 // RootOptions describes the options for the application
 type RootOptions struct {
-	ConfigFile     string          `mapstructure:"-"`
-	LogDestination string          `mapstructure:"-"`
-	ProfileName    string          `mapstructure:"-"`
-	OutputFormat   common.EnumFlag `mapstructure:"-"`
-	DryRun         bool            `mapstructure:"-"`
-	Verbose        bool            `mapstructure:"-"`
-	Debug          bool            `mapstructure:"-"`
+	ConfigFile     string         `mapstructure:"-"`
+	LogDestination string         `mapstructure:"-"`
+	ProfileName    string         `mapstructure:"-"`
+	OutputFormat   flags.EnumFlag `mapstructure:"-"`
+	DryRun         bool           `mapstructure:"-"`
+	Verbose        bool           `mapstructure:"-"`
+	Debug          bool           `mapstructure:"-"`
 }
 
 // CmdOptions contains the options for the application
@@ -59,7 +59,7 @@ func init() {
 	cobra.CheckErr(err)
 
 	// Global flags
-	CmdOptions.OutputFormat = common.EnumFlag{Allowed: []string{"csv", "json", "yaml", "table", "tsv"}, Value: core.GetEnvAsString("BB_OUTPUT_FORMAT", "")}
+	CmdOptions.OutputFormat = flags.EnumFlag{Allowed: []string{"csv", "json", "yaml", "table", "tsv"}, Value: core.GetEnvAsString("BB_OUTPUT_FORMAT", "")}
 	RootCmd.PersistentFlags().StringVar(&CmdOptions.ConfigFile, "config", core.GetEnvAsString("BB_CONFIG", ""), "config file (default is .env, "+filepath.Join(configDir, "bitbucket", "config-cli.yml"))
 	RootCmd.PersistentFlags().StringVarP(&CmdOptions.ProfileName, "profile", "p", core.GetEnvAsString("BB_PROFILE", ""), "Profile to use. Overrides the default profile")
 	RootCmd.PersistentFlags().StringVarP(&CmdOptions.LogDestination, "log", "l", "", "Log destination (stdout, stderr, file, none), overrides LOG_DESTINATION environment variable")
@@ -70,7 +70,7 @@ func init() {
 	_ = RootCmd.MarkFlagFilename("config")
 	_ = RootCmd.MarkFlagFilename("log")
 	_ = RootCmd.RegisterFlagCompletionFunc("profile", profile.ValidProfileNames)
-	_ = RootCmd.RegisterFlagCompletionFunc("output", CmdOptions.OutputFormat.CompletionFunc())
+	_ = RootCmd.RegisterFlagCompletionFunc("output", CmdOptions.OutputFormat.CompletionFunc("output"))
 	RootCmd.PersistentFlags().SetNormalizeFunc(func(f *pflag.FlagSet, name string) pflag.NormalizedName {
 		switch name {
 		case "noop", "dryrun", "whatif", "what-if":
@@ -152,7 +152,7 @@ func initConfig() {
 				os.Exit(1)
 			}
 		} else {
-			profile.Current = profile.Profiles.Current()
+			profile.Current = profile.Profiles.Current(RootCmd.Context())
 		}
 		log.Record("profile", profile.Current).Infof("Current Profile: %s", profile.Current)
 	}

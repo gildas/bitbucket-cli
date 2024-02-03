@@ -1,8 +1,12 @@
 package profile
 
 import (
+	"context"
 	"fmt"
+	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -14,7 +18,26 @@ type profiles []*Profile
 var Profiles profiles
 
 // Current gets the current profile
-func (profiles profiles) Current() *Profile {
+func (profiles profiles) Current(context context.Context) *Profile {
+	log := logger.Must(logger.FromContext(context)).Child("profile", "current")
+
+	if gitConfig, err := common.OpenGitConfig(context); err == nil {
+		log.Debugf("Found a git config file")
+		if section, err := common.GetGitSection(context, gitConfig, `bitbucket "cli"`); err == nil {
+			log.Debugf("Found a bitbucket \"cli\" section in git config: %v", section)
+			if profileName := section.Key("profile").String(); len(profileName) > 0 {
+				log.Debugf("Found a profile in git config: %s", profileName)
+				if profile, found := profiles.Find(profileName); found {
+					log.Infof("Using profile %s from git config", profileName)
+					return profile
+				} else {
+					log.Warnf("Profile %s not found in %s", profileName, viper.ConfigFileUsed())
+					fmt.Fprintf(os.Stderr, "Profile %s from your git config was not found in %s, ignored.\n", profileName, viper.ConfigFileUsed())
+				}
+			}
+		}
+	}
+
 	for _, profile := range profiles {
 		if profile.Default {
 			return profile

@@ -3,9 +3,9 @@ package pullrequest
 import (
 	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -19,16 +19,16 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Repository string
-	State      common.EnumFlag
+	State      *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.State = common.EnumFlag{Allowed: []string{"all", "declined", "merged", "open", "superseded"}, Value: "open"}
+	listOptions.State = flags.NewEnumFlag("all", "declined", "merged", "+open", "superseded")
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequests from. Defaults to the current repository")
-	listCmd.Flags().Var(&listOptions.State, "state", "Pull request state to fetch. Defaults to \"all\"")
-	_ = listCmd.RegisterFlagCompletionFunc("state", listOptions.State.CompletionFunc())
+	listCmd.Flags().Var(listOptions.State, "state", "Pull request state to fetch. Defaults to \"open\"")
+	_ = listCmd.RegisterFlagCompletionFunc("state", listOptions.State.CompletionFunc("state"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

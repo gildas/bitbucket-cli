@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -32,8 +33,8 @@ var createCmd = &cobra.Command{
 var createOptions struct {
 	Repository  string
 	Title       string
-	Kind        common.EnumFlag
-	Priority    common.EnumFlag
+	Kind        *flags.EnumFlag
+	Priority    *flags.EnumFlag
 	Description string
 	Assignee    string
 }
@@ -41,19 +42,19 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.Kind = common.EnumFlag{Allowed: []string{"bug", "enhancement", "proposal", "task"}, Value: "bug"}
-	createOptions.Priority = common.EnumFlag{Allowed: []string{"trivial", "minor", "major", "critical", "blocker"}, Value: "major"}
+	createOptions.Kind = flags.NewEnumFlag("+bug", "enhancement", "proposal", "task")
+	createOptions.Priority = flags.NewEnumFlag("+major", "trivial", "minor", "major", "critical", "blocker")
 	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create an issue into. Defaults to the current repository")
 	createCmd.Flags().StringVar(&createOptions.Title, "title", "", "Title of the issue")
-	createCmd.Flags().Var(&createOptions.Kind, "kind", "Kind of the issue")
-	createCmd.Flags().Var(&createOptions.Priority, "priority", "Priority of the issue")
+	createCmd.Flags().Var(createOptions.Kind, "kind", "Kind of the issue")
+	createCmd.Flags().Var(createOptions.Priority, "priority", "Priority of the issue")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the issue")
 	createCmd.Flags().StringVar(&createOptions.Assignee, "assignee", "", "Assignee of the issue. (Optional, \"myself\" or userid)")
 	_ = createCmd.MarkFlagRequired("title")
 	_ = createCmd.MarkFlagRequired("kind")
 	_ = createCmd.MarkFlagRequired("priority")
-	_ = createCmd.RegisterFlagCompletionFunc("kind", createOptions.Kind.CompletionFunc())
-	_ = createCmd.RegisterFlagCompletionFunc("priority", createOptions.Priority.CompletionFunc())
+	_ = createCmd.RegisterFlagCompletionFunc("kind", createOptions.Kind.CompletionFunc("kind"))
+	_ = createCmd.RegisterFlagCompletionFunc("priority", createOptions.Priority.CompletionFunc("priority"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {

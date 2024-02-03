@@ -11,6 +11,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +34,7 @@ var updateCmd = &cobra.Command{
 }
 
 var updateOptions struct {
-	Workspace   common.RemoteValueFlag
+	Workspace   *flags.EnumFlag
 	Name        string
 	Key         string
 	Description string
@@ -45,8 +46,8 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	updateCmd.Flags().Var(&updateOptions.Workspace, "workspace", "Workspace to update projects from")
+	updateOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	updateCmd.Flags().Var(updateOptions.Workspace, "workspace", "Workspace to update projects from")
 	updateCmd.Flags().StringVar(&updateOptions.Name, "name", "", "Name of the project")
 	updateCmd.Flags().StringVar(&updateOptions.Key, "key", "", "Key of the project")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the project")
@@ -54,7 +55,7 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.AvatarPath, "avatar-file", "", "Avatar of the project")
 	updateCmd.Flags().BoolVar(&updateOptions.IsPrivate, "is-private", false, "Is the project private")
 	updateCmd.MarkFlagsMutuallyExclusive("avatar-url", "avatar-file")
-	_ = updateCmd.RegisterFlagCompletionFunc("workspace", updateOptions.Workspace.CompletionFunc())
+	_ = updateCmd.RegisterFlagCompletionFunc("workspace", updateOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -21,7 +21,7 @@ var downloadCmd = &cobra.Command{
 }
 
 var downloadOptions struct {
-	IssueID     common.RemoteValueFlag
+	IssueID     *flags.EnumFlag
 	Repository  string
 	Destination string
 }
@@ -29,12 +29,12 @@ var downloadOptions struct {
 func init() {
 	Command.AddCommand(downloadCmd)
 
-	downloadOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
+	downloadOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
 	downloadCmd.Flags().StringVar(&downloadOptions.Repository, "repository", "", "Repository to get an issue attachment from. Defaults to the current repository")
-	downloadCmd.Flags().Var(&downloadOptions.IssueID, "issue", "Issue to get attachments from")
+	downloadCmd.Flags().Var(downloadOptions.IssueID, "issue", "Issue to get attachments from")
 	downloadCmd.Flags().StringVar(&downloadOptions.Destination, "destination", "", "Destination folder to download the attachment to. Defaults to the current folder")
 	_ = downloadCmd.MarkFlagRequired("issue")
-	_ = downloadCmd.RegisterFlagCompletionFunc("issue", downloadOptions.IssueID.CompletionFunc())
+	_ = downloadCmd.RegisterFlagCompletionFunc("issue", downloadOptions.IssueID.CompletionFunc("issue"))
 	_ = downloadCmd.MarkFlagDirname("destination")
 }
 

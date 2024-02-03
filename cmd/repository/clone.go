@@ -5,10 +5,10 @@ import (
 	"os"
 	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
@@ -23,7 +23,7 @@ var cloneCmd = &cobra.Command{
 }
 
 var cloneOptions struct {
-	Workspace   common.RemoteValueFlag
+	Workspace   *flags.EnumFlag
 	Destination string
 	Bare        bool
 }
@@ -31,12 +31,12 @@ var cloneOptions struct {
 func init() {
 	Command.AddCommand(cloneCmd)
 
-	cloneOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	cloneCmd.Flags().Var(&cloneOptions.Workspace, "workspace", "Workspace to clone repositories from. If omitted, it will be extracted from the repository name")
+	cloneOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	cloneCmd.Flags().Var(cloneOptions.Workspace, "workspace", "Workspace to clone repositories from. If omitted, it will be extracted from the repository name")
 	cloneCmd.Flags().StringVar(&cloneOptions.Destination, "destination", ".", "Destination folder. Default is the repository name")
 	cloneCmd.Flags().BoolVar(&cloneOptions.Bare, "bare", false, "Clone as a bare repository")
 	_ = cloneCmd.MarkFlagDirname("destination")
-	_ = cloneCmd.RegisterFlagCompletionFunc("workspace", cloneOptions.Workspace.CompletionFunc())
+	_ = cloneCmd.RegisterFlagCompletionFunc("workspace", cloneOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func cloneValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

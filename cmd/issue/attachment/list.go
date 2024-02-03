@@ -3,9 +3,9 @@ package attachment
 import (
 	"fmt"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -19,17 +19,17 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Repository string
-	IssueID    common.RemoteValueFlag
+	IssueID    *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
+	listOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issue attachments from. Defaults to the current repository")
-	listCmd.Flags().Var(&listOptions.IssueID, "issue", "Issue to list attachments from")
+	listCmd.Flags().Var(listOptions.IssueID, "issue", "Issue to list attachments from")
 	_ = listCmd.MarkFlagRequired("issue")
-	_ = listCmd.RegisterFlagCompletionFunc("issue", listOptions.IssueID.CompletionFunc())
+	_ = listCmd.RegisterFlagCompletionFunc("issue", listOptions.IssueID.CompletionFunc("issue"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

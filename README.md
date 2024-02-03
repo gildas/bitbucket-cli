@@ -41,12 +41,6 @@ You can get `bb` from [Chocolatey](https://chocolatey.org) with:
 choco install bitbucket-cli
 ```
 
-**Note:** The Chocolatey package is currently under review with [chocolatey.org](https://chocolatey.org/packages/bitbucket-cli). You can still install it manually. Download the nupkg file from the [Downloads page](https://bitbucket.org/gildas_cherruel/bb/downloads) and install it with:
-
-  ```pwsh
-  choco install bitbucket --source ~\Downloads\bitbucket-cli.0.8.0.nupkg
-  ```
-
 ### Binaries
 
 You can download the latest version of `bb` from the [downloads](https://bitbucket.org/gildas_cherruel/bb/downloads/) page.
@@ -144,6 +138,12 @@ You can ge the details of the current profile:
 bb profile get --current
 ```
 
+Or:
+
+```bash
+bb profile which
+```
+
 You can update a profile with the `bb profile update` command:
 
 ```bash
@@ -169,6 +169,26 @@ You can also set the profile with the environment variable `BB_PROFILE`:
 ```bash
 export BB_PROFILE=myprofile
 ```
+
+The profile can also come from your current `.git/config` file. You can set the `bb.profile` variable in the `[bitbucket "cli"]` section of your `.git/config` file:
+
+```ini
+[bitbucket "cli"]
+  profile = myprofile
+```
+
+```bash
+git config --local bitbucket.cli.profile myprofile
+```
+
+The current profile comes in order from:
+
+- the `--profile` flag
+- the `BB_PROFILE` environment variable
+- the `profile` variable in the `[bitbucket "cli"]` section of your `.git/config` file,  
+  if the profile does not exist, the command will print a warning and use the default profile
+- the profile marked `default` in the configuration file
+- the first profile in the configuration file
 
 Profiles are stored in the configuration file. By default, the configuration file is located:
 
@@ -462,6 +482,18 @@ You can list issues with the `bb issue list` command:
 
 ```bash
 bb issue list
+```
+
+By default, all open and new issues are listed. You can use the `--state` flag to filter the issues by state:
+
+```bash
+bb issue list --state open
+```
+
+The flag `--state` can be used multiple times to filter by multiple states:
+
+```bash
+bb issue list --state open --state new --state resolved,wontfix
 ```
 
 You can create an issue with the `bb issue create` command:

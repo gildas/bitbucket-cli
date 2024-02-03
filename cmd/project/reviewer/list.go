@@ -3,10 +3,10 @@ package reviewer
 import (
 	"fmt"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -19,19 +19,19 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Workspace common.RemoteValueFlag
-	Project   common.RemoteValueFlag
+	Workspace *flags.EnumFlag
+	Project   *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	listOptions.Project = common.RemoteValueFlag{AllowedFunc: GetProjectKeys}
-	listCmd.Flags().Var(&listOptions.Workspace, "workspace", "Workspace to list reviewers from")
-	listCmd.Flags().Var(&listOptions.Project, "project", "Project Key to list reviewers from")
-	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc())
-	_ = getCmd.RegisterFlagCompletionFunc("project", listOptions.Project.CompletionFunc())
+	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	listOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
+	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list reviewers from")
+	listCmd.Flags().Var(listOptions.Project, "project", "Project Key to list reviewers from")
+	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc("workspace"))
+	_ = getCmd.RegisterFlagCompletionFunc("project", listOptions.Project.CompletionFunc("project"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

@@ -2,10 +2,11 @@ package issue
 
 import (
 	"fmt"
+	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -19,15 +20,16 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Repository string
-	State      common.EnumFlag
+	States     *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.State = common.EnumFlag{Allowed: []string{"all", "closed", "duplicate", "invalid", "on hold", "new", "open", "resolved", "submitted", "wontfix"}, Value: "all"}
+	listOptions.States = flags.NewEnumSliceFlagWithAllAllowed("closed", "duplicate", "invalid", "on hold", "+new", "+open", "resolved", "submitted", "wontfix")
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issues from. Defaults to the current repository")
-	listCmd.Flags().Var(&listOptions.State, "state", "State of the issues to list")
+	listCmd.Flags().Var(listOptions.States, "state", "State of the issues to list. Can be repeated. One of: all, closed, duplicate, invalid, on hold, new, open, resolved, submitted, wontfix. Default: open, new")
+	_ = listCmd.RegisterFlagCompletionFunc("state", listOptions.States.CompletionFunc("state"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -38,8 +40,16 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	filter := ""
-	if listOptions.State.Value != "all" {
-		filter = fmt.Sprintf(`?q=state="%s"`, listOptions.State.Value)
+	if !listOptions.States.Contains("all") {
+		if states := listOptions.States.Get(); len(states) > 0 {
+			filter = "?q="
+			for index, state := range states {
+				if index > 0 {
+					filter += "+OR+"
+				}
+				filter += fmt.Sprintf(`state="%s"`, strings.ReplaceAll(state, " ", "+"))
+			}
+		}
 	}
 
 	log.Infof("Listing all issues from repository %s with profile %s", listOptions.Repository, profile.Current)

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -31,35 +31,35 @@ var updateCmd = &cobra.Command{
 }
 
 var updateOptions struct {
-	Workspace   common.RemoteValueFlag
-	Project     common.RemoteValueFlag
+	Workspace   *flags.EnumFlag
+	Project     *flags.EnumFlag
 	Name        string
 	Description string
 	Public      bool
 	Private     bool
 	Language    string
 	MainBranch  string
-	ForkPolicy  common.EnumFlag
+	ForkPolicy  *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	updateOptions.Project = common.RemoteValueFlag{AllowedFunc: project.GetProjectKeys}
-	updateOptions.ForkPolicy = common.EnumFlag{Allowed: []string{"allow_forks", "no_public_forks", "no_forks"}, Value: "no_public_forks"}
-	updateCmd.Flags().Var(&updateOptions.Workspace, "workspace", "Workspace to update repositories from")
-	updateCmd.Flags().Var(&updateOptions.Project, "project", "Project to update repositories from")
+	updateOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	updateOptions.Project = flags.NewEnumFlagWithFunc("", project.GetProjectKeys)
+	updateOptions.ForkPolicy = flags.NewEnumFlag("allow_forks", "+no_public_forks", "no_forks")
+	updateCmd.Flags().Var(updateOptions.Workspace, "workspace", "Workspace to update repositories from")
+	updateCmd.Flags().Var(updateOptions.Project, "project", "Project to update repositories from")
 	updateCmd.Flags().StringVar(&updateOptions.Name, "name", "", "Name of the repository")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the repository")
 	updateCmd.Flags().BoolVar(&updateOptions.Private, "private", false, "make the repository private")
 	updateCmd.Flags().BoolVar(&updateOptions.Public, "public", false, "make the repository public")
 	updateCmd.Flags().StringVar(&updateOptions.Language, "language", "", "Language of the repository")
 	updateCmd.Flags().StringVar(&updateOptions.MainBranch, "main-branch", "", "Main branch of the repository")
-	updateCmd.Flags().Var(&updateOptions.ForkPolicy, "fork-policy", "Fork policy of the repository. Default: no_public_forks")
+	updateCmd.Flags().Var(updateOptions.ForkPolicy, "fork-policy", "Fork policy of the repository. Default: no_public_forks")
 	updateCmd.MarkFlagsMutuallyExclusive("private", "public")
-	_ = updateCmd.RegisterFlagCompletionFunc("workspace", updateOptions.Workspace.CompletionFunc())
-	_ = updateCmd.RegisterFlagCompletionFunc("project", updateOptions.Project.CompletionFunc())
+	_ = updateCmd.RegisterFlagCompletionFunc("workspace", updateOptions.Workspace.CompletionFunc("workspace"))
+	_ = updateCmd.RegisterFlagCompletionFunc("project", updateOptions.Project.CompletionFunc("project"))
 }
 
 func updateProcess(cmd *cobra.Command, args []string) (err error) {

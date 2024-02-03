@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -21,18 +21,18 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	PullRequestID common.RemoteValueFlag
+	PullRequestID *flags.EnumFlag
 	Repository    string
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
-	listOptions.PullRequestID = common.RemoteValueFlag{AllowedFunc: GetPullRequestIDs}
+	getOptions.PullRequestID = flags.NewEnumFlagWithFunc("", GetPullRequestIDs)
 	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get a pullrequest comment from. Defaults to the current repository")
-	getCmd.Flags().Var(&getOptions.PullRequestID, "pullrequest", "Pullrequest to get comments from")
+	getCmd.Flags().Var(getOptions.PullRequestID, "pullrequest", "Pullrequest to get comments from")
 	_ = getCmd.MarkFlagRequired("pullrequest")
-	_ = getCmd.RegisterFlagCompletionFunc("pullrequest", getOptions.PullRequestID.CompletionFunc())
+	_ = getCmd.RegisterFlagCompletionFunc("pullrequest", getOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

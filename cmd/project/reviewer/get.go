@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -23,19 +23,19 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Workspace common.RemoteValueFlag
-	Project   common.RemoteValueFlag
+	Workspace *flags.EnumFlag
+	Project   *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	getOptions.Project = common.RemoteValueFlag{AllowedFunc: GetProjectKeys}
-	getCmd.Flags().Var(&getOptions.Workspace, "workspace", "Workspace to get reviewers from")
-	getCmd.Flags().Var(&getOptions.Project, "project", "Project Key to get reviewers from")
-	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc())
-	_ = getCmd.RegisterFlagCompletionFunc("project", getOptions.Project.CompletionFunc())
+	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	getOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
+	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get reviewers from")
+	getCmd.Flags().Var(getOptions.Project, "project", "Project Key to get reviewers from")
+	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc("workspace"))
+	_ = getCmd.RegisterFlagCompletionFunc("project", getOptions.Project.CompletionFunc("project"))
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
