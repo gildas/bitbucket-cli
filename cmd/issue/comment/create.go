@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -24,7 +25,7 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
-	IssueID    common.RemoteValueFlag
+	IssueID    *flags.EnumFlag
 	Repository string
 	Comment    string
 }
@@ -32,13 +33,13 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
+	createOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
 	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create an issue comment into. Defaults to the current repository")
-	createCmd.Flags().Var(&createOptions.IssueID, "issue", "Issue to create comments to")
+	createCmd.Flags().Var(createOptions.IssueID, "issue", "Issue to create comments to")
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the issue")
 	_ = createCmd.MarkFlagRequired("issue")
 	_ = createCmd.MarkFlagRequired("comment")
-	_ = createCmd.RegisterFlagCompletionFunc("issue", createOptions.IssueID.CompletionFunc())
+	_ = createCmd.RegisterFlagCompletionFunc("issue", createOptions.IssueID.CompletionFunc("issue"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {

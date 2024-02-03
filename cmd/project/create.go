@@ -11,6 +11,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -32,7 +33,7 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
-	Workspace   common.RemoteValueFlag
+	Workspace   *flags.EnumFlag
 	Name        string
 	Key         string
 	Description string
@@ -44,8 +45,8 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	createCmd.Flags().Var(&createOptions.Workspace, "workspace", "Workspace to create projects from")
+	createOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	createCmd.Flags().Var(createOptions.Workspace, "workspace", "Workspace to create projects from")
 	createCmd.Flags().StringVar(&createOptions.Name, "name", "", "Name of the project")
 	createCmd.Flags().StringVar(&createOptions.Key, "key", "", "Key of the project")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the project")
@@ -56,7 +57,7 @@ func init() {
 	_ = createCmd.MarkFlagRequired("key")
 	_ = createCmd.MarkFlagFilename("avatar-file")
 	createCmd.MarkFlagsMutuallyExclusive("avatar-url", "avatar-file")
-	_ = createCmd.RegisterFlagCompletionFunc("workspace", createOptions.Workspace.CompletionFunc())
+	_ = createCmd.RegisterFlagCompletionFunc("workspace", createOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {

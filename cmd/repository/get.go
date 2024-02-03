@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -22,17 +22,17 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Workspace common.RemoteValueFlag
+	Workspace *flags.EnumFlag
 	ShowForks bool
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	getCmd.Flags().Var(&getOptions.Workspace, "workspace", "Workspace to get repositories from")
+	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get repositories from")
 	getCmd.Flags().BoolVar(&getOptions.ShowForks, "forks", false, "Show the forks of the repository")
-	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc())
+	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

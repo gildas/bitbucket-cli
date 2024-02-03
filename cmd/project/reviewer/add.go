@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -22,19 +22,19 @@ var addCmd = &cobra.Command{
 }
 
 var addOptions struct {
-	Workspace common.RemoteValueFlag
-	Project   common.RemoteValueFlag
+	Workspace *flags.EnumFlag
+	Project   *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(addCmd)
 
-	addOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	addOptions.Project = common.RemoteValueFlag{AllowedFunc: GetProjectKeys}
-	addCmd.Flags().Var(&addOptions.Workspace, "workspace", "Workspace to add reviewers to")
-	addCmd.Flags().Var(&addOptions.Project, "project", "Project Key to add reviewers to")
-	_ = addCmd.RegisterFlagCompletionFunc("workspace", addOptions.Workspace.CompletionFunc())
-	_ = getCmd.RegisterFlagCompletionFunc("project", addOptions.Project.CompletionFunc())
+	addOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	addOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
+	addCmd.Flags().Var(addOptions.Workspace, "workspace", "Workspace to add reviewers to")
+	addCmd.Flags().Var(addOptions.Project, "project", "Project Key to add reviewers to")
+	_ = addCmd.RegisterFlagCompletionFunc("workspace", addOptions.Workspace.CompletionFunc("workspace"))
+	_ = getCmd.RegisterFlagCompletionFunc("project", addOptions.Project.CompletionFunc("project"))
 }
 
 func addProcess(cmd *cobra.Command, args []string) error {

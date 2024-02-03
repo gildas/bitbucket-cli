@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -20,15 +20,16 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Repository string
-	States     common.EnumSliceFlag
+	States     *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.States = common.EnumSliceFlag{Allowed: []string{"closed", "duplicate", "invalid", "on hold", "new", "open", "resolved", "submitted", "wontfix"}, AllAllowed: true, Default: []string{"new", "open"}}
+	listOptions.States = flags.NewEnumSliceFlagWithAllAllowed("closed", "duplicate", "invalid", "on hold", "+new", "+open", "resolved", "submitted", "wontfix")
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issues from. Defaults to the current repository")
-	listCmd.Flags().Var(&listOptions.States, "state", "State of the issues to list. Can be repeated. One of: all, closed, duplicate, invalid, on hold, new, open, resolved, submitted, wontfix. Default: open, new")
+	listCmd.Flags().Var(listOptions.States, "state", "State of the issues to list. Can be repeated. One of: all, closed, duplicate, invalid, on hold, new, open, resolved, submitted, wontfix. Default: open, new")
+	_ = listCmd.RegisterFlagCompletionFunc("state", listOptions.States.CompletionFunc("state"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

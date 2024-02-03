@@ -3,10 +3,10 @@ package comment
 import (
 	"fmt"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -20,17 +20,17 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Repository    string
-	PullRequestID common.RemoteValueFlag
+	PullRequestID *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.PullRequestID = common.RemoteValueFlag{AllowedFunc: GetPullRequestIDs}
+	listOptions.PullRequestID = flags.NewEnumFlagWithFunc("", GetPullRequestIDs)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequest comments from. Defaults to the current repository")
-	listCmd.Flags().Var(&listOptions.PullRequestID, "pullrequest", "pullrequest to list comments from")
+	listCmd.Flags().Var(listOptions.PullRequestID, "pullrequest", "pullrequest to list comments from")
 	_ = listCmd.MarkFlagRequired("pullrequest")
-	_ = listCmd.RegisterFlagCompletionFunc("pullrequest", listOptions.PullRequestID.CompletionFunc())
+	_ = listCmd.RegisterFlagCompletionFunc("pullrequest", listOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

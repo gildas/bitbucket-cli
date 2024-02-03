@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -21,17 +21,17 @@ var createCmd = &cobra.Command{
 
 var createOptions struct {
 	Profile
-	DefaultWorkspace common.RemoteValueFlag
-	DefaultProject   common.RemoteValueFlag
-	OutputFormat     common.EnumFlag
+	DefaultWorkspace *flags.EnumFlag
+	DefaultProject   *flags.EnumFlag
+	OutputFormat     *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.DefaultWorkspace = common.RemoteValueFlag{AllowedFunc: getWorkspaceSlugs}
-	createOptions.DefaultProject = common.RemoteValueFlag{AllowedFunc: getProjectKeys}
-	createOptions.OutputFormat = common.EnumFlag{Allowed: []string{"json", "yaml", "table"}, Value: ""}
+	createOptions.DefaultWorkspace = flags.NewEnumFlagWithFunc("", getWorkspaceSlugs)
+	createOptions.DefaultProject = flags.NewEnumFlagWithFunc("", getProjectKeys)
+	createOptions.OutputFormat = flags.NewEnumFlag("json", "yaml", "table")
 	createCmd.Flags().StringVarP(&createOptions.Name, "name", "n", "", "Name of the profile")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the profile")
 	createCmd.Flags().BoolVar(&createOptions.Default, "default", false, "True if this is the default profile")
@@ -40,16 +40,16 @@ func init() {
 	createCmd.Flags().StringVar(&createOptions.ClientID, "client-id", "", "Client ID of the profile")
 	createCmd.Flags().StringVar(&createOptions.ClientSecret, "client-secret", "", "Client Secret of the profile")
 	createCmd.Flags().StringVar(&createOptions.AccessToken, "access-token", "", "Access Token of the profile")
-	createCmd.Flags().Var(&createOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
-	createCmd.Flags().Var(&createOptions.DefaultProject, "default-project", "Default project of the profile")
-	createCmd.Flags().Var(&createOptions.OutputFormat, "output", "Output format (json, yaml, table).")
+	createCmd.Flags().Var(createOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
+	createCmd.Flags().Var(createOptions.DefaultProject, "default-project", "Default project of the profile")
+	createCmd.Flags().Var(createOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	createCmd.Flags().Var(&createOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
 	_ = createCmd.MarkFlagRequired("name")
 	createCmd.MarkFlagsRequiredTogether("user", "password")
 	createCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	createCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
-	_ = updateCmd.RegisterFlagCompletionFunc("output", updateOptions.OutputFormat.CompletionFunc())
-	_ = updateCmd.RegisterFlagCompletionFunc("error-processing", updateOptions.ErrorProcessing.CompletionFunc())
+	_ = createCmd.RegisterFlagCompletionFunc("output", createOptions.OutputFormat.CompletionFunc("output"))
+	_ = createCmd.RegisterFlagCompletionFunc("error-processing", createOptions.ErrorProcessing.CompletionFunc())
 }
 
 func createProcess(cmd *cobra.Command, args []string) error {

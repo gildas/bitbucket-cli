@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -34,8 +35,8 @@ var updateCmd = &cobra.Command{
 var updateOptions struct {
 	Repository  string
 	Title       string
-	Kind        common.EnumFlag
-	Priority    common.EnumFlag
+	Kind        *flags.EnumFlag
+	Priority    *flags.EnumFlag
 	Description string
 	Assignee    string
 	Version     string
@@ -44,17 +45,17 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.Kind = common.EnumFlag{Allowed: []string{"bug", "enhancement", "proposal", "task"}, Value: ""}
-	updateOptions.Priority = common.EnumFlag{Allowed: []string{"trivial", "minor", "major", "critical", "blocker"}, Value: ""}
+	updateOptions.Kind = flags.NewEnumFlag("bug", "enhancement", "proposal", "task")
+	updateOptions.Priority = flags.NewEnumFlag("major", "trivial", "minor", "major", "critical", "blocker")
 	updateCmd.Flags().StringVar(&updateOptions.Repository, "repository", "", "Repository to update an issue from. Defaults to the current repository")
 	updateCmd.Flags().StringVar(&updateOptions.Title, "title", "", "Title of the issue")
-	updateCmd.Flags().Var(&updateOptions.Kind, "kind", "Kind of the issue")
-	updateCmd.Flags().Var(&updateOptions.Priority, "priority", "Priority of the issue")
+	updateCmd.Flags().Var(updateOptions.Kind, "kind", "Kind of the issue")
+	updateCmd.Flags().Var(updateOptions.Priority, "priority", "Priority of the issue")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the issue")
 	updateCmd.Flags().StringVar(&updateOptions.Assignee, "assignee", "", "Assignee of the issue. (Optional, \"myself\" or userid)")
 	updateCmd.Flags().StringVar(&updateOptions.Version, "version", "", "Version of the issue")
-	_ = updateCmd.RegisterFlagCompletionFunc("kind", updateOptions.Kind.CompletionFunc())
-	_ = updateCmd.RegisterFlagCompletionFunc("priority", updateOptions.Priority.CompletionFunc())
+	_ = updateCmd.RegisterFlagCompletionFunc("kind", updateOptions.Kind.CompletionFunc("kind"))
+	_ = updateCmd.RegisterFlagCompletionFunc("priority", updateOptions.Priority.CompletionFunc("priority"))
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

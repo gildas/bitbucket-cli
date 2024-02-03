@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +26,7 @@ var updateCmd = &cobra.Command{
 }
 
 var updateOptions struct {
-	IssueID    common.RemoteValueFlag
+	IssueID    *flags.EnumFlag
 	Repository string
 	Comment    string
 }
@@ -33,13 +34,13 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.IssueID = common.RemoteValueFlag{AllowedFunc: GetIssueIDs}
+	updateOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
 	updateCmd.Flags().StringVar(&updateOptions.Repository, "repository", "", "Repository to update an issue into. Defaults to the current repository")
-	updateCmd.Flags().Var(&updateOptions.IssueID, "issue", "Issue to update comments to")
+	updateCmd.Flags().Var(updateOptions.IssueID, "issue", "Issue to update comments to")
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the issue")
 	_ = updateCmd.MarkFlagRequired("issue")
 	_ = updateCmd.MarkFlagRequired("comment")
-	_ = updateCmd.RegisterFlagCompletionFunc("issue", updateOptions.IssueID.CompletionFunc())
+	_ = updateCmd.RegisterFlagCompletionFunc("issue", updateOptions.IssueID.CompletionFunc("issue"))
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -21,18 +21,18 @@ var reopenCmd = &cobra.Command{
 }
 
 var reopenOptions struct {
-	PullRequestID common.RemoteValueFlag
+	PullRequestID *flags.EnumFlag
 	Repository    string
 }
 
 func init() {
 	Command.AddCommand(reopenCmd)
 
-	reopenOptions.PullRequestID = common.RemoteValueFlag{AllowedFunc: GetPullRequestIDs}
+	reopenOptions.PullRequestID = flags.NewEnumFlagWithFunc("", GetPullRequestIDs)
 	reopenCmd.Flags().StringVar(&reopenOptions.Repository, "repository", "", "Repository to reopen a pullrequest comment from. Defaults to the current repository")
-	reopenCmd.Flags().Var(&reopenOptions.PullRequestID, "pullrequest", "Pullrequest to reopen comments from")
+	reopenCmd.Flags().Var(reopenOptions.PullRequestID, "pullrequest", "Pullrequest to reopen comments from")
 	_ = reopenCmd.MarkFlagRequired("pullrequest")
-	_ = reopenCmd.RegisterFlagCompletionFunc("pullrequest", reopenOptions.PullRequestID.CompletionFunc())
+	_ = reopenCmd.RegisterFlagCompletionFunc("pullrequest", reopenOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func reopenValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

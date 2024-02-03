@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -22,19 +22,19 @@ var mergeCmd = &cobra.Command{
 var mergeOptions struct {
 	Repository        string
 	Message           string
-	MergeStrategy     common.EnumFlag
+	MergeStrategy     *flags.EnumFlag
 	CloseSourceBranch bool
 }
 
 func init() {
 	Command.AddCommand(mergeCmd)
 
-	mergeOptions.MergeStrategy = common.EnumFlag{Allowed: []string{"merge_commit", "squash", "fast_forward"}, Value: "merge_commit"}
+	mergeOptions.MergeStrategy = flags.NewEnumFlag("+merge_commit", "squash", "fast_forward")
 	mergeCmd.Flags().StringVar(&mergeOptions.Repository, "repository", "", "Repository to merge pullrequest from. Defaults to the current repository")
 	mergeCmd.Flags().StringVar(&mergeOptions.Message, "message", "", "Message of the merge")
 	mergeCmd.Flags().BoolVar(&mergeOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
-	mergeCmd.Flags().Var(&mergeOptions.MergeStrategy, "merge-strategy", "Merge strategy to use. Possible values are \"merge_commit\", \"squash\" or \"fast_forward\"")
-	_ = mergeCmd.RegisterFlagCompletionFunc("merge-strategy", mergeOptions.MergeStrategy.CompletionFunc())
+	mergeCmd.Flags().Var(mergeOptions.MergeStrategy, "merge-strategy", "Merge strategy to use. Possible values are \"merge_commit\", \"squash\" or \"fast_forward\"")
+	_ = mergeCmd.RegisterFlagCompletionFunc("merge-strategy", mergeOptions.MergeStrategy.CompletionFunc("merge-strategy"))
 }
 
 func mergeValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

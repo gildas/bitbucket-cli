@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -22,17 +22,17 @@ var updateCmd = &cobra.Command{
 
 var updateOptions struct {
 	Profile
-	DefaultWorkspace common.RemoteValueFlag
-	DefaultProject   common.RemoteValueFlag
-	OutputFormat     common.EnumFlag
+	DefaultWorkspace *flags.EnumFlag
+	DefaultProject   *flags.EnumFlag
+	OutputFormat     *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.DefaultWorkspace = common.RemoteValueFlag{AllowedFunc: getWorkspaceSlugs}
-	updateOptions.DefaultProject = common.RemoteValueFlag{AllowedFunc: getProjectKeys}
-	updateOptions.OutputFormat = common.EnumFlag{Allowed: []string{"json", "yaml", "table"}, Value: ""}
+	updateOptions.DefaultWorkspace = flags.NewEnumFlagWithFunc("", getWorkspaceSlugs)
+	updateOptions.DefaultProject = flags.NewEnumFlagWithFunc("", getProjectKeys)
+	updateOptions.OutputFormat = flags.NewEnumFlag("json", "yaml", "table")
 	updateCmd.Flags().StringVarP(&updateOptions.Name, "name", "n", "", "Name of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the profile")
 	updateCmd.Flags().BoolVar(&updateOptions.Default, "default", false, "True if this is the default profile")
@@ -41,16 +41,16 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.ClientID, "client-id", "", "Client ID of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.ClientSecret, "client-secret", "", "Client Secret of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.AccessToken, "access-token", "", "Access Token of the profile")
-	updateCmd.Flags().Var(&updateOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
-	updateCmd.Flags().Var(&updateOptions.DefaultProject, "default-project", "Default project of the profile")
-	updateCmd.Flags().Var(&updateOptions.OutputFormat, "output", "Output format (json, yaml, table).")
+	updateCmd.Flags().Var(updateOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
+	updateCmd.Flags().Var(updateOptions.DefaultProject, "default-project", "Default project of the profile")
+	updateCmd.Flags().Var(updateOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	updateCmd.Flags().Var(&updateOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
 	updateCmd.MarkFlagsRequiredTogether("user", "password")
 	updateCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	updateCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
-	_ = updateCmd.RegisterFlagCompletionFunc("default-workspace", updateOptions.DefaultWorkspace.CompletionFunc())
-	_ = updateCmd.RegisterFlagCompletionFunc("default-project", updateOptions.DefaultProject.CompletionFunc())
-	_ = updateCmd.RegisterFlagCompletionFunc("output", updateOptions.OutputFormat.CompletionFunc())
+	_ = updateCmd.RegisterFlagCompletionFunc("default-workspace", updateOptions.DefaultWorkspace.CompletionFunc("default-workspace"))
+	_ = updateCmd.RegisterFlagCompletionFunc("default-project", updateOptions.DefaultProject.CompletionFunc("default-project"))
+	_ = updateCmd.RegisterFlagCompletionFunc("output", updateOptions.OutputFormat.CompletionFunc("output"))
 	_ = updateCmd.RegisterFlagCompletionFunc("error-processing", updateOptions.ErrorProcessing.CompletionFunc())
 }
 

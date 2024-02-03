@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -22,15 +22,15 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Workspace common.RemoteValueFlag
+	Workspace *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	getCmd.Flags().Var(&getOptions.Workspace, "workspace", "Workspace to get projects from")
-	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc())
+	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get projects from")
+	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

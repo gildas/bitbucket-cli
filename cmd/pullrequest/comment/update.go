@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +31,7 @@ var updateCmd = &cobra.Command{
 }
 
 var updateOptions struct {
-	PullRequestID common.RemoteValueFlag
+	PullRequestID *flags.EnumFlag
 	Repository    string
 	Comment       string
 	File          string
@@ -41,9 +42,9 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.PullRequestID = common.RemoteValueFlag{AllowedFunc: GetPullRequestIDs}
+	updateOptions.PullRequestID = flags.NewEnumFlagWithFunc("", GetPullRequestIDs)
 	updateCmd.Flags().StringVar(&updateOptions.Repository, "repository", "", "Repository to update a pullrequest comment into. Defaults to the current repository")
-	updateCmd.Flags().Var(&updateOptions.PullRequestID, "pullrequest", "Pullrequest to update comments to")
+	updateCmd.Flags().Var(updateOptions.PullRequestID, "pullrequest", "Pullrequest to update comments to")
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the pullrequest")
 	updateCmd.Flags().StringVar(&updateOptions.File, "file", "", "File to comment on")
 	updateCmd.Flags().IntVar(&updateOptions.From, "line", 0, "From line to comment on. Cannot be used with --to")
@@ -53,7 +54,7 @@ func init() {
 	updateCmd.MarkFlagsMutuallyExclusive("line", "to")
 	_ = updateCmd.MarkFlagRequired("pullrequest")
 	_ = updateCmd.MarkFlagRequired("comment")
-	_ = updateCmd.RegisterFlagCompletionFunc("pullrequest", updateOptions.PullRequestID.CompletionFunc())
+	_ = updateCmd.RegisterFlagCompletionFunc("pullrequest", updateOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

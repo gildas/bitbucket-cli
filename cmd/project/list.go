@@ -3,10 +3,10 @@ package project
 import (
 	"fmt"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -19,15 +19,15 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Workspace common.RemoteValueFlag
+	Workspace *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.Workspace = common.RemoteValueFlag{AllowedFunc: workspace.GetWorkspaceSlugs}
-	listCmd.Flags().Var(&listOptions.Workspace, "workspace", "Workspace to list projects from")
-	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc())
+	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list projects from")
+	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
