@@ -18,10 +18,9 @@
     <summary>Command line interface for Bitbucket</summary>
     <description>The Bitbucket Command Line Interface brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.</description>
     <releaseNotes>
-- Added Pull Request comments.
-- All commands follow a `--dry-run` option to test the command before executing it.
-- Subcommands like `delete`, `upload`, `download` support a list of arguments to process.
-- Fix: `--output format` should supersede profile's option.
+- The current profile can come from the .git/config file.
+- New command: `bb profile which` to display the current profile.
+- `bb issue list` now supports multiple `--state` options and defaults to `open` and `new`.
     </releaseNotes>
   </metadata>
   <files>
