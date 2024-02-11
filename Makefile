@@ -230,12 +230,12 @@ __archive_all__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_arm64.tar.gz \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_amd64.tar.gz \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_arm64.tar.gz \
-	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_windows_amd64.zip \
-	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_windows_arm64.zip \
+	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.zip \
+	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.zip \
 	;
 __archive_chocolatey__: \
-	packaging/chocolatey/tools/$(PACKAGE)_$(VERSION)_windows_amd64.7z \
-	packaging/chocolatey/tools/$(PACKAGE)_$(VERSION)_windows_arm64.7z \
+	packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z \
+	packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z \
 	;
 __archive_debian__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb \
@@ -258,14 +258,14 @@ $(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_amd64.tar.gz: $(BIN_DIR)/linux-amd64/$(PR
 	$Q $(TAR) czf $@ -C $(<D) $(<F)
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_arm64.tar.gz: $(BIN_DIR)/linux-arm64/$(PROJECT)
 	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_windows_amd64.zip: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.zip: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
 	$Q $(ZIP) -9 -q --junk-paths $@ $<
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_windows_arm64.zip: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.zip: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
 	$Q $(ZIP) -9 -q --junk-paths $@ $<
 
-packaging/chocolatey/tools/$(PACKAGE)_$(VERSION)_windows_amd64.7z: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
+packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
 	$Q $(7ZIP) a -r $@ $<
-packaging/chocolatey/tools/$(PACKAGE)_$(VERSION)_windows_arm64.7z: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
+packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
 	$Q $(7ZIP) a -r $@ $<
 
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux-amd64/$(PROJECT)
