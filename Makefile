@@ -120,9 +120,9 @@ all: test build; ## Test and Build the application
 
 gendoc: __gendoc_init__ $(BIN_DIR)/$(PROJECT).pdf; @ ## Generate the PDF documentation
 
-publish: __publish_init__ __publish_binaries__; @ ## Publish the binaries to the Repository
+publish: __publish_init__ __publish_binaries__ __publish_snap__; @ ## Publish the binaries to the Repository
 
-archive: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ ; @ ## Archive the binaries
+archive: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ __archive_snap__ ; @ ## Archive the binaries
 
 build: __build_init__ __build_all__; @ ## Build the application for all platforms
 
@@ -211,7 +211,7 @@ __start__: stop $(BIN_DIR)/$(GOOS)/$(PROJECT) | $(TMP_DIR) $(LOG_DIR); $(info $(
 	$Q DEBUG=1 LOG_DESTINATION="$(LOG_DIR)/$(PROJECT).log" $(BIN_DIR)/$(GOOS)/$(PROJECT) & echo $$! > $(TMP_DIR)/$(PROJECT).pid
 
 # publish recipes
-.PHONY: __publish_init__ __publish_binaries__
+.PHONY: __publish_init__ __publish_binaries__ __publish_snap__
 __publish_init__:;
 __publish_binaries__: archive
 	$(info $(M) Uploading the binary packages...)
@@ -222,6 +222,14 @@ __publish_binaries__: archive
 	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.deb),    go run . artifact upload --progress $(archive) ;)
 	$(info $(M) Uploading the RPM packages...)
 	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.rpm),    go run . artifact upload --progress $(archive) ;)
+
+__publish_snap__: \
+	$(TMP_DIR)/__publish_snap__ \
+	;
+
+$(TMP_DIR)/__publish_snap__: $(TMP_DIR) __archive_snap__
+	$Q snapcraft upload --release=latest/edge $(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap
+	$Q $(TOUCH)
 
 # archive recipes
 .PHONY: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ __archive_snap__
