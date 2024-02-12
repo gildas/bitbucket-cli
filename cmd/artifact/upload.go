@@ -20,6 +20,7 @@ var uploadCmd = &cobra.Command{
 
 var uploadOptions struct {
 	Repository   string
+	Progress     bool
 	StopOnError  bool
 	WarnOnError  bool
 	IgnoreErrors bool
@@ -32,6 +33,7 @@ func init() {
 	uploadCmd.Flags().BoolVar(&uploadOptions.StopOnError, "stop-on-error", false, "Stop on error")
 	uploadCmd.Flags().BoolVar(&uploadOptions.WarnOnError, "warn-on-error", false, "Warn on error")
 	uploadCmd.Flags().BoolVar(&uploadOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
+	uploadCmd.Flags().BoolVar(&uploadOptions.Progress, "progress", false, "Show progress")
 	uploadCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 }
 

@@ -114,6 +114,8 @@ You can also pass the `--default` flag to make this profile the default one, or 
 
 You can also pass the `--default-workspace` and/or `--default-project` flags to set the default workspace and/or project for this profile.
 
+You can also pass the `--progress` flag to display a progress bar when upload/downloading artifacts and attachments.
+
 Profiles support the following authentications:
 
 - [OAuth 2.0](https://support.atlassian.com/bitbucket-cloud/docs/use-oauth-on-bitbucket-cloud/) with the `--client-id` and `--client-secret` flags
@@ -623,6 +625,8 @@ bb artifact download myartifact.zip
 ```
 
 You can provide a `--destination` flag to specify the destination folder. If the folder does not exist, it will be created.
+
+You can also pass the `--progress` flag to display a progress bar when upload/downloading artifacts. This override the default value set at the Profile level.
 
 Finally, you can delete an artifact with the `bb artifact delete` command:
 

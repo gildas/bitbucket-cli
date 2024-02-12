@@ -22,6 +22,7 @@ var uploadCmd = &cobra.Command{
 var uploadOptions struct {
 	IssueID    *flags.EnumFlag
 	Repository string
+	Progress   bool
 }
 
 func init() {
@@ -30,6 +31,7 @@ func init() {
 	uploadOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
 	uploadCmd.Flags().StringVar(&uploadOptions.Repository, "repository", "", "Repository to upload issue attachments to. Defaults to the current repository")
 	uploadCmd.Flags().Var(uploadOptions.IssueID, "issue", "Issue to upload attachments to")
+	uploadCmd.Flags().BoolVar(&uploadOptions.Progress, "progress", false, "Show progress")
 	_ = uploadCmd.MarkFlagRequired("issue")
 	_ = uploadCmd.RegisterFlagCompletionFunc("issue", uploadOptions.IssueID.CompletionFunc("issue"))
 }

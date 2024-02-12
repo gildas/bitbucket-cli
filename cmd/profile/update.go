@@ -45,6 +45,7 @@ func init() {
 	updateCmd.Flags().Var(updateOptions.DefaultProject, "default-project", "Default project of the profile")
 	updateCmd.Flags().Var(updateOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	updateCmd.Flags().Var(&updateOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
+	updateCmd.Flags().BoolVar(&updateOptions.Progress, "progress", false, "Show progress during upload/download operations.")
 	updateCmd.MarkFlagsRequiredTogether("user", "password")
 	updateCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	updateCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
@@ -80,7 +81,10 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if profile.Default {
+	if cmd.Flags().Changed("progress") {
+		profile.Progress = updateOptions.Progress
+	}
+	if updateOptions.Default {
 		Profiles.SetCurrent(profile.Name)
 	}
 	log.Record("profile", profile).Debugf("Updated profile %s", profile.Name)

@@ -22,6 +22,7 @@ var downloadCmd = &cobra.Command{
 var downloadOptions struct {
 	Repository   string
 	Destination  string
+	Progress     bool
 	StopOnError  bool
 	WarnOnError  bool
 	IgnoreErrors bool
@@ -32,6 +33,7 @@ func init() {
 
 	downloadCmd.Flags().StringVar(&downloadOptions.Repository, "repository", "", "Repository to download artifacts from. Defaults to the current repository")
 	downloadCmd.Flags().StringVar(&downloadOptions.Destination, "destination", "", "Destination folder to download the artifact to. Defaults to the current folder")
+	downloadCmd.Flags().BoolVar(&downloadOptions.Progress, "progress", false, "Show progress")
 	downloadCmd.Flags().BoolVar(&downloadOptions.StopOnError, "stop-on-error", false, "Stop on error")
 	downloadCmd.Flags().BoolVar(&downloadOptions.WarnOnError, "warn-on-error", false, "Warn on error")
 	downloadCmd.Flags().BoolVar(&downloadOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
