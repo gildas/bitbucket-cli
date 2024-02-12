@@ -93,5 +93,3 @@ require (
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
-
-replace github.com/gildas/go-request => /home/gildas/Documents/go/src/github.com/gildas/go-request
