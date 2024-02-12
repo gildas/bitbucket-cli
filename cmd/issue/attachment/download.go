@@ -24,6 +24,7 @@ var downloadOptions struct {
 	IssueID     *flags.EnumFlag
 	Repository  string
 	Destination string
+	Progress    bool
 }
 
 func init() {
@@ -33,6 +34,7 @@ func init() {
 	downloadCmd.Flags().StringVar(&downloadOptions.Repository, "repository", "", "Repository to get an issue attachment from. Defaults to the current repository")
 	downloadCmd.Flags().Var(downloadOptions.IssueID, "issue", "Issue to get attachments from")
 	downloadCmd.Flags().StringVar(&downloadOptions.Destination, "destination", "", "Destination folder to download the attachment to. Defaults to the current folder")
+	downloadCmd.Flags().BoolVar(&downloadOptions.Progress, "progress", false, "Show progress")
 	_ = downloadCmd.MarkFlagRequired("issue")
 	_ = downloadCmd.RegisterFlagCompletionFunc("issue", downloadOptions.IssueID.CompletionFunc("issue"))
 	_ = downloadCmd.MarkFlagDirname("destination")

@@ -44,6 +44,7 @@ func init() {
 	createCmd.Flags().Var(createOptions.DefaultProject, "default-project", "Default project of the profile")
 	createCmd.Flags().Var(createOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	createCmd.Flags().Var(&createOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
+	createCmd.Flags().BoolVar(&createOptions.Progress, "progress", false, "Show progress during upload/download operations.")
 	_ = createCmd.MarkFlagRequired("name")
 	createCmd.MarkFlagsRequiredTogether("user", "password")
 	createCmd.MarkFlagsRequiredTogether("client-id", "client-secret")

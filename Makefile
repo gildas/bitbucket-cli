@@ -215,12 +215,13 @@ __start__: stop $(BIN_DIR)/$(GOOS)/$(PROJECT) | $(TMP_DIR) $(LOG_DIR); $(info $(
 __publish_init__:;
 __publish_binaries__: archive
 	$(info $(M) Uploading the binary packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.tar.gz), go run . artifact upload $(archive) ;)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.zip), go run . artifact upload $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.tar.gz), go run . artifact upload --progress $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.zip),    go run . artifact upload --progress $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.7z),     go run . artifact upload --progress $(archive) ;)
 	$(info $(M) Uploading the Debian packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.deb), go run . artifact upload $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.deb),    go run . artifact upload --progress $(archive) ;)
 	$(info $(M) Uploading the RPM packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.rpm), go run . artifact upload $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.rpm),    go run . artifact upload --progress $(archive) ;)
 
 # archive recipes
 .PHONY: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ __archive_snap__
@@ -263,9 +264,13 @@ $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.zip: $(BIN_DIR)/windows-amd64/$(P
 $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.zip: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
 	$Q $(ZIP) -9 -q --junk-paths $@ $<
 
-packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
+packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z
+	$Q $(COPY) $< $@
+packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z
+	$Q $(COPY) $< $@
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
 	$Q $(7ZIP) a -r $@ $<
-packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
 	$Q $(7ZIP) a -r $@ $<
 
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux-amd64/$(PROJECT)

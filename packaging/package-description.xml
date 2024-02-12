@@ -11,6 +11,7 @@
       Note: This snapcraft is not affiliated with Atlassian.
 	</description>
 	<releases>
+		<release date="2024-02-12" version="0.10.1"/>
 		<release date="2024-02-03" version="0.10.0"/>
 		<release date="2024-01-25" version="0.9.0"/>
 		<release date="2024-01-05" version="0.8.0"/>

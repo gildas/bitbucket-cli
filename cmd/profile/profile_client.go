@@ -15,6 +15,7 @@ import (
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/gildas/go-request"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
 
@@ -92,7 +93,12 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, profile *Profile
 	return resources, nil
 }
 
-// Dowmload downloads a resource to a destination folder
+// Download downloads a resource to a destination folder
+//
+// # The destination folder is the current folder if not specified
+//
+// If the profile has its Progress flag set to true, it will show a progress bar.
+// Otherwise, if the command has a flag --progress, it will show a progress bar.
 func (profile *Profile) Download(context context.Context, cmd *cobra.Command, uripath, destination string) (err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "download")
 
@@ -115,6 +121,13 @@ func (profile *Profile) Download(context context.Context, cmd *cobra.Command, ur
 		Method:              http.MethodGet,
 		Timeout:             15 * time.Minute,
 		ResponseBodyLogSize: -1, // we are not interested in the file content
+	}
+	showProgress := profile.Progress
+	if cmd != nil && cmd.Flags().Changed("progress") {
+		showProgress, _ = cmd.Flags().GetBool("progress")
+	}
+	if showProgress {
+		options.ProgressWriter = profile.getProgressWriter(1, "Downloading")
 	}
 	result, err := profile.send(context, cmd, options, uripath, writer)
 	if err != nil {
@@ -139,6 +152,9 @@ func (profile *Profile) Download(context context.Context, cmd *cobra.Command, ur
 }
 
 // Upload uploads a resource from a source file
+//
+// If the profile has its Progress flag set to true, it will show a progress bar.
+// Otherwise, if the command has a flag --progress, it will show a progress bar.
 func (profile *Profile) Upload(context context.Context, cmd *cobra.Command, uripath, source string) (err error) {
 	reader, err := os.Open(source)
 	if err != nil {
@@ -151,11 +167,48 @@ func (profile *Profile) Upload(context context.Context, cmd *cobra.Command, urip
 		Payload: map[string]string{
 			">files": filepath.Base(source),
 		},
-		Attachment: reader,
-		Timeout:    15 * time.Minute,
+		Attachment:         reader,
+		Timeout:            15 * time.Minute,
+		RequestBodyLogSize: -1, // we are not interested in the file content
+	}
+	showProgress := profile.Progress
+	if cmd != nil && cmd.Flags().Changed("progress") {
+		showProgress, _ = cmd.Flags().GetBool("progress")
+	}
+	if showProgress {
+		var size int64 = -1
+		if stat, err := reader.Stat(); err == nil {
+			size = stat.Size()
+		}
+		options.ProgressWriter = profile.getProgressWriter(size, "Upoading")
 	}
 	_, err = profile.send(context, cmd, options, uripath, nil)
 	return
+}
+
+func (profile *Profile) getProgressWriter(size int64, description string) *progressbar.ProgressBar {
+	return progressbar.NewOptions64(
+		size,
+		progressbar.OptionSetDescription("[cyan]"+description+"[reset] "),
+		progressbar.OptionSetWriter(os.Stderr),
+		progressbar.OptionShowBytes(true),
+		progressbar.OptionSetWidth(10),
+		progressbar.OptionThrottle(65*time.Millisecond),
+		progressbar.OptionShowCount(),
+		progressbar.OptionSpinnerType(14),
+		progressbar.OptionFullWidth(),
+		progressbar.OptionSetRenderBlankState(true),
+		progressbar.OptionClearOnFinish(),
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionOnCompletion(func() { fmt.Fprint(os.Stderr, "\n") }),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[green]=[reset]",
+			SaucerHead:    "[green]>[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}),
+	)
 }
 
 func (profile *Profile) authorize(context context.Context) (authorization string, err error) {
@@ -240,6 +293,9 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 	}
 	if options.ResponseBodyLogSize == 0 {
 		options.ResponseBodyLogSize = 16 * 1024
+	}
+	if options.ProgressWriter != nil {
+		log.Warnf("[B] We have a ProgressWriter for uploading content")
 	}
 	result, err = request.Send(options, response)
 	if err != nil {

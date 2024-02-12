@@ -28,6 +28,7 @@ type Profile struct {
 	DefaultProject   string                 `json:"defaultProject,omitempty"   mapstructure:"defaultProject"         yaml:",omitempty"`
 	ErrorProcessing  common.ErrorProcessing `json:"errorProcessing,omitempty"  mapstructure:"errorProcessing,omitempty" yaml:",omitempty"`
 	OutputFormat     string                 `json:"outputFormat,omitempty"     mapstructure:"outputFormat,omitempty" yaml:",omitempty"`
+	Progress         bool                   `json:"progress,omitempty"         mapstructure:"progress,omitempty"     yaml:",omitempty"`
 	User             string                 `json:"user,omitempty"             mapstructure:"user"                   yaml:",omitempty"`
 	Password         string                 `json:"password,omitempty"         mapstructure:"password"               yaml:",omitempty"`
 	ClientID         string                 `json:"clientID,omitempty"         mapstructure:"clientID"               yaml:",omitempty"`
