@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>bitbucket-cli</id>
-    <version>0.10.0</version>
+    <version>0.10.1</version>
     <owners>Gildas Cherruel</owners>
     <title>bitbucket-cli (Install)</title>
     <authors>Gildas Cherruel</authors>
@@ -18,9 +18,7 @@
     <summary>Command line interface for Bitbucket</summary>
     <description>The Bitbucket Command Line Interface brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.</description>
     <releaseNotes>
-- The current profile can come from the .git/config file.
-- New command: `bb profile which` to display the current profile.
-- `bb issue list` now supports multiple `--state` options and defaults to `open` and `new`.
+- bb can display a progress bar during uploads and downloads.
     </releaseNotes>
   </metadata>
   <files>

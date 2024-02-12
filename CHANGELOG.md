@@ -1,5 +1,9 @@
 # Change Log
 
+**2024/02/12** - v0.10.1
+
+- Enhancement #6: bb can display a progress bar during uploads and downloads.
+
 **2024/02/03** - v0.10.0
 
 - Enhancement #5: the current profile can come from the .git/config file.
