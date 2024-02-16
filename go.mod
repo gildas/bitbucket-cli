@@ -5,7 +5,7 @@ go 1.21.6
 require (
 	github.com/gildas/go-core v0.5.8
 	github.com/gildas/go-errors v0.3.6
-	github.com/gildas/go-flags v0.1.0
+	github.com/gildas/go-flags v0.1.1
 	github.com/gildas/go-logger v1.6.12
 	github.com/gildas/go-request v0.9.1
 	github.com/go-git/go-git/v5 v5.11.0
@@ -84,7 +84,7 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.18.0 // indirect
-	google.golang.org/api v0.164.0 // indirect
+	google.golang.org/api v0.165.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240213162025-012b6fc9bca9 // indirect
