@@ -6,9 +6,9 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
-	"github.com/gildas/go-errors"
-	"github.com/gildas/go-flags"
-	"github.com/gildas/go-logger"
+	errors "github.com/gildas/go-errors"
+	flags "github.com/gildas/go-flags"
+	logger "github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +41,7 @@ func init() {
 	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
 	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 	_ = deleteCmd.RegisterFlagCompletionFunc("workspace", deleteOptions.Workspace.CompletionFunc("workspace"))
-	_ = getCmd.RegisterFlagCompletionFunc("project", deleteOptions.Project.CompletionFunc("project"))
+	_ = deleteCmd.RegisterFlagCompletionFunc("project", deleteOptions.Project.CompletionFunc("project"))
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
