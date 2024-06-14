@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -61,7 +62,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	var merr errors.MultiError
 	for _, artifactName := range args {
-		if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Downloading artifact %s to %s", artifactName, downloadOptions.Destination) {
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Downloading artifact %s to %s", artifactName, downloadOptions.Destination) {
 			err := profile.Current.Download(
 				log.ToContext(cmd.Context()),
 				cmd,

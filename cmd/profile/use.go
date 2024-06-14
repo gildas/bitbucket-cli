@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -28,7 +29,7 @@ func useProcess(cmd *cobra.Command, args []string) error {
 	if !found {
 		return errors.NotFound.With("profile", args[0])
 	}
-	if Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Using profile %s as default", args[0]) {
+	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Using profile %s as default", args[0]) {
 		Profiles.SetCurrent(profile.Name)
 		viper.Set("profiles", Profiles)
 		return viper.WriteConfig()

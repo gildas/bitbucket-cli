@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
@@ -90,7 +91,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Creating repository %s/%s in project %s", createOptions.Workspace, createOptions.Name, createOptions.Project)
-	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating repository %s/%s in project %s", createOptions.Workspace, createOptions.Name, createOptions.Project) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating repository %s/%s in project %s", createOptions.Workspace, createOptions.Name, createOptions.Project) {
 		return nil
 	}
 	var repository Repository

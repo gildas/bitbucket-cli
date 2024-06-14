@@ -3,6 +3,7 @@ package profile
 import (
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -40,11 +41,11 @@ func deleteProcess(cmd *cobra.Command, args []string) (err error) {
 
 	if deleteOptions.All {
 		log.Infof("Deleting all profiles")
-		if Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting all profiles") {
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting all profiles") {
 			deleted = Profiles.Delete(Profiles.Names()...)
 		}
 	} else {
-		if Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting profiles %s", strings.Join(args, ", ")) {
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting profiles %s", strings.Join(args, ", ")) {
 			deleted = Profiles.Delete(args...)
 		}
 	}

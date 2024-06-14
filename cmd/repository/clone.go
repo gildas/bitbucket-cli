@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
@@ -76,7 +77,7 @@ func cloneProcess(cmd *cobra.Command, args []string) error {
 		cloneOptions.Destination = strings.TrimSuffix(args[0], ".git")
 	}
 
-	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Cloning repository %s/%s", cloneOptions.Workspace, args[0]) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Cloning repository %s/%s", cloneOptions.Workspace, args[0]) {
 		return nil
 	}
 	_, err := git.PlainCloneContext(log.ToContext(cmd.Context()), cloneOptions.Destination, cloneOptions.Bare, &git.CloneOptions{

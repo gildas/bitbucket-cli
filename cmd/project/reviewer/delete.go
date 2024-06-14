@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
-	"github.com/gildas/go-errors"
-	"github.com/gildas/go-flags"
-	"github.com/gildas/go-logger"
+	errors "github.com/gildas/go-errors"
+	flags "github.com/gildas/go-flags"
+	logger "github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +42,7 @@ func init() {
 	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
 	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 	_ = deleteCmd.RegisterFlagCompletionFunc("workspace", deleteOptions.Workspace.CompletionFunc("workspace"))
-	_ = getCmd.RegisterFlagCompletionFunc("project", deleteOptions.Project.CompletionFunc("project"))
+	_ = deleteCmd.RegisterFlagCompletionFunc("project", deleteOptions.Project.CompletionFunc("project"))
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -83,7 +84,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 
 	var merr errors.MultiError
 	for _, userID := range args {
-		if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting default reviewer %s from project %s", userID, deleteOptions.Project) {
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting default reviewer %s from project %s", userID, deleteOptions.Project) {
 			err := profile.Current.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,

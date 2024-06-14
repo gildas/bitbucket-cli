@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -74,7 +75,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Creating pullrequest")
-	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating pullrequest") {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating pullrequest") {
 		return nil
 	}
 	var pullrequest PullRequest

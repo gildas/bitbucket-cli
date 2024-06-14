@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
@@ -98,7 +99,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Updating repository %s/%s in project %s", updateOptions.Workspace, updateOptions.Name, updateOptions.Project)
-	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating repository %s/%s in projecct %s", updateOptions.Workspace, updateOptions.Name, updateOptions.Project) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating repository %s/%s in projecct %s", updateOptions.Workspace, updateOptions.Name, updateOptions.Project) {
 		return nil
 	}
 	var repository Repository
