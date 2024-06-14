@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -46,7 +47,7 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 
 	var merr errors.MultiError
 	for _, artifactName := range args {
-		if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading artifact %s to %s", artifactName, downloadOptions.Destination) {
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading artifact %s to %s", artifactName, downloadOptions.Destination) {
 			err := profile.Current.Upload(
 				log.ToContext(cmd.Context()),
 				cmd,

@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
@@ -97,7 +98,7 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 		payload.Project = project.NewReference(forkOptions.Project.Value)
 	}
 
-	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Forking repository %s/%s", forkOptions.Workspace, args[0]) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Forking repository %s/%s", forkOptions.Workspace, args[0]) {
 		return nil
 	}
 	var forked Repository

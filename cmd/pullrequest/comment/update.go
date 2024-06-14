@@ -94,7 +94,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Updating pullrequest comment")
-	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating comment %s for pullrequest %s", updateOptions.Comment, updateOptions.PullRequestID) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating comment %s for pullrequest %s", updateOptions.Comment, updateOptions.PullRequestID) {
 		return nil
 	}
 	var comment Comment

@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -73,7 +74,7 @@ func createProcess(cmd *cobra.Command, args []string) error {
 		return errors.DuplicateFound.With("name", createOptions.Name)
 	}
 
-	if !Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating profile %s", createOptions.Name) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating profile %s", createOptions.Name) {
 		return nil
 	}
 	Profiles.Add(&createOptions.Profile)

@@ -108,7 +108,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	log.Record("payload", payload).Infof("Updating issue %s", args[0])
 	var issue Issue
 
-	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating issue %s", args[0]) {
+	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating issue %s", args[0]) {
 		err = profile.Current.Put(
 			log.ToContext(cmd.Context()),
 			cmd,

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -69,7 +70,7 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Merging pullrequest %s", args[0])
-	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Merging pullrequest %s", args[0]) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Merging pullrequest %s", args[0]) {
 		return nil
 	}
 	err = profile.Current.Post(

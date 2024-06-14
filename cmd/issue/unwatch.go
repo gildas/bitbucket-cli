@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -46,7 +47,7 @@ func unwatchProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Unwatching issue %s", args[0]) {
+	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Unwatching issue %s", args[0]) {
 		err = profile.Current.Delete(
 			log.ToContext(cmd.Context()),
 			cmd,

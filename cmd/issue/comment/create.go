@@ -57,7 +57,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Creating issue comment")
-	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating comment for issue %s", createOptions.IssueID) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating comment for issue %s", createOptions.IssueID) {
 		return nil
 	}
 	var comment Comment

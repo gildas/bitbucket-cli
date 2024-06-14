@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -74,7 +75,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Record("profile", profile).Debugf("Updating profile %s", profile.Name)
-	if !Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating profile %s", profile.Name) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating profile %s", profile.Name) {
 		return nil
 	}
 	err := profile.Update(updateOptions.Profile)

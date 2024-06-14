@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -61,7 +62,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 
 	var merr errors.MultiError
 	for _, commentID := range args {
-		if profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting comment %s from pullrequest %s", commentID, deleteOptions.PullRequestID) {
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting comment %s from pullrequest %s", commentID, deleteOptions.PullRequestID) {
 			err := profile.Current.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,

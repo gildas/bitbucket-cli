@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
@@ -48,7 +49,7 @@ func declineProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	if !profile.Current.WhatIf(log.ToContext(cmd.Context()), cmd, "Declining pullrequest %s", args[0]) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Declining pullrequest %s", args[0]) {
 		return nil
 	}
 	var participant user.Participant
