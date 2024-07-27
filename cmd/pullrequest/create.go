@@ -6,18 +6,19 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
 type PullRequestCreator struct {
-	Title             string     `json:"title"`
-	Description       string     `json:"description,omitempty"`
-	Source            Endpoint   `json:"source"`
-	Destination       *Endpoint  `json:"destination,omitempty"`
-	Reviewers         []Reviewer `json:"reviewers,omitempty"`
-	CloseSourceBranch bool       `json:"close_source_branch,omitempty"`
+	Title             string         `json:"title"`
+	Description       string         `json:"description,omitempty"`
+	Source            Endpoint       `json:"source"`
+	Destination       *Endpoint      `json:"destination,omitempty"`
+	Reviewers         []user.Account `json:"reviewers,omitempty"`
+	CloseSourceBranch bool           `json:"close_source_branch,omitempty"`
 }
 
 var createCmd = &cobra.Command{
@@ -72,6 +73,17 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	if len(createOptions.Destination) > 0 {
 		payload.Destination = &Endpoint{Branch: Branch{Name: createOptions.Destination}}
+	}
+	if len(createOptions.Reviewers) > 0 {
+		payload.Reviewers = make([]user.Account, 0, len(createOptions.Reviewers))
+		for _, reviewer := range createOptions.Reviewers {
+			if id, err := common.ParseUUID(reviewer); err == nil {
+				payload.Reviewers = append(payload.Reviewers, user.Account{Type: "user", ID: id})
+			} else {
+				log.Errorf("Failed to parse reviewer ID: %s", reviewer)
+				fmt.Fprintf(os.Stderr, "Failed to parse reviewer ID: %s\n", reviewer)
+			}
+		}
 	}
 
 	log.Record("payload", payload).Infof("Creating pullrequest")
