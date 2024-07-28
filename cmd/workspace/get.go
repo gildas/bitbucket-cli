@@ -12,11 +12,12 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:     "get [flags] <workspace-slug-or-id>",
-	Aliases: []string{"show", "info", "display"},
-	Short:   "get a workspace by its <workspace-slug-or-id>. With the --members flag, it will display the members of the workspace. With the --member flag, it will display workspaces for the given user.",
-	Args:    cobra.ExactArgs(1),
-	RunE:    getProcess,
+	Use:               "get [flags] <workspace-slug-or-id>",
+	Aliases:           []string{"show", "info", "display"},
+	Short:             "get a workspace by its <workspace-slug-or-id>. With the --members flag, it will display the members of the workspace. With the --member flag, it will display workspaces for the given user.",
+	Args:              cobra.ExactArgs(1),
+	ValidArgsFunction: getVAlidArgs,
+	RunE:              getProcess,
 }
 
 var getOptions struct {
@@ -30,6 +31,18 @@ func init() {
 	getCmd.Flags().StringVar(&getOptions.Member, "member", "", "Get a workspace member")
 	getCmd.Flags().BoolVar(&getOptions.WithMembers, "members", false, "List the workspace members")
 	getCmd.MarkFlagsMutuallyExclusive("member", "members")
+}
+
+func getVAlidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if profile.Current == nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return GetWorkspaceSlugs(cmd.Context(), cmd, args), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
