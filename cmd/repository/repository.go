@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
+	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -82,6 +83,32 @@ func (repository Repository) GetRow(headers []string) []string {
 		repository.Name,
 		repository.FullName,
 	}
+}
+
+// GetRepository gets a repository by its slug
+func GetRepository(context context.Context, cmd *cobra.Command, profile *profile.Profile, workspace, slug string) (repository *Repository, err error) {
+	err = profile.Get(
+		context,
+		cmd,
+		fmt.Sprintf("/repositories/%s/%s", workspace, slug),
+		&repository,
+	)
+	return
+}
+
+// GetRepositoryFromGit gets a repository from a git origin
+func GetRepositoryFromGit(context context.Context, cmd *cobra.Command, profile *profile.Profile) (repository *Repository, err error) {
+	remote, err := remote.GetFromGitConfig(context, "origin")
+	if err != nil {
+		return nil, err
+	}
+	err = profile.Get(
+		context,
+		cmd,
+		fmt.Sprintf("/repositories/%s", remote.RepositoryName()),
+		&repository,
+	)
+	return
 }
 
 // String returns the string representation of the repository

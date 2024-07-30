@@ -13,7 +13,7 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:               "get [flags] <slug_or_uuid",
+	Use:               "get [flags] <slug_or_uuid>",
 	Aliases:           []string{"show", "info", "display"},
 	Short:             "get a repository by its <slug> or <uuid>. With the --forks flag, it will display the forks of the repository.",
 	Args:              cobra.ExactArgs(1),
@@ -78,14 +78,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying repository %s", args[0])
-	var repository Repository
-
-	err := profile.Current.Get(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("/repositories/%s/%s", getOptions.Workspace, args[0]),
-		&repository,
-	)
+	repository, err := GetRepository(log.ToContext(cmd.Context()), cmd, profile.Current, getOptions.Workspace.String(), args[0])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get repository %s: %s\n", args[0], err)
 		os.Exit(1)
