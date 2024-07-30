@@ -8,11 +8,13 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 )
 
+// Remote represents a remote repository in a git configuration
 type Remote struct {
 	URL   string
 	Fetch string
 }
 
+// GetFromGitConfig gets a remote from the git configuration
 func GetFromGitConfig(context context.Context, name string) (remote *Remote, err error) {
 	file, err := common.OpenGitConfig(context)
 	if err != nil {
@@ -22,6 +24,7 @@ func GetFromGitConfig(context context.Context, name string) (remote *Remote, err
 	return Get(context, file, name)
 }
 
+// Get gets a remote from a reader
 func Get(context context.Context, reader io.Reader, name string) (remote *Remote, err error) {
 	section, err := common.GetGitSection(context, reader, "remote \""+name+"\"")
 	if err != nil {
@@ -33,6 +36,7 @@ func Get(context context.Context, reader io.Reader, name string) (remote *Remote
 	}, nil
 }
 
+// RepositoryName gets the full repository name from the remote URL (without the .git extension)
 func (remote Remote) RepositoryName() string {
 	if strings.HasPrefix(remote.URL, "git@") {
 		if strings.HasSuffix(remote.URL, ".git") {
@@ -47,4 +51,10 @@ func (remote Remote) RepositoryName() string {
 		return remote.URL[previousToLastSlash+1:]
 	}
 	return remote.URL
+}
+
+// WorkspaceName gets the workspace name from the remote URL
+func (remote Remote) WorkspaceName() string {
+	repositoryName := remote.RepositoryName()
+	return repositoryName[:strings.Index(repositoryName, "/")]
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCanGetRemoteWithGitAt(t *testing.T) {
+func TestCanGetRepositoryNameWithGitAt(t *testing.T) {
 	payload := `
 [core]
 	repositoryformatversion = 0
@@ -40,7 +40,7 @@ func TestCanGetRemoteWithGitAt(t *testing.T) {
 	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
 }
 
-func TestCanGetRemoteWithHTTPS(t *testing.T) {
+func TestCanGetRepositoryNameWithHTTPS(t *testing.T) {
 	payload := `
 [core]
 	repositoryformatversion = 0
@@ -69,4 +69,66 @@ func TestCanGetRemoteWithHTTPS(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
+}
+
+func TestCanGetWorkspaceNameWithGitAt(t *testing.T) {
+	payload := `
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = git@bitbucket.org:gildas_cherruel/bb.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "alternate"]
+	url = git@bitbucket.org:gildas_cherruel/bb
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+[branch "dev"]
+	remote = origin
+	merge = refs/heads/dev
+	`
+	r, err := remote.Get(context.Background(), strings.NewReader(payload), "origin")
+	assert.NoError(t, err)
+	assert.NotNil(t, r)
+	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())
+
+	r, err = remote.Get(context.Background(), strings.NewReader(payload), "alternate")
+	assert.NoError(t, err)
+	assert.NotNil(t, r)
+	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())
+}
+
+func TestCanGetWorkspaceNameWithHTTPS(t *testing.T) {
+	payload := `
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = https://bitbucket.org/gildas_cherruel/bb.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "alternate"]
+	url = https://bitbucket.org/gildas_cherruel/bb
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+[branch "dev"]
+	remote = origin
+	merge = refs/heads/dev
+	`
+	r, err := remote.Get(context.Background(), strings.NewReader(payload), "origin")
+	assert.NoError(t, err)
+	assert.NotNil(t, r)
+	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())
+
+	r, err = remote.Get(context.Background(), strings.NewReader(payload), "alternate")
+	assert.NoError(t, err)
+	assert.NotNil(t, r)
+	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())
 }
