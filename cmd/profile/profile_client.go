@@ -312,7 +312,10 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 func (profile Profile) getRepositoryFullname(context context.Context, cmd *cobra.Command) (string, error) {
 	log := logger.Must(logger.FromContext(context)).Child("profile", "getrepositoryname")
 
-	fullName := cmd.Flag("repository").Value.String()
+	fullName := ""
+	if cmd != nil {
+		fullName = cmd.Flag("repository").Value.String()
+	}
 	if len(fullName) == 0 {
 		log.Debugf("No repository name given, trying to get it from the current git repository")
 		remote, err := remote.GetFromGitConfig(context, "origin")
