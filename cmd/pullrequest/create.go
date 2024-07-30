@@ -3,22 +3,25 @@ package pullrequest
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
 type PullRequestCreator struct {
-	Title             string         `json:"title"`
-	Description       string         `json:"description,omitempty"`
-	Source            Endpoint       `json:"source"`
-	Destination       *Endpoint      `json:"destination,omitempty"`
-	Reviewers         []user.Account `json:"reviewers,omitempty"`
-	CloseSourceBranch bool           `json:"close_source_branch,omitempty"`
+	Title             string      `json:"title"`
+	Description       string      `json:"description,omitempty"`
+	Source            Endpoint    `json:"source"`
+	Destination       *Endpoint   `json:"destination,omitempty"`
+	Reviewers         []user.User `json:"reviewers,omitempty"`
+	CloseSourceBranch bool        `json:"close_source_branch,omitempty"`
 }
 
 var createCmd = &cobra.Command{
@@ -30,6 +33,7 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
+	Workspace         *flags.EnumFlag
 	Repository        string
 	Title             string
 	Description       string
@@ -42,13 +46,17 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create pullrequest from. Defaults to the current repository")
+	createOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+
+	createCmd.Flags().Var(createOptions.Workspace, "workspace", "Workspace to create pullrequest in")
+	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create pullrequest in. Defaults to the current repository")
 	createCmd.Flags().StringVar(&createOptions.Title, "title", "", "Title of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Source, "source", "", "Source branch of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Destination, "destination", "", "Destination branch of the pullrequest")
 	createCmd.Flags().StringSliceVar(&createOptions.Reviewers, "reviewer", []string{}, "Reviewer of the pullrequest")
 	createCmd.Flags().BoolVar(&createOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
+	_ = createCmd.RegisterFlagCompletionFunc("workspace", createOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {
@@ -75,10 +83,30 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		payload.Destination = &Endpoint{Branch: Branch{Name: createOptions.Destination}}
 	}
 	if len(createOptions.Reviewers) > 0 {
-		payload.Reviewers = make([]user.Account, 0, len(createOptions.Reviewers))
+		isMember := func(member workspace.Member, id string) bool {
+			if id, err := common.ParseUUID(id); err == nil {
+				return member.User.ID == id
+			}
+			return member.User.AccountID == id || strings.EqualFold(member.User.Nickname, id) || strings.EqualFold(member.User.Name, id)
+		}
+
+		var pullrequestWorkspace *workspace.Workspace
+		if len(createOptions.Workspace.Value) > 0 {
+			pullrequestWorkspace, err = workspace.GetWorkspace(cmd.Context(), cmd, profile.Current, createOptions.Workspace.Value)
+		} else {
+			pullrequestWorkspace, err = workspace.GetWorkspaceFromGit(cmd.Context(), cmd, profile.Current)
+		}
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to get repository: %s\n", err)
+			os.Exit(1)
+		}
+
+		members, _ := pullrequestWorkspace.GetMembers(cmd.Context(), cmd)
+		payload.Reviewers = make([]user.User, 0, len(createOptions.Reviewers))
 		for _, reviewer := range createOptions.Reviewers {
-			if id, err := common.ParseUUID(reviewer); err == nil {
-				payload.Reviewers = append(payload.Reviewers, user.Account{Type: "user", ID: id})
+			if matches := core.Filter(members, func(member workspace.Member) bool { return isMember(member, reviewer) }); len(matches) > 0 {
+				log.Record("matches", matches).Infof("Adding reviewer: %s", matches[0].User.ID)
+				payload.Reviewers = append(payload.Reviewers, matches[0].User)
 			} else {
 				log.Errorf("Failed to parse reviewer ID: %s", reviewer)
 				fmt.Fprintf(os.Stderr, "Failed to parse reviewer ID: %s\n", reviewer)
