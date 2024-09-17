@@ -119,7 +119,7 @@ You can also pass the `--progress` flag to display a progress bar when upload/do
 Profiles support the following authentications:
 
 - [OAuth 2.0](https://support.atlassian.com/bitbucket-cloud/docs/use-oauth-on-bitbucket-cloud/) with the `--client-id` and `--client-secret` flags
-- [App passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/) with the `--username` and `--password` flags.
+- [App passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/) with the `--user` and `--password` flags.
 - [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags.
 
 You can get the list of your profiles with the `bb profile list` command:
