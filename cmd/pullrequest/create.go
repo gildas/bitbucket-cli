@@ -38,8 +38,8 @@ var createOptions struct {
 	Repository        string
 	Title             string
 	Description       string
-	Source            string
-	Destination       string
+	Source            *flags.EnumFlag
+	Destination       *flags.EnumFlag
 	Reviewers         *flags.EnumSliceFlag
 	CloseSourceBranch bool
 }
@@ -48,17 +48,23 @@ func init() {
 	Command.AddCommand(createCmd)
 
 	createOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	createOptions.Source = flags.NewEnumFlagWithFunc("", GetBranchNames)
+	createOptions.Destination = flags.NewEnumFlagWithFunc("", GetBranchNames)
 	createOptions.Reviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(GetReviewerNicknames)
 
 	createCmd.Flags().Var(createOptions.Workspace, "workspace", "Workspace to create pullrequest in")
 	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create pullrequest in. Defaults to the current repository")
 	createCmd.Flags().StringVar(&createOptions.Title, "title", "", "Title of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the pullrequest")
-	createCmd.Flags().StringVar(&createOptions.Source, "source", "", "Source branch of the pullrequest")
-	createCmd.Flags().StringVar(&createOptions.Destination, "destination", "", "Destination branch of the pullrequest")
+	createCmd.Flags().Var(createOptions.Source, "source", "Source branch of the pullrequest")
+	createCmd.Flags().Var(createOptions.Destination, "destination", "Destination branch of the pullrequest")
 	createCmd.Flags().Var(createOptions.Reviewers, "reviewer", "Reviewer(s) of the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname")
 	createCmd.Flags().BoolVar(&createOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
+	_ = createCmd.MarkFlagRequired("title")
+	_ = createCmd.MarkFlagRequired("source")
 	_ = createCmd.RegisterFlagCompletionFunc("workspace", createOptions.Workspace.CompletionFunc("workspace"))
+	_ = createCmd.RegisterFlagCompletionFunc("source", createOptions.Source.CompletionFunc("source"))
+	_ = createCmd.RegisterFlagCompletionFunc("destination", createOptions.Destination.CompletionFunc("destination"))
 	_ = createCmd.RegisterFlagCompletionFunc("reviewer", createOptions.Reviewers.CompletionFunc("reviewer"))
 }
 
@@ -72,18 +78,15 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	if len(createOptions.Title) == 0 {
 		return errors.ArgumentMissing.With("title")
 	}
-	if len(createOptions.Source) == 0 {
-		return errors.ArgumentMissing.With("source")
-	}
 
 	payload := PullRequestCreator{
 		Title:             createOptions.Title,
 		Description:       createOptions.Description,
-		Source:            Endpoint{Branch: Branch{Name: createOptions.Source}},
+		Source:            Endpoint{Branch: Branch{Name: createOptions.Source.Value}},
 		CloseSourceBranch: createOptions.CloseSourceBranch,
 	}
-	if len(createOptions.Destination) > 0 {
-		payload.Destination = &Endpoint{Branch: Branch{Name: createOptions.Destination}}
+	if len(createOptions.Destination.Value) > 0 {
+		payload.Destination = &Endpoint{Branch: Branch{Name: createOptions.Destination.Value}}
 	}
 	if len(createOptions.Reviewers.Values) > 0 {
 		isMember := func(member workspace.Member, id string) bool {

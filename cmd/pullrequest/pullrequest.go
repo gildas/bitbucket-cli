@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -57,6 +58,9 @@ func init() {
 }
 
 func SetLogger(log *logger.Logger) {
+	createOptions.Workspace = createOptions.Workspace.WithLogger(log)
+	createOptions.Source = createOptions.Source.WithLogger(log)
+	createOptions.Destination = createOptions.Destination.WithLogger(log)
 	createOptions.Reviewers = createOptions.Reviewers.WithLogger(log)
 }
 
@@ -153,3 +157,11 @@ func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []st
 	})
 }
 
+// GetBranchNames gets the branch names of a repository
+func GetBranchNames(context context.Context, cmd *cobra.Command, args []string) []string {
+	log := logger.Must(logger.FromContext(context)).Child(nil, "getbranches")
+	log.Infof("Getting branches for profile %v", profile.Current)
+	branchNames, _ := branch.GetBranchNames(context, cmd, profile.Current)
+	log.Debugf("%d Branches: %v", len(branchNames), branchNames)
+	return branchNames
+}
