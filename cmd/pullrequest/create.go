@@ -11,6 +11,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -39,7 +40,7 @@ var createOptions struct {
 	Description       string
 	Source            string
 	Destination       string
-	Reviewers         []string
+	Reviewers         *flags.EnumSliceFlag
 	CloseSourceBranch bool
 }
 
@@ -47,6 +48,7 @@ func init() {
 	Command.AddCommand(createCmd)
 
 	createOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	createOptions.Reviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(GetReviewerNicknames)
 
 	createCmd.Flags().Var(createOptions.Workspace, "workspace", "Workspace to create pullrequest in")
 	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create pullrequest in. Defaults to the current repository")
@@ -54,9 +56,10 @@ func init() {
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Source, "source", "", "Source branch of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Destination, "destination", "", "Destination branch of the pullrequest")
-	createCmd.Flags().StringSliceVar(&createOptions.Reviewers, "reviewer", []string{}, "Reviewer of the pullrequest")
+	createCmd.Flags().Var(createOptions.Reviewers, "reviewer", "Reviewer(s) of the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname")
 	createCmd.Flags().BoolVar(&createOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
 	_ = createCmd.RegisterFlagCompletionFunc("workspace", createOptions.Workspace.CompletionFunc("workspace"))
+	_ = createCmd.RegisterFlagCompletionFunc("reviewer", createOptions.Reviewers.CompletionFunc("reviewer"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {
@@ -82,7 +85,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	if len(createOptions.Destination) > 0 {
 		payload.Destination = &Endpoint{Branch: Branch{Name: createOptions.Destination}}
 	}
-	if len(createOptions.Reviewers) > 0 {
+	if len(createOptions.Reviewers.Values) > 0 {
 		isMember := func(member workspace.Member, id string) bool {
 			if id, err := common.ParseUUID(id); err == nil {
 				return member.User.ID == id
@@ -102,8 +105,8 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		}
 
 		members, _ := pullrequestWorkspace.GetMembers(cmd.Context(), cmd)
-		payload.Reviewers = make([]user.User, 0, len(createOptions.Reviewers))
-		for _, reviewer := range createOptions.Reviewers {
+		payload.Reviewers = make([]user.User, 0, len(createOptions.Reviewers.Values))
+		for _, reviewer := range createOptions.Reviewers.Values {
 			if matches := core.Filter(members, func(member workspace.Member) bool { return isMember(member, reviewer) }); len(matches) > 0 {
 				log.Record("matches", matches).Infof("Adding reviewer: %s", matches[0].User.ID)
 				payload.Reviewers = append(payload.Reviewers, matches[0].User)
