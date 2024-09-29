@@ -44,11 +44,7 @@ func cloneValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-	return GetRepositorySlugs(cmd.Context(), cmd, profile.Current, cloneOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
+	return GetRepositorySlugs(cmd.Context(), cmd, cloneOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
 }
 
 func cloneProcess(cmd *cobra.Command, args []string) error {

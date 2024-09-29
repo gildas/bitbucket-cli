@@ -6,7 +6,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -33,22 +32,19 @@ func voteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]stri
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-	return GetIssueIDs(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueIDs(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
 }
 
 func voteProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "vote")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Voting for issue %s", args[0]) {
-		err = profile.Current.Put(
+		err = profile.Put(
 			log.ToContext(cmd.Context()),
 			cmd,
 			fmt.Sprintf("issues/%s/vote", args[0]),

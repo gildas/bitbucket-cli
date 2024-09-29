@@ -63,14 +63,14 @@ func init() {
 func createProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
-	if len(createOptions.Workspace.Value) == 0 {
-		createOptions.Workspace.Value = profile.Current.DefaultWorkspace
-		if len(createOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
+
+	workspace, err := GetWorkspace(cmd, profile)
+	if err != nil {
+		return err
 	}
 
 	payload := ProjectCreator{
@@ -111,10 +111,10 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	var project Project
 
-	err = profile.Current.Post(
+	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("/workspaces/%s/projects", createOptions.Workspace),
+		fmt.Sprintf("/workspaces/%s/projects", workspace),
 		payload,
 		&project,
 	)
@@ -122,5 +122,5 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to create project: %s\n", err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, project)
+	return profile.Print(cmd.Context(), cmd, project)
 }

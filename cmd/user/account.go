@@ -55,39 +55,6 @@ func (account Account) GetRow(headers []string) []string {
 	}
 }
 
-// GetMe gets the current user
-func GetMe(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile) (account *Account, err error) {
-	if currentProfile == nil {
-		return nil, errors.ArgumentMissing.With("profile")
-	}
-
-	err = profile.Current.Get(
-		context,
-		cmd,
-		"/user",
-		&account,
-	)
-	return
-}
-
-// GetAccount gets a user
-func GetAccount(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, userid string) (account *Account, err error) {
-	if currentProfile == nil {
-		return nil, errors.ArgumentMissing.With("profile")
-	}
-
-	uuid, err := common.ParseUUID(userid)
-	if err == nil {
-		err = profile.Current.Get(
-			context,
-			cmd,
-			fmt.Sprintf("/users/%s", uuid.String()),
-			&account,
-		)
-	}
-	return
-}
-
 // MarshalJSON implements the json.Marshaler interface.
 func (account Account) MarshalJSON() (data []byte, err error) {
 	type surrogate Account
@@ -104,4 +71,37 @@ func (account Account) MarshalJSON() (data []byte, err error) {
 		CreatedOn: createdOn,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
+}
+
+// GetMe gets the current user
+func GetMe(context context.Context, cmd *cobra.Command) (account *Account, err error) {
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return nil, err
+	}
+	err = profile.Get(
+		context,
+		cmd,
+		"/user",
+		&account,
+	)
+	return
+}
+
+// GetAccount gets a user
+func GetAccount(context context.Context, cmd *cobra.Command, userid string) (account *Account, err error) {
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return nil, err
+	}
+	uuid, err := common.ParseUUID(userid)
+	if err == nil {
+		err = profile.Get(
+			context,
+			cmd,
+			fmt.Sprintf("/users/%s", uuid.String()),
+			&account,
+		)
+	}
+	return
 }

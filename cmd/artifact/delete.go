@@ -41,31 +41,28 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-	return GetArtifactNames(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
+	return GetArtifactNames(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	var merr errors.MultiError
 	for _, artifactName := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting artifact %s", artifactName) {
-			err := profile.Current.Delete(
+			err := profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
 				fmt.Sprintf("downloads/%s", artifactName),
 				nil,
 			)
 			if err != nil {
-				if profile.Current.ShouldStopOnError(cmd) {
+				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to delete artifact %s: %s\n", artifactName, err)
 					os.Exit(1)
 				} else {
@@ -75,11 +72,11 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("Artifact %s deleted", artifactName)
 		}
 	}
-	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
 		fmt.Fprintf(os.Stderr, "Failed to delete these artifacts: %s\n", merr)
 		return nil
 	}
-	if profile.Current.ShouldIgnoreErrors(cmd) {
+	if profile.ShouldIgnoreErrors(cmd) {
 		log.Warnf("Failed to delete these artifacts, but ignoring errors: %s", merr)
 		return nil
 	}

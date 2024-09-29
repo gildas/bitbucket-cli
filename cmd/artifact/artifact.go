@@ -50,10 +50,11 @@ func (artifact Artifact) GetRow(headers []string) []string {
 	}
 }
 
-func GetArtifactNames(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile) (names []string) {
+// GetArtifactNames gets the names of the artifacts
+func GetArtifactNames(context context.Context, cmd *cobra.Command) (names []string) {
 	log := logger.Must(logger.FromContext(context)).Child("artifact", "getnames")
 
-	artifacts, err := profile.GetAll[Artifact](cmd.Context(), cmd, profile.Current, "downloads")
+	artifacts, err := profile.GetAll[Artifact](cmd.Context(), cmd, "downloads")
 	if err != nil {
 		log.Errorf("Failed to get artifacts: %s", err)
 		return []string{}

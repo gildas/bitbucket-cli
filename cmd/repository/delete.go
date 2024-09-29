@@ -45,11 +45,7 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-	return GetRepositorySlugs(cmd.Context(), cmd, profile.Current, deleteOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
+	return GetRepositorySlugs(cmd.Context(), cmd, deleteOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {

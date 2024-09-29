@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -30,20 +29,21 @@ func init() {
 func getProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	log.Infof("Displaying account %s", args[0])
 	var account *Account
 
 	if strings.ToLower(args[0]) == "myself" || strings.ToLower(args[0]) == "me" {
-		account, err = GetMe(cmd.Context(), cmd, profile.Current)
+		account, err = GetMe(cmd.Context(), cmd)
 	} else {
-		account, err = GetAccount(cmd.Context(), cmd, profile.Current, args[0])
+		account, err = GetAccount(cmd.Context(), cmd, args[0])
 	}
 	if err != nil {
 		return err
 	}
-	return profile.Current.Print(cmd.Context(), cmd, account)
+	return profile.Print(cmd.Context(), cmd, account)
 }

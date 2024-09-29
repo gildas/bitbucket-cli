@@ -48,30 +48,32 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
+	attachmentNames, err := GetAttachmentNames(cmd.Context(), cmd, deleteOptions.IssueID.Value)
+	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetAttachmentNames(cmd.Context(), cmd, profile.Current, downloadOptions.IssueID.Value), cobra.ShellCompDirectiveNoFileComp
+	return attachmentNames, cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	var merr errors.MultiError
 	for _, attachmentID := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting attachment %s from issue %s", attachmentID, deleteOptions.IssueID) {
-			err := profile.Current.Delete(
+			err := profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
 				fmt.Sprintf("issues/%s/attachments/%s", deleteOptions.IssueID.Value, attachmentID),
 				nil,
 			)
 			if err != nil {
-				if profile.Current.ShouldStopOnError(cmd) {
+				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to delete issue attachment %s: %s\n", attachmentID, err)
 					os.Exit(1)
 				} else {
@@ -81,11 +83,11 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("Issue attachment %s deleted", attachmentID)
 		}
 	}
-	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
 		fmt.Fprintf(os.Stderr, "Failed to delete these attachments: %s\n", merr)
 		return nil
 	}
-	if profile.Current.ShouldIgnoreErrors(cmd) {
+	if profile.ShouldIgnoreErrors(cmd) {
 		log.Warnf("Failed to delete these attachments, but ignoring errors: %s", merr)
 		return nil
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
@@ -55,13 +56,6 @@ var Command = &cobra.Command{
 
 func init() {
 	Command.AddCommand(comment.Command)
-}
-
-func SetLogger(log *logger.Logger) {
-	createOptions.Workspace = createOptions.Workspace.WithLogger(log)
-	createOptions.Source = createOptions.Source.WithLogger(log)
-	createOptions.Destination = createOptions.Destination.WithLogger(log)
-	createOptions.Reviewers = createOptions.Reviewers.WithLogger(log)
 }
 
 // GetHeader gets the header for a table
@@ -123,7 +117,6 @@ func GetPullRequestIDs(context context.Context, cmd *cobra.Command, repository s
 	pullrequests, err := profile.GetAll[PullRequest](
 		log.ToContext(context),
 		cmd,
-		profile.Current,
 		fmt.Sprintf("pullrequests?state=%s", state),
 	)
 	if err != nil {
@@ -137,31 +130,33 @@ func GetPullRequestIDs(context context.Context, cmd *cobra.Command, repository s
 }
 
 // GetReviewerNicknames gets the reviewer nicknames for the current Workspace
-func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string) []string {
+func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string) (nicknames []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getreviewers")
 	var pullrequestWorkspace *workspace.Workspace
-	var err error
+
+	if cmd == nil {
+		fmt.Fprintln(os.Stderr, "cmd is nil")
+		return []string{}, errors.ArgumentMissing.With("cmd")
+	}
 
 	if workspaceName := cmd.Flag("workspace").Value.String(); len(workspaceName) > 0 {
-		pullrequestWorkspace, err = workspace.GetWorkspace(cmd.Context(), cmd, profile.Current, workspaceName)
+		pullrequestWorkspace, err = workspace.GetWorkspace(cmd.Context(), cmd, workspaceName)
 	} else {
-		pullrequestWorkspace, err = workspace.GetWorkspaceFromGit(cmd.Context(), cmd, profile.Current)
+		pullrequestWorkspace, err = workspace.GetWorkspaceFromGit(cmd.Context(), cmd)
 	}
 	if err != nil {
 		log.Errorf("Failed to get repository: %s", err)
-		return []string{}
+		return []string{}, err
 	}
 	members, _ := pullrequestWorkspace.GetMembers(context, cmd)
 	return core.Map(members, func(member workspace.Member) string {
 		return member.User.Nickname
-	})
+	}), nil
 }
 
 // GetBranchNames gets the branch names of a repository
-func GetBranchNames(context context.Context, cmd *cobra.Command, args []string) []string {
+func GetBranchNames(context context.Context, cmd *cobra.Command, args []string) ([]string, error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getbranches")
 	log.Infof("Getting branches for profile %v", profile.Current)
-	branchNames, _ := branch.GetBranchNames(context, cmd, profile.Current)
-	log.Debugf("%d Branches: %v", len(branchNames), branchNames)
-	return branchNames
+	return branch.GetBranchNames(context, cmd)
 }

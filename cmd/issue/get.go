@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -35,39 +34,31 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-	return GetIssueIDs(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueIDs(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	if getOptions.Changes {
 		log.Infof("Displaying changes for issue %s", args[0])
-		changes, err := profile.GetAll[IssueChange](
-			log.ToContext(cmd.Context()),
-			cmd,
-			profile.Current,
-			fmt.Sprintf("issues/%s/changes", args[0]),
-		)
+		changes, err := GetIssueChanges(cmd.Context(), cmd, args[0])
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get issue %s: %s\n", args[0], err)
 			os.Exit(1)
 		}
-		return profile.Current.Print(cmd.Context(), cmd, IssueChanges(changes))
+		return profile.Print(cmd.Context(), cmd, IssueChanges(changes))
 	}
 
 	log.Infof("Displaying issue %s", args[0])
 	var issue Issue
 
-	err = profile.Current.Get(
+	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("issues/%s", args[0]),
@@ -77,5 +68,5 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to get issue %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, issue)
+	return profile.Print(cmd.Context(), cmd, issue)
 }

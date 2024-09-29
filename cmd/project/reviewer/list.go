@@ -5,7 +5,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -37,28 +36,21 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	currentProfile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
-	if len(listOptions.Workspace.Value) == 0 {
-		listOptions.Workspace.Value = profile.Current.DefaultWorkspace
-		if len(listOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
-	}
-	if len(listOptions.Project.Value) == 0 {
-		listOptions.Project.Value = profile.Current.DefaultProject
-		if len(listOptions.Project.Value) == 0 {
-			return errors.ArgumentMissing.With("project")
-		}
+
+	workspace, project, err := GetWorkspaceAndProject(cmd, currentProfile)
+	if err != nil {
+		return err
 	}
 
 	log.Infof("Listing all reviewers")
 	reviewers, err := profile.GetAll[Reviewer](
 		cmd.Context(),
 		cmd,
-		profile.Current,
-		fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", listOptions.Workspace, listOptions.Project),
+		fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspace, project),
 	)
 	if err != nil {
 		return err

@@ -45,36 +45,37 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
+	keys, err := GetProjectKeys(cmd.Context(), cmd, args)
+	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetProjectKeys(cmd.Context(), cmd, args), cobra.ShellCompDirectiveNoFileComp
+	return keys, cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
-	if len(deleteOptions.Workspace.Value) == 0 {
-		deleteOptions.Workspace.Value = profile.Current.DefaultWorkspace
-		if len(deleteOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
+
+	workspace, err := GetWorkspace(cmd, profile)
+	if err != nil {
+		return err
 	}
 
 	var merr errors.MultiError
 	for _, projectKey := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting project %s", projectKey) {
-			err := profile.Current.Delete(
+			err := profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
-				fmt.Sprintf("/workspaces/%s/projects/%s", deleteOptions.Workspace, projectKey),
+				fmt.Sprintf("/workspaces/%s/projects/%s", workspace, projectKey),
 				nil,
 			)
 			if err != nil {
-				if profile.Current.ShouldStopOnError(cmd) {
+				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to delete project %s: %s\n", projectKey, err)
 					os.Exit(1)
 				} else {
@@ -84,11 +85,11 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("Project %s deleted", projectKey)
 		}
 	}
-	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
 		fmt.Fprintf(os.Stderr, "Failed to delete these projects: %s\n", merr)
 		return nil
 	}
-	if profile.Current.ShouldIgnoreErrors(cmd) {
+	if profile.ShouldIgnoreErrors(cmd) {
 		log.Warnf("Failed to delete these projects, but ignoring errors: %s", merr)
 		return nil
 	}

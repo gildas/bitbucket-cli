@@ -3,7 +3,6 @@ package repository
 import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -35,10 +34,6 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
-	}
-
 	filter := ""
 	if listOptions.Role.Value != "all" {
 		filter = "?role=" + listOptions.Role.Value
@@ -53,7 +48,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	repositories, err := profile.GetAll[Repository](
 		cmd.Context(),
 		cmd,
-		profile.Current,
 		"/repositories"+workspace+filter,
 	)
 	if err != nil {

@@ -38,11 +38,12 @@ func getVAlidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
+	slugs, err := GetWorkspaceSlugs(cmd.Context(), cmd, args)
+	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return GetWorkspaceSlugs(cmd.Context(), cmd, args), cobra.ShellCompDirectiveNoFileComp
+	return slugs, cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
@@ -76,7 +77,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying workspace %s", args[0])
-	workspace, err := GetWorkspace(cmd.Context(), cmd, profile.Current, args[0])
+	workspace, err := GetWorkspace(cmd.Context(), cmd, args[0])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get workspace %s: %s\n", args[0], err)
 		os.Exit(1)

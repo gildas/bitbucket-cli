@@ -124,8 +124,20 @@ func (project Project) MarshalJSON() (data []byte, err error) {
 	return data, errors.JSONMarshalError.Wrap(err)
 }
 
+// GetWorkspace gets the workspace from the command
+func GetWorkspace(cmd *cobra.Command, profile *profile.Profile) (workspace string, err error) {
+	workspace = cmd.Flag("workspace").Value.String()
+	if len(workspace) == 0 {
+		workspace = profile.DefaultWorkspace
+		if len(workspace) == 0 {
+			return "", errors.ArgumentMissing.With("workspace")
+		}
+	}
+	return
+}
+
 // GetProjectKeys gets the keys of the projects in the workspace given in the command
-func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) (keys []string) {
+func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) (keys []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 
 	workspace := cmd.Flag("workspace").Value.String()
@@ -137,18 +149,18 @@ func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) 
 		}
 	}
 
-	projects, err := profile.GetAll[Project](context, cmd, profile.Current, fmt.Sprintf("/workspaces/%s/projects", workspace))
+	projects, err := profile.GetAll[Project](context, cmd, fmt.Sprintf("/workspaces/%s/projects", workspace))
 	if err != nil {
 		log.Errorf("Failed to get projects", err)
 		return
 	}
 	return core.Map(projects, func(project Project) string {
 		return project.Key
-	})
+	}), nil
 }
 
 // GetProjectNames gets the names of the projects in the workspace given in the command
-func GetProjectNames(context context.Context, cmd *cobra.Command, args []string) (names []string) {
+func GetProjectNames(context context.Context, cmd *cobra.Command, args []string) (names []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "names")
 
 	workspace := cmd.Flag("workspace").Value.String()
@@ -161,12 +173,12 @@ func GetProjectNames(context context.Context, cmd *cobra.Command, args []string)
 	}
 
 	log.Infof("Getting all projects from workspace %s", workspace)
-	projects, err := profile.GetAll[Project](context, cmd, profile.Current, fmt.Sprintf("/workspaces/%s/projects", workspace))
+	projects, err := profile.GetAll[Project](context, cmd, fmt.Sprintf("/workspaces/%s/projects", workspace))
 	if err != nil {
 		log.Errorf("Failed to get projects", err)
 		return
 	}
 	return core.Map(projects, func(project Project) string {
 		return project.Name
-	})
+	}), nil
 }

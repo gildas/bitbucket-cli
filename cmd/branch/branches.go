@@ -5,7 +5,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
-	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
@@ -36,15 +35,13 @@ func (branches Branches) Size() int {
 }
 
 // GetBranches gets the branches of a repository
-func GetBranches(context context.Context, cmd *cobra.Command, p *profile.Profile) (branches []Branch, err error) {
-	return profile.GetAll[Branch](context, cmd, p, "refs/branches")
+func GetBranches(context context.Context, cmd *cobra.Command) (branches []Branch, err error) {
+	return profile.GetAll[Branch](context, cmd, "refs/branches")
 }
 
 // GetBranchNames gets the branch names of a repository
-func GetBranchNames(context context.Context, cmd *cobra.Command, profile *profile.Profile) (brancheNames []string, err error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "getbranchenames")
-	log.Infof("Getting branches for profile %v", profile)
-	branches, err := GetBranches(context, cmd, profile)
+func GetBranchNames(context context.Context, cmd *cobra.Command) (brancheNames []string, err error) {
+	branches, err := GetBranches(context, cmd)
 	if err != nil {
 		return []string{}, err
 	}

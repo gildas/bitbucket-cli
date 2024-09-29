@@ -119,10 +119,10 @@ func (repository Repository) String() string {
 }
 
 // GetRepositorySlugs gets the slugs of all repositories
-func GetRepositorySlugs(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, workspace string) (slugs []string) {
+func GetRepositorySlugs(context context.Context, cmd *cobra.Command, workspace string) (slugs []string) {
 	log := logger.Must(logger.FromContext(context)).Child("repository", "slugs")
 
-	repositories, err := profile.GetAll[Repository](context, cmd, currentProfile, fmt.Sprintf("/repositories/%s", workspace))
+	repositories, err := profile.GetAll[Repository](context, cmd, fmt.Sprintf("/repositories/%s", workspace))
 	if err != nil {
 		log.Errorf("Failed to get repositories", err)
 		return

@@ -6,7 +6,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -46,21 +45,23 @@ func downloadValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
+	attachmentNames, err := GetAttachmentNames(cmd.Context(), cmd, deleteOptions.IssueID.Value)
+	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetAttachmentNames(cmd.Context(), cmd, profile.Current, downloadOptions.IssueID.Value), cobra.ShellCompDirectiveNoFileComp
+	return attachmentNames, cobra.ShellCompDirectiveNoFileComp
 }
 
 func downloadProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "download")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Downloading attachment %s from issue %s to %s", args[0], downloadOptions.IssueID, downloadOptions.Destination) {
-		err := profile.Current.Download(
+		err := profile.Download(
 			log.ToContext(cmd.Context()),
 			cmd,
 			fmt.Sprintf("issues/%s/attachments/%s", downloadOptions.IssueID.Value, args[0]),

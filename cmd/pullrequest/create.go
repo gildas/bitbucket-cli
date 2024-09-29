@@ -98,9 +98,9 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 		var pullrequestWorkspace *workspace.Workspace
 		if len(createOptions.Workspace.Value) > 0 {
-			pullrequestWorkspace, err = workspace.GetWorkspace(cmd.Context(), cmd, profile.Current, createOptions.Workspace.Value)
+			pullrequestWorkspace, err = workspace.GetWorkspace(cmd.Context(), cmd, createOptions.Workspace.Value)
 		} else {
-			pullrequestWorkspace, err = workspace.GetWorkspaceFromGit(cmd.Context(), cmd, profile.Current)
+			pullrequestWorkspace, err = workspace.GetWorkspaceFromGit(cmd.Context(), cmd)
 		}
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get repository: %s\n", err)

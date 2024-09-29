@@ -41,21 +41,22 @@ func init() {
 func uploadProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "upload")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	var merr errors.MultiError
 	for _, artifactName := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading artifact %s to %s", artifactName, downloadOptions.Destination) {
-			err := profile.Current.Upload(
+			err := profile.Upload(
 				log.ToContext(cmd.Context()),
 				cmd,
 				"downloads",
 				args[0],
 			)
 			if err != nil {
-				if profile.Current.ShouldStopOnError(cmd) {
+				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to upload artifact %s: %s\n", artifactName, err)
 					os.Exit(1)
 				} else {
@@ -65,11 +66,11 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("Artifact %s downloaded", artifactName)
 		}
 	}
-	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
 		fmt.Fprintf(os.Stderr, "Failed to upload these artifacts: %s\n", merr)
 		return nil
 	}
-	if profile.Current.ShouldIgnoreErrors(cmd) {
+	if profile.ShouldIgnoreErrors(cmd) {
 		log.Warnf("Failed to upload these artifacts, but ignoring errors: %s", merr)
 		return nil
 	}

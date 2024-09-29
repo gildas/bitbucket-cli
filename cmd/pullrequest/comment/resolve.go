@@ -41,10 +41,11 @@ func resolveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
+	commentIDs, err := GetPullRequestCommentIDs(cmd.Context(), cmd, deleteOptions.PullRequestID.Value)
+	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetPullRequestCommentIDs(cmd.Context(), cmd, profile.Current, reopenOptions.PullRequestID.Value), cobra.ShellCompDirectiveNoFileComp
+	return commentIDs, cobra.ShellCompDirectiveNoFileComp
 }
 
 func resolveProcess(cmd *cobra.Command, args []string) (err error) {

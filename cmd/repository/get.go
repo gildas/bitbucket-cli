@@ -39,11 +39,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-	return GetRepositorySlugs(cmd.Context(), cmd, profile.Current, getOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
+	return GetRepositorySlugs(cmd.Context(), cmd, getOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
@@ -64,7 +60,6 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		forks, err := profile.GetAll[Repository](
 			cmd.Context(),
 			cmd,
-			profile.Current,
 			fmt.Sprintf("/repositories/%s/%s/forks", getOptions.Workspace, args[0]),
 		)
 		if err != nil {

@@ -62,10 +62,11 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
+	commentIDs, err := GetPullRequestCommentIDs(cmd.Context(), cmd, deleteOptions.PullRequestID.Value)
+	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetPullRequestCommentIDs(cmd.Context(), cmd, profile.Current, updateOptions.PullRequestID.Value), cobra.ShellCompDirectiveNoFileComp
+	return commentIDs, cobra.ShellCompDirectiveNoFileComp
 }
 
 func updateProcess(cmd *cobra.Command, args []string) (err error) {

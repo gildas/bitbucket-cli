@@ -63,23 +63,24 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
+	keys, err := GetProjectKeys(cmd.Context(), cmd, args)
+	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetProjectKeys(cmd.Context(), cmd, args), cobra.ShellCompDirectiveNoFileComp
+	return keys, cobra.ShellCompDirectiveNoFileComp
 }
 
 func updateProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
-	if len(updateOptions.Workspace.Value) == 0 {
-		updateOptions.Workspace.Value = profile.Current.DefaultWorkspace
-		if len(updateOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
+
+	workspace, err := GetWorkspace(cmd, profile)
+	if err != nil {
+		return err
 	}
 
 	payload := ProjectUpdator{
@@ -120,10 +121,10 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	}
 	var project Project
 
-	err := profile.Current.Put(
+	err = profile.Put(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("/workspaces/%s/projects/%s", updateOptions.Workspace, args[0]),
+		fmt.Sprintf("/workspaces/%s/projects/%s", workspace, args[0]),
 		payload,
 		&project,
 	)
@@ -131,5 +132,5 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to update project: %s\n", err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, project)
+	return profile.Print(cmd.Context(), cmd, project)
 }
