@@ -17,6 +17,9 @@ var VERSION = "0.10.2"
 // APP is the name of the application
 const APP = "bb"
 
+// PACKAGE is the name of the package (used to create artifacts)
+const PACKAGE = "bitbucket-cli"
+
 // Version gets the current version of the application
 func Version() string {
 	if strings.HasPrefix(strings.ToLower(branch), "dev") || strings.HasPrefix(strings.ToLower(branch), "feature") {
