@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -35,8 +36,8 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
 	filter := ""
-	if !listOptions.States.Contains("all") {
-		if states := listOptions.States.Get(); len(states) > 0 {
+	if !core.Contains(listOptions.States.GetSlice(), "all") {
+		if states := listOptions.States.GetSlice(); len(states) > 0 {
 			filter = "?q="
 			for index, state := range states {
 				if index > 0 {
