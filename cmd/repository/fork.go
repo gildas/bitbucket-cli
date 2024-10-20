@@ -67,8 +67,7 @@ func forkValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]stri
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-
-	return GetRepositorySlugs(cmd.Context(), cmd, profile.Current, forkOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
+	return GetRepositorySlugs(cmd.Context(), cmd, forkOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
 }
 
 func forkProcess(cmd *cobra.Command, args []string) error {

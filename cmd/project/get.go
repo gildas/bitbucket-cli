@@ -6,7 +6,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -38,37 +37,38 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
+	keys, err := GetProjectKeys(cmd.Context(), cmd, args)
+	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetProjectKeys(cmd.Context(), cmd, args), cobra.ShellCompDirectiveNoFileComp
+	return keys, cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
-	if len(getOptions.Workspace.Value) == 0 {
-		getOptions.Workspace.Value = profile.Current.DefaultWorkspace
-		if len(getOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
+
+	workspace, err := GetWorkspace(cmd, profile)
+	if err != nil {
+		return err
 	}
 
 	log.Infof("Displaying project %s", args[0])
 	var project Project
 
-	err := profile.Current.Get(
+	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("/workspaces/%s/projects/%s", getOptions.Workspace, args[0]),
+		fmt.Sprintf("/workspaces/%s/projects/%s", workspace, args[0]),
 		&project,
 	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get project %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, project)
+	return profile.Print(cmd.Context(), cmd, project)
 }

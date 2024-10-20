@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"github.com/gildas/go-errors"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -35,13 +35,9 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
-	}
-
 	filter := ""
-	if !listOptions.States.Contains("all") {
-		if states := listOptions.States.Get(); len(states) > 0 {
+	if !core.Contains(listOptions.States.GetSlice(), "all") {
+		if states := listOptions.States.GetSlice(); len(states) > 0 {
 			filter = "?q="
 			for index, state := range states {
 				if index > 0 {
@@ -53,7 +49,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all issues from repository %s with profile %s", listOptions.Repository, profile.Current)
-	issues, err := profile.GetAll[Issue](cmd.Context(), cmd, profile.Current, "issues"+filter)
+	issues, err := profile.GetAll[Issue](cmd.Context(), cmd, "issues"+filter)
 	if err != nil {
 		return err
 	}

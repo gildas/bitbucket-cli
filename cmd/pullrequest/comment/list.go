@@ -44,7 +44,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	comments, err := profile.GetAll[Comment](
 		cmd.Context(),
 		cmd,
-		profile.Current,
 		fmt.Sprintf("pullrequests/%s/comments", listOptions.PullRequestID.Value),
 	)
 	if err != nil {

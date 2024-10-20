@@ -46,31 +46,28 @@ func downloadValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-	return GetArtifactNames(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
+	return GetArtifactNames(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "download")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	var merr errors.MultiError
 	for _, artifactName := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Downloading artifact %s to %s", artifactName, downloadOptions.Destination) {
-			err := profile.Current.Download(
+			err := profile.Download(
 				log.ToContext(cmd.Context()),
 				cmd,
 				fmt.Sprintf("downloads/%s", artifactName),
 				downloadOptions.Destination,
 			)
 			if err != nil {
-				if profile.Current.ShouldStopOnError(cmd) {
+				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to download artifact %s: %s\n", artifactName, err)
 					os.Exit(1)
 				} else {
@@ -80,11 +77,11 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("Artifact %s downloaded", artifactName)
 		}
 	}
-	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
 		fmt.Fprintf(os.Stderr, "Failed to download these artifacts: %s\n", merr)
 		return nil
 	}
-	if profile.Current.ShouldIgnoreErrors(cmd) {
+	if profile.ShouldIgnoreErrors(cmd) {
 		log.Warnf("Failed to download these artifacts, but ignoring errors: %s", merr)
 		return nil
 	}

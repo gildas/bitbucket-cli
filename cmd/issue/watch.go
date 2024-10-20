@@ -6,7 +6,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -35,22 +34,19 @@ func watchValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-	return GetIssueIDs(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueIDs(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
 }
 
 func watchProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "watch")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	if watchOptions.Check {
-		err = profile.Current.Get(
+		err = profile.Get(
 			log.ToContext(cmd.Context()),
 			cmd,
 			fmt.Sprintf("issues/%s/watch", args[0]),
@@ -60,7 +56,7 @@ func watchProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Watching issue %s", args[0]) {
-		err = profile.Current.Put(
+		err = profile.Put(
 			log.ToContext(cmd.Context()),
 			cmd,
 			fmt.Sprintf("issues/%s/watch", args[0]),

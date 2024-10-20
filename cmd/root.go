@@ -46,6 +46,12 @@ var RootCmd = &cobra.Command{
 	Short: "BitBucket Command Line Interface",
 	Long: `BitBucket Command Line Interface is a tool to manage your BitBucket.
 You can manage your pull requests, issues, profiles, etc.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("bb requires a command:")
+		for _, command := range cmd.Commands() {
+			fmt.Println(command.Name())
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -106,7 +112,7 @@ func initConfig() {
 		log.SetFilterLevel(logger.DEBUG)
 	}
 
-	log.Infof(strings.Repeat("-", 80))
+	log.Infof("%s", strings.Repeat("-", 80))
 	log.Infof("Starting %s v%s (%s)", RootCmd.Name(), RootCmd.Version, runtime.GOARCH)
 	log.Infof("Log Destination: %s", log)
 

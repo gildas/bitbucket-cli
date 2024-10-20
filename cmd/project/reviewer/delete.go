@@ -50,49 +50,37 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
+	userIDs, err := GetReviewerUserIDs(cmd.Context(), cmd, deleteOptions.Project.Value)
+	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	workspace := deleteOptions.Workspace.Value
-	if len(workspace) == 0 {
-		workspace = profile.Current.DefaultWorkspace
-		if len(workspace) == 0 {
-			return []string{}, cobra.ShellCompDirectiveNoFileComp
-		}
-	}
-	return GetReviewerUserIDs(cmd.Context(), cmd, profile.Current, workspace, deleteOptions.Project.Value), cobra.ShellCompDirectiveNoFileComp
+	return userIDs, cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
-	if len(deleteOptions.Workspace.Value) == 0 {
-		deleteOptions.Workspace.Value = profile.Current.DefaultWorkspace
-		if len(deleteOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
-	}
-	if len(deleteOptions.Project.Value) == 0 {
-		deleteOptions.Project.Value = profile.Current.DefaultProject
-		if len(deleteOptions.Project.Value) == 0 {
-			return errors.ArgumentMissing.With("project")
-		}
+
+	workspace, project, err := GetWorkspaceAndProject(cmd, profile)
+	if err != nil {
+		return err
 	}
 
 	var merr errors.MultiError
 	for _, userID := range args {
-		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting default reviewer %s from project %s", userID, deleteOptions.Project) {
-			err := profile.Current.Delete(
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting default reviewer %s from project %s", userID, project) {
+			err := profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
-				fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers/%s", deleteOptions.Workspace, deleteOptions.Project, userID),
+				fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers/%s", workspace, project, userID),
 				nil,
 			)
 			if err != nil {
-				if profile.Current.ShouldStopOnError(cmd) {
+				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to delete default reviewer %s: %s\n", userID, err)
 					os.Exit(1)
 				} else {
@@ -102,11 +90,11 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("Default reviewer %s deleted", userID)
 		}
 	}
-	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
 		fmt.Fprintf(os.Stderr, "Failed to delete these reviewers: %s\n", merr)
 		return nil
 	}
-	if profile.Current.ShouldIgnoreErrors(cmd) {
+	if profile.ShouldIgnoreErrors(cmd) {
 		log.Warnf("Failed to delete these reviewers, but ignoring errors: %s", merr)
 		return nil
 	}

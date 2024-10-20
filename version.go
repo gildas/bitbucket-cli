@@ -12,10 +12,13 @@ var branch string
 var stamp string
 
 // VERSION is the version of this application
-var VERSION = "0.10.2"
+var VERSION = "0.11.0"
 
 // APP is the name of the application
 const APP = "bb"
+
+// PACKAGE is the name of the package (used to create artifacts)
+const PACKAGE = "bitbucket-cli"
 
 // Version gets the current version of the application
 func Version() string {

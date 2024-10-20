@@ -1,5 +1,13 @@
 package branch
 
+import (
+	"context"
+
+	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/go-core"
+	"github.com/spf13/cobra"
+)
+
 type Branches []Branch
 
 // GetHeader gets the header for a table
@@ -24,4 +32,20 @@ func (branches Branches) GetRowAt(index int, headers []string) []string {
 // implements common.Tableables
 func (branches Branches) Size() int {
 	return len(branches)
+}
+
+// GetBranches gets the branches of a repository
+func GetBranches(context context.Context, cmd *cobra.Command) (branches []Branch, err error) {
+	return profile.GetAll[Branch](context, cmd, "refs/branches")
+}
+
+// GetBranchNames gets the branch names of a repository
+func GetBranchNames(context context.Context, cmd *cobra.Command) (brancheNames []string, err error) {
+	branches, err := GetBranches(context, cmd)
+	if err != nil {
+		return []string{}, err
+	}
+	return core.Map(branches, func(branch Branch) string {
+		return branch.Name
+	}), nil
 }

@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -49,17 +50,64 @@ func (workspace Workspace) GetRow(headers []string) []string {
 	}
 }
 
+// GetWorkspace gets the workspace by its slug
+func GetWorkspace(context context.Context, cmd *cobra.Command, workspace string) (*Workspace, error) {
+	log := logger.Must(logger.FromContext(context)).Child("workspace", "get")
+
+	currentProfile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Infof("Retrieving workspace %s", workspace)
+	var result Workspace
+
+	err = currentProfile.Get(
+		log.ToContext(context),
+		cmd,
+		fmt.Sprintf("/workspaces/%s", workspace),
+		&result,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// GetWorkspaceFromGit gets the workspace from the git config
+func GetWorkspaceFromGit(context context.Context, cmd *cobra.Command) (workspace *Workspace, err error) {
+	remote, err := remote.GetFromGitConfig(context, "origin")
+	if err != nil {
+		return nil, err
+	}
+	return GetWorkspace(context, cmd, remote.WorkspaceName())
+}
+
+// GetMembers gets the members of the workspace
+func (workspace Workspace) GetMembers(context context.Context, cmd *cobra.Command) (members []Member, err error) {
+	members, err = profile.GetAll[Member](
+		cmd.Context(),
+		cmd,
+		fmt.Sprintf("/workspaces/%s/members", workspace.Slug),
+	)
+	if err != nil {
+		return []Member{}, err
+	}
+	return
+}
+
 // GetWorkspaceSlugs gets the slugs of all workspaces
-func GetWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string) (slugs []string) {
+func GetWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string) (slugs []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
 
 	log.Debugf("Getting all workspaces")
-	workspaces, err := profile.GetAll[Workspace](context, cmd, profile.Current, "/workspaces")
+	workspaces, err := profile.GetAll[Workspace](context, cmd, "/workspaces")
 	if err != nil {
 		log.Errorf("Failed to get workspaces", err)
 		return
 	}
 	return core.Map(workspaces, func(workspace Workspace) string {
 		return workspace.Slug
-	})
+	}), nil
 }

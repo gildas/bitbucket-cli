@@ -54,10 +54,10 @@ func (component Component) String() string {
 }
 
 // GetComponentIDs gets the IDs of the components
-func GetComponentIDs(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile) (ids []string) {
+func GetComponentIDs(context context.Context, cmd *cobra.Command) (ids []string) {
 	log := logger.Must(logger.FromContext(context)).Child("component", "getids")
 
-	components, err := profile.GetAll[Component](context, cmd, currentProfile, "components")
+	components, err := profile.GetAll[Component](context, cmd, "components")
 	if err != nil {
 		log.Errorf("Failed to get components", err)
 		return []string{}

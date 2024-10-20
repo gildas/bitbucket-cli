@@ -7,7 +7,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -43,50 +42,38 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
+	userIDs, err := GetReviewerUserIDs(cmd.Context(), cmd, deleteOptions.Project.Value)
+	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	workspace := getOptions.Workspace.Value
-	if len(workspace) == 0 {
-		workspace = profile.Current.DefaultWorkspace
-		if len(workspace) == 0 {
-			return []string{}, cobra.ShellCompDirectiveNoFileComp
-		}
-	}
-	return GetReviewerUserIDs(cmd.Context(), cmd, profile.Current, workspace, getOptions.Project.Value), cobra.ShellCompDirectiveNoFileComp
+	return userIDs, cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
-	if len(getOptions.Workspace.Value) == 0 {
-		getOptions.Workspace.Value = profile.Current.DefaultWorkspace
-		if len(getOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
-	}
-	if len(getOptions.Project.Value) == 0 {
-		getOptions.Project.Value = profile.Current.DefaultProject
-		if len(getOptions.Project.Value) == 0 {
-			return errors.ArgumentMissing.With("project")
-		}
+
+	workspace, project, err := GetWorkspaceAndProject(cmd, profile)
+	if err != nil {
+		return err
 	}
 
 	log.Infof("Displaying reviewer %s", args[0])
 	var user user.User
 
-	err := profile.Current.Get(
+	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers/%s", getOptions.Workspace, getOptions.Project, args[0]),
+		fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers/%s", workspace, project, args[0]),
 		&user,
 	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get reviewer: %s\n", err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, user)
+	return profile.Print(cmd.Context(), cmd, user)
 }

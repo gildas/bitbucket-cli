@@ -51,13 +51,39 @@ func (reviewer *Reviewer) Validate() error {
 	return merr.AsError()
 }
 
+// GetWorkspaceAndProject gets the workspace and project from the command
+func GetWorkspaceAndProject(cmd *cobra.Command, profile *profile.Profile) (workspace, project string, err error) {
+	workspace = cmd.Flag("workspace").Value.String()
+	if len(workspace) == 0 {
+		workspace = profile.DefaultWorkspace
+		if len(workspace) == 0 {
+			return "", "", errors.ArgumentMissing.With("workspace")
+		}
+	}
+
+	project = cmd.Flag("project").Value.String()
+	if len(project) == 0 {
+		project = profile.DefaultProject
+		if len(project) == 0 {
+			return "", "", errors.ArgumentMissing.With("project")
+		}
+	}
+	return
+}
+
 // GetProjectKeys gets the keys of the projects in the workspace given in the command
-func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) (keys []string) {
+func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) (keys []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
+
+	currentProfile, err := profile.GetProfileFromCommand(context, cmd)
+	if err != nil {
+		log.Errorf("Failed to get profile.", err)
+		return nil, err
+	}
 
 	workspace := cmd.Flag("workspace").Value.String()
 	if len(workspace) == 0 {
-		workspace = profile.Current.DefaultWorkspace
+		workspace = currentProfile.DefaultWorkspace
 		if len(workspace) == 0 {
 			log.Warnf("No workspace given")
 			return
@@ -69,26 +95,38 @@ func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) 
 	}
 
 	log.Infof("Getting all projects from workspace %s", workspace)
-	projects, err := profile.GetAll[Project](context, cmd, profile.Current, fmt.Sprintf("/workspaces/%s/projects", workspace))
+	projects, err := profile.GetAll[Project](context, cmd, fmt.Sprintf("/workspaces/%s/projects", workspace))
 	if err != nil {
 		log.Errorf("Failed to get projects", err)
 		return
 	}
 	return core.Map(projects, func(project Project) string {
 		return project.Key
-	})
+	}), nil
 }
 
 // GetReviewerIDs gets the IDs of the reviewers in the given workspace and project
-func GetReviewerUserIDs(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, workspace, project string) (ids []string) {
+func GetReviewerUserIDs(context context.Context, cmd *cobra.Command, project string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("reviewer", "getids")
 
-	reviewers, err := profile.GetAll[Reviewer](context, cmd, currentProfile, fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspace, project))
+	currentProfile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return []string{}, err
+	}
+
+	workspace := deleteOptions.Workspace.Value
+	if len(workspace) == 0 {
+		workspace = currentProfile.DefaultWorkspace
+		if len(workspace) == 0 {
+			return []string{}, errors.ArgumentMissing.With("workspace")
+		}
+	}
+	reviewers, err := profile.GetAll[Reviewer](context, cmd, fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspace, project))
 	if err != nil {
 		log.Errorf("Failed to get reviewers", err)
 		return
 	}
 	return core.Map(reviewers, func(reviewer Reviewer) string {
 		return reviewer.User.ID.String()
-	})
+	}), nil
 }

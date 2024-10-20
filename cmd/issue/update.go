@@ -62,18 +62,15 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-	return GetIssueIDs(cmd.Context(), cmd, profile.Current), cobra.ShellCompDirectiveNoFileComp
+	return GetIssueIDs(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
 }
 
 func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	payload := IssueUpdator{
@@ -87,7 +84,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if strings.ToLower(updateOptions.Assignee) == "me" || strings.ToLower(updateOptions.Assignee) == "myself" {
-		me, err := user.GetMe(cmd.Context(), cmd, profile.Current)
+		me, err := user.GetMe(cmd.Context(), cmd)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get current user: %s\n", err)
 			os.Exit(1)
@@ -109,7 +106,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	var issue Issue
 
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating issue %s", args[0]) {
-		err = profile.Current.Put(
+		err = profile.Put(
 			log.ToContext(cmd.Context()),
 			cmd,
 			fmt.Sprintf("issues/%s", args[0]),
@@ -121,5 +118,5 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 			os.Exit(1)
 		}
 	}
-	return profile.Current.Print(cmd.Context(), cmd, issue)
+	return profile.Print(cmd.Context(), cmd, issue)
 }

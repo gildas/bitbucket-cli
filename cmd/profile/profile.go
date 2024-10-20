@@ -54,6 +54,30 @@ var Command = &cobra.Command{
 	},
 }
 
+// GetProfileFromCommand gets the profile from the command line
+//
+// If the profile is not given, it will use the current profile
+func GetProfileFromCommand(context context.Context, cmd *cobra.Command) (profile *Profile, err error) {
+	if cmd.Flag("profile").Changed {
+		var found bool
+		if profile, found = Profiles.Find(cmd.Flag("profile").Value.String()); !found {
+			return nil, errors.ArgumentInvalid.With("profile", cmd.Flag("profile").Value.String())
+		}
+	} else if Current == nil {
+		if len(Profiles) == 0 {
+			err = Profiles.Load()
+			if err != nil {
+				return nil, err
+			}
+		}
+		Current = Profiles.Current(context)
+		profile = Current
+	} else {
+		profile = Current
+	}
+	return
+}
+
 // GetHeader gets the header for a table
 //
 // implements common.Tableable
@@ -421,67 +445,29 @@ func (profile *Profile) getTokenData() (data []byte) {
 	return
 }
 
-// getProfileFromCmd gets the profile from the command line
-func getProfileFromCmd(context context.Context, cmd *cobra.Command, args []string) (profile *Profile, err error) {
-	log := logger.Must(logger.FromContext(context)).Child("profile", "getfromcmd")
-
-	if len(args) > 0 {
-		log.Debugf("Getting profile %s", args[0])
-		var found bool
-
-		profile, found = Profiles.Find(args[0])
-		if !found {
-			log.Infof("Profile %s not found", args[0])
-			return nil, errors.NotFound.With("profile", args[0])
-		}
-	} else {
-		profile = &Profile{}
-	}
-	if clientID := cmd.Flag("client-id").Value.String(); len(clientID) > 0 {
-		profile.ClientID = clientID
-	}
-	if clientSecret := cmd.Flag("client-secret").Value.String(); len(clientSecret) > 0 {
-		profile.ClientSecret = clientSecret
-	}
-	if accessToken := cmd.Flag("access-token").Value.String(); len(accessToken) > 0 {
-		profile.AccessToken = accessToken
-	}
-	return
-}
-
 // getWorkspaceSlugs gets the slugs of all workspaces
-func getWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string) (slugs []string) {
+func getWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string) (slugs []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
 	type Workspace struct {
 		Slug string `json:"slug"`
 	}
 
-	profile, err := getProfileFromCmd(context, cmd, args)
-	if err != nil {
-		return []string{}
-	}
-
 	log.Debugf("Getting all workspaces")
-	workspaces, err := GetAll[Workspace](context, cmd, profile, "/workspaces")
+	workspaces, err := GetAll[Workspace](context, cmd, "/workspaces")
 	if err != nil {
-		log.Errorf("Failed to get workspaces for profile %s", profile, err)
-		return []string{}
+		log.Errorf("Failed to get workspaces", err)
+		return []string{}, err
 	}
 	return core.Map(workspaces, func(workspace Workspace) string {
 		return workspace.Slug
-	})
+	}), nil
 }
 
 // getProjectKeys gets the keys of all projects
-func getProjectKeys(context context.Context, cmd *cobra.Command, args []string) (keys []string) {
+func getProjectKeys(context context.Context, cmd *cobra.Command, args []string) (keys []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 	type Project struct {
 		Key string `json:"key"`
-	}
-
-	profile, err := getProfileFromCmd(context, cmd, args)
-	if err != nil {
-		return []string{}
 	}
 
 	workspace := cmd.Flag("default-workspace").Value.String()
@@ -491,12 +477,12 @@ func getProjectKeys(context context.Context, cmd *cobra.Command, args []string) 
 	}
 
 	log.Debugf("Getting all projects in workspace %s", workspace)
-	projects, err := GetAll[Project](context, cmd, profile, fmt.Sprintf("/workspaces/%s/projects", workspace))
+	projects, err := GetAll[Project](context, cmd, fmt.Sprintf("/workspaces/%s/projects", workspace))
 	if err != nil {
 		log.Errorf("Failed to get projects", err)
 		return
 	}
 	return core.Map(projects, func(project Project) string {
 		return project.Key
-	})
+	}), err
 }

@@ -1,0 +1,11 @@
+{
+  "type": "error",
+  "error": {
+    "message": "source: branch not found: dummy",
+    "fields": {
+      "source": [
+        "branch not found: dummy"
+      ]
+    }
+  }
+}

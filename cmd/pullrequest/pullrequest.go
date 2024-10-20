@@ -4,13 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/comment"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -114,7 +117,6 @@ func GetPullRequestIDs(context context.Context, cmd *cobra.Command, repository s
 	pullrequests, err := profile.GetAll[PullRequest](
 		log.ToContext(context),
 		cmd,
-		profile.Current,
 		fmt.Sprintf("pullrequests?state=%s", state),
 	)
 	if err != nil {
@@ -125,4 +127,36 @@ func GetPullRequestIDs(context context.Context, cmd *cobra.Command, repository s
 	return core.Map(pullrequests, func(pullrequest PullRequest) string {
 		return fmt.Sprintf("%d", pullrequest.ID)
 	})
+}
+
+// GetReviewerNicknames gets the reviewer nicknames for the current Workspace
+func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string) (nicknames []string, err error) {
+	log := logger.Must(logger.FromContext(context)).Child(nil, "getreviewers")
+	var pullrequestWorkspace *workspace.Workspace
+
+	if cmd == nil {
+		fmt.Fprintln(os.Stderr, "cmd is nil")
+		return []string{}, errors.ArgumentMissing.With("cmd")
+	}
+
+	if workspaceName := cmd.Flag("workspace").Value.String(); len(workspaceName) > 0 {
+		pullrequestWorkspace, err = workspace.GetWorkspace(cmd.Context(), cmd, workspaceName)
+	} else {
+		pullrequestWorkspace, err = workspace.GetWorkspaceFromGit(cmd.Context(), cmd)
+	}
+	if err != nil {
+		log.Errorf("Failed to get repository: %s", err)
+		return []string{}, err
+	}
+	members, _ := pullrequestWorkspace.GetMembers(context, cmd)
+	return core.Map(members, func(member workspace.Member) string {
+		return member.User.Nickname
+	}), nil
+}
+
+// GetBranchNames gets the branch names of a repository
+func GetBranchNames(context context.Context, cmd *cobra.Command, args []string) ([]string, error) {
+	log := logger.Must(logger.FromContext(context)).Child(nil, "getbranches")
+	log.Infof("Getting branches for profile %v", profile.Current)
+	return branch.GetBranchNames(context, cmd)
 }

@@ -127,7 +127,7 @@ func (comment Comment) MarshalJSON() (data []byte, err error) {
 }
 
 // GetPullRequestIDs gets the IDs of the pullrequests
-func GetPullRequestIDs(context context.Context, cmd *cobra.Command, args []string) (ids []string) {
+func GetPullRequestIDs(context context.Context, cmd *cobra.Command, args []string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("pullrequest", "getids")
 
 	type PullRequest struct {
@@ -135,26 +135,26 @@ func GetPullRequestIDs(context context.Context, cmd *cobra.Command, args []strin
 	}
 
 	log.Infof("Getting all pullrequests")
-	pullrequests, err := profile.GetAll[PullRequest](context, cmd, profile.Current, "pullrequests")
+	pullrequests, err := profile.GetAll[PullRequest](context, cmd, "pullrequests")
 	if err != nil {
 		log.Errorf("Failed to get pullrequests", err)
-		return []string{}
+		return []string{}, err
 	}
 	return core.Map(pullrequests, func(pullrequest PullRequest) string {
 		return fmt.Sprintf("%d", pullrequest.ID)
-	})
+	}), nil
 }
 
 // GetPullRequestCommentIDs gets the IDs of the comments for a pullrequest
-func GetPullRequestCommentIDs(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, PullRequestID string) (ids []string) {
+func GetPullRequestCommentIDs(context context.Context, cmd *cobra.Command, PullRequestID string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("pullrequest", "getids")
 
-	comments, err := profile.GetAll[Comment](context, cmd, currentProfile, fmt.Sprintf("pullrequests/%s/comments", PullRequestID))
+	comments, err := profile.GetAll[Comment](context, cmd, fmt.Sprintf("pullrequests/%s/comments", PullRequestID))
 	if err != nil {
 		log.Errorf("Failed to get pullrequests", err)
-		return []string{}
+		return []string{}, err
 	}
 	return core.Map(comments, func(comment Comment) string {
 		return fmt.Sprintf("%d", comment.ID)
-	})
+	}), nil
 }

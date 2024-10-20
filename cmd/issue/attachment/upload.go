@@ -6,7 +6,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -40,12 +39,13 @@ func init() {
 func uploadProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "upload")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading attachment %s to issue %s", args[0], uploadOptions.IssueID) {
-		err := profile.Current.Upload(
+		err = profile.Upload(
 			log.ToContext(cmd.Context()),
 			cmd,
 			fmt.Sprintf("issues/%s/attachments", uploadOptions.IssueID.Value),

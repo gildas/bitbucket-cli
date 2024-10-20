@@ -61,7 +61,7 @@ func (attachment Attachment) String() string {
 }
 
 // GetIssueIDs gets the IDs of the issues
-func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string) (ids []string) {
+func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
 	type Issue struct {
@@ -69,27 +69,27 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string) (id
 	}
 
 	log.Infof("Getting all issues")
-	issues, err := profile.GetAll[Issue](context, cmd, profile.Current, "issues")
+	issues, err := profile.GetAll[Issue](context, cmd, "issues")
 	if err != nil {
 		log.Errorf("Failed to get issues", err)
-		return []string{}
+		return []string{}, err
 	}
 	return core.Map(issues, func(issue Issue) string {
 		return fmt.Sprintf("%d", issue.ID)
-	})
+	}), nil
 }
 
 // GetAttachmentNames gets the names of the attachments
-func GetAttachmentNames(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, issueID string) (names []string) {
+func GetAttachmentNames(context context.Context, cmd *cobra.Command, issueID string) (names []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
 	log.Infof("Getting all attachments")
-	attachments, err := profile.GetAll[Attachment](context, cmd, currentProfile, fmt.Sprintf("issues/%s/attachments", issueID))
+	attachments, err := profile.GetAll[Attachment](context, cmd, fmt.Sprintf("issues/%s/attachments", issueID))
 	if err != nil {
 		log.Errorf("Failed to get attachments", err)
-		return []string{}
+		return []string{}, err
 	}
 	return core.Map(attachments, func(attachment Attachment) string {
 		return attachment.Name
-	})
+	}), nil
 }

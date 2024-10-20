@@ -5,7 +5,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -33,22 +32,21 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
-	}
-	if len(listOptions.Workspace.Value) == 0 {
-		listOptions.Workspace.Value = profile.Current.DefaultWorkspace
-		if len(listOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
+	currentProfile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
-	log.Infof("Listing all projects from workspace %s with profile %s", listOptions.Workspace, profile.Current)
+	workspace, err := GetWorkspace(cmd, currentProfile)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Listing all projects from workspace %s with profile %s", workspace, currentProfile)
 	projects, err := profile.GetAll[Project](
 		cmd.Context(),
 		cmd,
-		profile.Current,
-		fmt.Sprintf("/workspaces/%s/projects", listOptions.Workspace),
+		fmt.Sprintf("/workspaces/%s/projects", workspace),
 	)
 	if err != nil {
 		return err
@@ -57,5 +55,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No project found")
 		return nil
 	}
-	return profile.Current.Print(cmd.Context(), cmd, Projects(projects))
+	return currentProfile.Print(cmd.Context(), cmd, Projects(projects))
 }

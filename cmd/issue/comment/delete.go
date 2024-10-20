@@ -50,27 +50,32 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, deleteOptions.IssueID.Value), cobra.ShellCompDirectiveNoFileComp
+	commentIDs, err := GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, deleteOptions.IssueID.Value)
+	if err != nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+	return commentIDs, cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	var merr errors.MultiError
 	for _, commentID := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting comment %s from issue %s", commentID, deleteOptions.IssueID) {
-			err := profile.Current.Delete(
+			err := profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
 				fmt.Sprintf("issues/%s/comments/%s", deleteOptions.IssueID.Value, commentID),
 				nil,
 			)
 			if err != nil {
-				if profile.Current.ShouldStopOnError(cmd) {
+				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to delete issue comment %s: %s\n", commentID, err)
 					os.Exit(1)
 				} else {
@@ -80,11 +85,11 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("Issue comment %s deleted", commentID)
 		}
 	}
-	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
 		fmt.Fprintf(os.Stderr, "Failed to delete these comments: %s\n", merr)
 		return nil
 	}
-	if profile.Current.ShouldIgnoreErrors(cmd) {
+	if profile.ShouldIgnoreErrors(cmd) {
 		log.Warnf("Failed to delete these comments, but ignoring errors: %s", merr)
 		return nil
 	}

@@ -117,7 +117,7 @@ func (comment Comment) MarshalJSON() (data []byte, err error) {
 }
 
 // GetIssueIDs gets the IDs of the issues
-func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string) (ids []string) {
+func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
 	type Issue struct {
@@ -125,26 +125,26 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string) (id
 	}
 
 	log.Infof("Getting all issues")
-	issues, err := profile.GetAll[Issue](context, cmd, profile.Current, "issues")
+	issues, err := profile.GetAll[Issue](context, cmd, "issues")
 	if err != nil {
 		log.Errorf("Failed to get issues", err)
-		return []string{}
+		return []string{}, err
 	}
 	return core.Map(issues, func(issue Issue) string {
 		return fmt.Sprintf("%d", issue.ID)
-	})
+	}), nil
 }
 
 // GetIssueCommentIDs gets the IDs of the issues
-func GetIssueCommentIDs(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, issueID string) (ids []string) {
+func GetIssueCommentIDs(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, issueID string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
-	comments, err := profile.GetAll[Comment](context, cmd, currentProfile, fmt.Sprintf("issues/%s/comments", issueID))
+	comments, err := profile.GetAll[Comment](context, cmd, fmt.Sprintf("issues/%s/comments", issueID))
 	if err != nil {
 		log.Errorf("Failed to get issues", err)
-		return []string{}
+		return []string{}, err
 	}
 	return core.Map(comments, func(comment Comment) string {
 		return fmt.Sprintf("%d", comment.ID)
-	})
+	}), nil
 }

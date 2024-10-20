@@ -6,7 +6,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -45,8 +44,9 @@ func init() {
 func createProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	payload := CommentCreator{
@@ -62,7 +62,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	var comment Comment
 
-	err = profile.Current.Post(
+	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("issues/%s/comments", createOptions.IssueID.Value),
@@ -73,5 +73,5 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to create comment for issue %s: %s\n", createOptions.IssueID.Value, err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, comment)
+	return profile.Print(cmd.Context(), cmd, comment)
 }

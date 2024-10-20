@@ -64,11 +64,19 @@ func (profile *Profile) Patch(context context.Context, cmd *cobra.Command, uripa
 }
 
 // GetAllResources gets all resources of the given type
-func GetAll[T any](context context.Context, cmd *cobra.Command, profile *Profile, uripath string) (resources []T, err error) {
+//
+// The Current profile will be set to the profile of the command
+func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) (resources []T, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getall")
 
-	log.Infof("Getting all resources for profile %s", profile.Name)
+	profile, err := GetProfileFromCommand(context, cmd)
+	if err != nil {
+		log.Errorf("Failed to get profile.", err)
+		return nil, err
+	}
+	Current = profile // Make sure the current profile is set
 
+	log.Infof("Getting all resources for profile %s", profile.Name)
 	for {
 		var paginated PaginatedResources[T]
 
@@ -312,7 +320,10 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 func (profile Profile) getRepositoryFullname(context context.Context, cmd *cobra.Command) (string, error) {
 	log := logger.Must(logger.FromContext(context)).Child("profile", "getrepositoryname")
 
-	fullName := cmd.Flag("repository").Value.String()
+	fullName := ""
+	if cmd != nil {
+		fullName = cmd.Flag("repository").Value.String()
+	}
 	if len(fullName) == 0 {
 		log.Debugf("No repository name given, trying to get it from the current git repository")
 		remote, err := remote.GetFromGitConfig(context, "origin")

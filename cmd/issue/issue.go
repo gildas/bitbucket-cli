@@ -112,10 +112,10 @@ func (issue Issue) MarshalJSON() (data []byte, err error) {
 }
 
 // GetIssueIDs gets the IDs of the issues
-func GetIssueIDs(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile) (ids []string) {
+func GetIssueIDs(context context.Context, cmd *cobra.Command) (ids []string) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
-	issues, err := profile.GetAll[Issue](context, cmd, currentProfile, "issues")
+	issues, err := profile.GetAll[Issue](context, cmd, "issues")
 	if err != nil {
 		log.Errorf("Failed to get issues", err)
 		return []string{}

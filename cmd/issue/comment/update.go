@@ -6,7 +6,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -51,14 +50,19 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, updateOptions.IssueID.Value), cobra.ShellCompDirectiveNoFileComp
+	commentIDs, err := GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, deleteOptions.IssueID.Value)
+	if err != nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
+	}
+	return commentIDs, cobra.ShellCompDirectiveNoFileComp
 }
 
 func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	payload := CommentUpdator{
@@ -74,7 +78,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	var comment Comment
 
-	err = profile.Current.Put(
+	err = profile.Put(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("issues/%s/comments/%s", updateOptions.IssueID.Value, args[0]),
@@ -85,5 +89,5 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to update comment for issue %s: %s\n", updateOptions.IssueID.Value, err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, comment)
+	return profile.Print(cmd.Context(), cmd, comment)
 }

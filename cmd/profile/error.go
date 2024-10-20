@@ -62,17 +62,34 @@ func (bberr *BitBucketError) UnmarshalJSON(data []byte) (err error) {
 		} `json:"error"`
 	}
 
-	if err = json.Unmarshal(data, &innerType2); err != nil {
+	if err = json.Unmarshal(data, &innerType2); err == nil && len(innerType2.Error.Fields) > 0 {
+		*bberr = BitBucketError(innerType2.surrogate)
+		bberr.Message = innerType2.Error.Message
+		bberr.Detail = innerType2.Error.Detail
+		if len(innerType2.Error.Fields) > 0 {
+			bberr.Fields = make(map[string][]string)
+			for field, message := range innerType2.Error.Fields {
+				bberr.Fields[field] = []string{message}
+			}
+		}
+		return
+	}
+
+	var innerType3 struct {
+		surrogate
+		Error struct {
+			Message string              `json:"message"`
+			Detail  string              `json:"detail"`
+			Fields  map[string][]string `json:"fields"`
+		} `json:"error"`
+	}
+
+	if err = json.Unmarshal(data, &innerType3); err != nil {
 		return errors.JSONUnmarshalError.Wrap(err)
 	}
-	*bberr = BitBucketError(innerType2.surrogate)
-	bberr.Message = innerType2.Error.Message
-	bberr.Detail = innerType2.Error.Detail
-	if len(innerType2.Error.Fields) > 0 {
-		bberr.Fields = make(map[string][]string)
-		for field, message := range innerType2.Error.Fields {
-			bberr.Fields[field] = []string{message}
-		}
-	}
+	*bberr = BitBucketError(innerType3.surrogate)
+	bberr.Message = innerType3.Error.Message
+	bberr.Detail = innerType3.Error.Detail
+	bberr.Fields = innerType3.Error.Fields
 	return
 }
