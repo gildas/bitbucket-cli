@@ -112,7 +112,7 @@ func initConfig() {
 		log.SetFilterLevel(logger.DEBUG)
 	}
 
-	log.Infof(strings.Repeat("-", 80))
+	log.Infof("%s", strings.Repeat("-", 80))
 	log.Infof("Starting %s v%s (%s)", RootCmd.Name(), RootCmd.Version, runtime.GOARCH)
 	log.Infof("Log Destination: %s", log)
 
