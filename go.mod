@@ -92,5 +92,3 @@ require (
 	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
-
-replace github.com/gildas/go-flags => /home/gildas/Documents/go/src/github.com/gildas/go-flags
