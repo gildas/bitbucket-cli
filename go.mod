@@ -1,6 +1,6 @@
 module bitbucket.org/gildas_cherruel/bb
 
-go 1.22.0
+go 1.23
 
 toolchain go1.23.0
 
