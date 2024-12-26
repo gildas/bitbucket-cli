@@ -59,8 +59,8 @@ func init() {
 	createCmd.Flags().StringVar(&createOptions.MainBranch, "main-branch", "", "Main branch of the repository")
 	createCmd.Flags().Var(createOptions.ForkPolicy, "fork-policy", "Fork policy of the repository. Default: no_public_forks")
 	createCmd.MarkFlagsMutuallyExclusive("private", "public")
-	_ = createCmd.RegisterFlagCompletionFunc("workspace", createOptions.Workspace.CompletionFunc("workspace"))
-	_ = createCmd.RegisterFlagCompletionFunc("project", createOptions.Project.CompletionFunc("project"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Workspace.CompletionFunc("workspace"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Project.CompletionFunc("project"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {

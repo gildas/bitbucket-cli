@@ -130,7 +130,7 @@ func GetPullRequestIDs(context context.Context, cmd *cobra.Command, repository s
 }
 
 // GetReviewerNicknames gets the reviewer nicknames for the current Workspace
-func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string) (nicknames []string, err error) {
+func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string, toComplete string) (nicknames []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getreviewers")
 	var pullrequestWorkspace *workspace.Workspace
 
@@ -155,7 +155,7 @@ func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []st
 }
 
 // GetBranchNames gets the branch names of a repository
-func GetBranchNames(context context.Context, cmd *cobra.Command, args []string) ([]string, error) {
+func GetBranchNames(context context.Context, cmd *cobra.Command, args []string, toComplete string) ([]string, error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getbranches")
 	log.Infof("Getting branches for profile %v", profile.Current)
 	return branch.GetBranchNames(context, cmd)

@@ -37,7 +37,7 @@ func init() {
 	cloneCmd.Flags().StringVar(&cloneOptions.Destination, "destination", ".", "Destination folder. Default is the repository name")
 	cloneCmd.Flags().BoolVar(&cloneOptions.Bare, "bare", false, "Clone as a bare repository")
 	_ = cloneCmd.MarkFlagDirname("destination")
-	_ = cloneCmd.RegisterFlagCompletionFunc("workspace", cloneOptions.Workspace.CompletionFunc("workspace"))
+	_ = cloneCmd.RegisterFlagCompletionFunc(cloneOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func cloneValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

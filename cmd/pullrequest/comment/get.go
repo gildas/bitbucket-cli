@@ -32,7 +32,7 @@ func init() {
 	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get a pullrequest comment from. Defaults to the current repository")
 	getCmd.Flags().Var(getOptions.PullRequestID, "pullrequest", "Pullrequest to get comments from")
 	_ = getCmd.MarkFlagRequired("pullrequest")
-	_ = getCmd.RegisterFlagCompletionFunc("pullrequest", getOptions.PullRequestID.CompletionFunc("pullrequest"))
+	_ = getCmd.RegisterFlagCompletionFunc(getOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

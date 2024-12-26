@@ -53,8 +53,8 @@ func init() {
 	_ = createCmd.MarkFlagRequired("title")
 	_ = createCmd.MarkFlagRequired("kind")
 	_ = createCmd.MarkFlagRequired("priority")
-	_ = createCmd.RegisterFlagCompletionFunc("kind", createOptions.Kind.CompletionFunc("kind"))
-	_ = createCmd.RegisterFlagCompletionFunc("priority", createOptions.Priority.CompletionFunc("priority"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Kind.CompletionFunc("kind"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Priority.CompletionFunc("priority"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {

@@ -76,7 +76,7 @@ func init() {
 	_ = RootCmd.MarkFlagFilename("config")
 	_ = RootCmd.MarkFlagFilename("log")
 	_ = RootCmd.RegisterFlagCompletionFunc("profile", profile.ValidProfileNames)
-	_ = RootCmd.RegisterFlagCompletionFunc("output", CmdOptions.OutputFormat.CompletionFunc("output"))
+	_ = RootCmd.RegisterFlagCompletionFunc(CmdOptions.OutputFormat.CompletionFunc("output"))
 	RootCmd.PersistentFlags().SetNormalizeFunc(func(f *pflag.FlagSet, name string) pflag.NormalizedName {
 		switch name {
 		case "noop", "dryrun", "whatif", "what-if":

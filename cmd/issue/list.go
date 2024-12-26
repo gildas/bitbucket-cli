@@ -29,7 +29,7 @@ func init() {
 	listOptions.States = flags.NewEnumSliceFlagWithAllAllowed("closed", "duplicate", "invalid", "on hold", "+new", "+open", "resolved", "submitted", "wontfix")
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issues from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.States, "state", "State of the issues to list. Can be repeated. One of: all, closed, duplicate, invalid, on hold, new, open, resolved, submitted, wontfix. Default: open, new")
-	_ = listCmd.RegisterFlagCompletionFunc("state", listOptions.States.CompletionFunc("state"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.States.CompletionFunc("state"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

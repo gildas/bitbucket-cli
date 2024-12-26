@@ -98,7 +98,7 @@ func (workspace Workspace) GetMembers(context context.Context, cmd *cobra.Comman
 }
 
 // GetWorkspaceSlugs gets the slugs of all workspaces
-func GetWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string) (slugs []string, err error) {
+func GetWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (slugs []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
 
 	log.Debugf("Getting all workspaces")

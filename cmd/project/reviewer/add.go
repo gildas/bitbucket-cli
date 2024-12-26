@@ -33,8 +33,8 @@ func init() {
 	addOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
 	addCmd.Flags().Var(addOptions.Workspace, "workspace", "Workspace to add reviewers to")
 	addCmd.Flags().Var(addOptions.Project, "project", "Project Key to add reviewers to")
-	_ = addCmd.RegisterFlagCompletionFunc("workspace", addOptions.Workspace.CompletionFunc("workspace"))
-	_ = getCmd.RegisterFlagCompletionFunc("project", addOptions.Project.CompletionFunc("project"))
+	_ = addCmd.RegisterFlagCompletionFunc(addOptions.Workspace.CompletionFunc("workspace"))
+	_ = getCmd.RegisterFlagCompletionFunc(addOptions.Project.CompletionFunc("project"))
 }
 
 func addProcess(cmd *cobra.Command, args []string) error {

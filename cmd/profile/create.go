@@ -50,7 +50,7 @@ func init() {
 	createCmd.MarkFlagsRequiredTogether("user", "password")
 	createCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	createCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
-	_ = createCmd.RegisterFlagCompletionFunc("output", createOptions.OutputFormat.CompletionFunc("output"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.OutputFormat.CompletionFunc("output"))
 	_ = createCmd.RegisterFlagCompletionFunc("error-processing", createOptions.ErrorProcessing.CompletionFunc())
 }
 

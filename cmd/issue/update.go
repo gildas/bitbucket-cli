@@ -54,8 +54,8 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the issue")
 	updateCmd.Flags().StringVar(&updateOptions.Assignee, "assignee", "", "Assignee of the issue. (Optional, \"myself\" or userid)")
 	updateCmd.Flags().StringVar(&updateOptions.Version, "version", "", "Version of the issue")
-	_ = updateCmd.RegisterFlagCompletionFunc("kind", updateOptions.Kind.CompletionFunc("kind"))
-	_ = updateCmd.RegisterFlagCompletionFunc("priority", updateOptions.Priority.CompletionFunc("priority"))
+	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.Kind.CompletionFunc("kind"))
+	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.Priority.CompletionFunc("priority"))
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

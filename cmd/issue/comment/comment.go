@@ -117,7 +117,7 @@ func (comment Comment) MarshalJSON() (data []byte, err error) {
 }
 
 // GetIssueIDs gets the IDs of the issues
-func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string) (ids []string, err error) {
+func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
 	type Issue struct {
