@@ -18,7 +18,7 @@ type IssueChange struct {
 	ID        int                 `json:"id"         mapstructure:"id"`
 	Name      string              `json:"name"       mapstructure:"name"`
 	Issue     Issue               `json:"issue"      mapstructure:"issue"`
-	User      user.Account        `json:"user"       mapstructure:"user"`
+	User      user.User           `json:"user"       mapstructure:"user"`
 	Changes   ChangeSet           `json:"changes"    mapstructure:"changes"`
 	Message   common.RenderedText `json:"message"    mapstructure:"message"`
 	CreatedOn time.Time           `json:"created_on" mapstructure:"created_on"`

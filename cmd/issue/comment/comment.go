@@ -18,7 +18,7 @@ import (
 type Comment struct {
 	ID        int                 `json:"id"               mapstructure:"id"`
 	Content   common.RenderedText `json:"content"          mapstructure:"content"`
-	User      user.Account        `json:"user"             mapstructure:"user"`
+	User      user.User           `json:"user"             mapstructure:"user"`
 	Anchor    *common.FileAnchor  `json:"inline,omitempty" mapstructure:"inline"`
 	Parent    *Comment            `json:"parent,omitempty" mapstructure:"parent"`
 	CreatedOn time.Time           `json:"created_on"       mapstructure:"created_on"`

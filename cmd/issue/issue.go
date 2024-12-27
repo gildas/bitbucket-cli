@@ -27,8 +27,8 @@ type Issue struct {
 	State      string                `json:"state"      mapstructure:"state"`    // new, open, submitted, resolved, on hold, invalid, duplicate, wontfix, closed
 	Priority   string                `json:"priority"   mapstructure:"priority"` // trivial, minor, major, critical, blocker
 	Repository repository.Repository `json:"repository" mapstructure:"repository"`
-	Reporter   user.Account          `json:"reporter"   mapstructure:"reporter"`
-	Assignee   user.Account          `json:"assignee"   mapstructure:"assignee"`
+	Reporter   user.User             `json:"reporter"   mapstructure:"reporter"`
+	Assignee   user.User             `json:"assignee"   mapstructure:"assignee"`
 	Content    common.RenderedText   `json:"content"    mapstructure:"content"`
 	Votes      int                   `json:"votes"      mapstructure:"votes"`
 	Watchers   int                   `json:"watches"    mapstructure:"watches"`

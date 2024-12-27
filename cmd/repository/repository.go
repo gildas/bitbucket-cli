@@ -24,7 +24,7 @@ type Repository struct {
 	Name                 string              `json:"name"               mapstructure:"name"`
 	FullName             string              `json:"full_name"          mapstructure:"full_name"`
 	Slug                 string              `json:"slug"               mapstructure:"slug"`
-	Owner                user.Account        `json:"owner"              mapstructure:"owner"`
+	Owner                user.User           `json:"owner"              mapstructure:"owner"`
 	Workspace            workspace.Workspace `json:"workspace"          mapstructure:"workspace"`
 	Project              project.Project     `json:"project"            mapstructure:"project"`
 	HasIssues            bool                `json:"has_issues"         mapstructure:"has_issues"`
@@ -137,7 +137,7 @@ func GetRepositorySlugs(context context.Context, cmd *cobra.Command, workspace s
 // Implements json.Marshaler
 func (repository Repository) MarshalJSON() (data []byte, err error) {
 	type surrogate Repository
-	var owner *user.Account
+	var owner *user.User
 	var wspace *workspace.Workspace
 	var proj *project.Project
 	var br *branch
@@ -165,7 +165,7 @@ func (repository Repository) MarshalJSON() (data []byte, err error) {
 
 	data, err = json.Marshal(struct {
 		surrogate
-		Owner      *user.Account        `json:"owner,omitempty"`
+		Owner      *user.User           `json:"owner,omitempty"`
 		Workspace  *workspace.Workspace `json:"workspace,omitempty"`
 		Project    *project.Project     `json:"project,omitempty"`
 		MainBranch *branch              `json:"mainbranch,omitempty"`

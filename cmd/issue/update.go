@@ -19,7 +19,7 @@ type IssueUpdator struct {
 	Kind     string               `json:"kind,omitempty"`     // bug, enhancement, proposal, task
 	Priority string               `json:"priority,omitempty"` // trivial, minor, major, critical, blocker
 	Content  *common.RenderedText `json:"content,omitempty"`
-	Assignee *user.Account        `json:"assignee,omitempty"`
+	Assignee *user.User           `json:"assignee,omitempty"`
 	Version  *common.Entity       `json:"version,omitempty"`
 }
 
@@ -95,7 +95,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		if err != nil {
 			return errors.Join(errors.ArgumentInvalid.With("assignee", updateOptions.Assignee), err)
 		}
-		payload.Assignee = &user.Account{ID: uuid}
+		payload.Assignee = &user.User{ID: uuid}
 	}
 
 	if len(updateOptions.Version) > 0 {

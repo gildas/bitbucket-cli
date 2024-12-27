@@ -19,7 +19,7 @@ type IssueCreator struct {
 	Kind     string               `json:"kind"`     // bug, enhancement, proposal, task
 	Priority string               `json:"priority"` // trivial, minor, major, critical, blocker
 	Content  *common.RenderedText `json:"content"`
-	Assignee *user.Account        `json:"assignee,omitempty"`
+	Assignee *user.User           `json:"assignee,omitempty"`
 }
 
 var createCmd = &cobra.Command{
@@ -87,7 +87,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		if err != nil {
 			return errors.Join(errors.ArgumentInvalid.With("assignee", createOptions.Assignee), err)
 		}
-		payload.Assignee = &user.Account{ID: uuid}
+		payload.Assignee = &user.User{ID: uuid}
 	}
 
 	log.Record("payload", payload).Infof("Creating issue")
