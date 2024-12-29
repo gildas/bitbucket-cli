@@ -10,6 +10,8 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -27,6 +29,8 @@ type User struct {
 	AccountStatus string       `json:"account_status,omitempty" mapstructure:"account_status"`
 }
 
+var UserCache = common.NewCache[User]()
+
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:     "user",
@@ -38,6 +42,20 @@ var Command = &cobra.Command{
 			fmt.Println(command.Name())
 		}
 	},
+}
+
+// GetID gets the ID of the user
+//
+// implements core.Identifiable
+func (user User) GetID() uuid.UUID {
+	return uuid.UUID(user.ID)
+}
+
+// GetName gets the name of the user
+//
+// implements core.Named
+func (user User) GetName() string {
+	return user.Username
 }
 
 // GetHeader gets the header for a table
@@ -88,6 +106,11 @@ func (user User) MarshalJSON() (data []byte, err error) {
 
 // GetMe gets the current user
 func GetMe(context context.Context, cmd *cobra.Command) (user *User, err error) {
+	log := logger.Must(logger.FromContext(context)).Child("user", "me")
+	if user, err = UserCache.Get("me"); err == nil {
+		log.Debugf("User found in cache")
+		return
+	}
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
 		return nil, err
@@ -98,6 +121,7 @@ func GetMe(context context.Context, cmd *cobra.Command) (user *User, err error) 
 		"/user",
 		&user,
 	)
+	_ = UserCache.Set(*user, "me")
 	return
 }
 
@@ -114,14 +138,17 @@ func GetUser(context context.Context, cmd *cobra.Command, userid string) (user *
 		}
 		return me, nil
 	}
-	uuid, err := common.ParseUUID(userid)
+	userUUID, err := common.ParseUUID(userid)
 	if err == nil {
-		err = profile.Get(
-			context,
-			cmd,
-			fmt.Sprintf("/users/%s", uuid.String()),
-			&user,
-		)
+		if user, err = UserCache.Get(userUUID.String()); err != nil {
+			err = profile.Get(
+				context,
+				cmd,
+				fmt.Sprintf("/users/%s", userUUID.String()),
+				&user,
+			)
+			_ = UserCache.Set(*user)
+		}
 	}
 	return
 }

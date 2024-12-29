@@ -15,6 +15,7 @@ import (
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -67,6 +68,22 @@ var Command = &cobra.Command{
 	},
 }
 
+var RepositoryCache = common.NewCache[Repository]()
+
+// GetID gets the ID of the repository
+//
+// implements core.Identifiable
+func (repository Repository) GetID() uuid.UUID {
+	return uuid.UUID(repository.ID)
+}
+
+// GetName gets the name of the repository
+//
+// implements core.Named
+func (repository Repository) GetName() string {
+	return repository.Name
+}
+
 // GetHeader gets the header for a table
 //
 // implements common.Tableable
@@ -87,20 +104,36 @@ func (repository Repository) GetRow(headers []string) []string {
 
 // GetRepository gets a repository by its slug
 func GetRepository(context context.Context, cmd *cobra.Command, profile *profile.Profile, workspace, slug string) (repository *Repository, err error) {
+	log := logger.Must(logger.FromContext(context)).Child("repository", "get")
+
+	if repository, err = RepositoryCache.Get(fmt.Sprintf("%s/%s", workspace, slug)); err == nil {
+		log.Debugf("Repository %s/%s found in cache", workspace, slug)
+		return
+	}
 	err = profile.Get(
 		context,
 		cmd,
 		fmt.Sprintf("/repositories/%s/%s", workspace, slug),
 		&repository,
 	)
+	if err != nil {
+		return
+	}
+	_ = RepositoryCache.Set(*repository, fmt.Sprintf("%s/%s", workspace, slug))
 	return
 }
 
 // GetRepositoryFromGit gets a repository from a git origin
 func GetRepositoryFromGit(context context.Context, cmd *cobra.Command, profile *profile.Profile) (repository *Repository, err error) {
+	log := logger.Must(logger.FromContext(context)).Child("repository", "fromgit")
+
 	remote, err := remote.GetFromGitConfig(context, "origin")
 	if err != nil {
 		return nil, err
+	}
+	if repository, err = RepositoryCache.Get(remote.RepositoryName()); err == nil {
+		log.Debugf("Repository %s found in cache", remote.RepositoryName())
+		return
 	}
 	err = profile.Get(
 		context,
@@ -108,6 +141,10 @@ func GetRepositoryFromGit(context context.Context, cmd *cobra.Command, profile *
 		fmt.Sprintf("/repositories/%s", remote.RepositoryName()),
 		&repository,
 	)
+	if err != nil {
+		return
+	}
+	_ = RepositoryCache.Set(*repository, remote.RepositoryName())
 	return
 }
 

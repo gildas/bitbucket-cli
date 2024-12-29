@@ -3,6 +3,7 @@ package pullrequest
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -69,19 +70,29 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 		MergeStrategy:     mergeOptions.MergeStrategy.String(),
 	}
 
-	log.Record("payload", payload).Infof("Merging pullrequest %s", args[0])
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Merging pullrequest %s", args[0]) {
+	pullRequestID := args[0]
+
+	if len(pullRequestID) == 0 {
+		// TODO: Find it automatically!
+	}
+
+	if _, err := strconv.Atoi(pullRequestID); err != nil {
+		return errors.ArgumentInvalid.With("pullrequest-id", pullRequestID)
+	}
+
+	log.Record("payload", payload).Infof("Merging pullrequest %s", pullRequestID)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Merging pullrequest %s", pullRequestID) {
 		return nil
 	}
 	err = profile.Current.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s/merge", args[0]),
+		fmt.Sprintf("pullrequests/%s/merge", pullRequestID),
 		payload,
 		&pullrequest,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to merge pullrequest %s: %s\n", args[0], err)
+		fmt.Fprintf(os.Stderr, "Failed to merge pullrequest %s: %s\n", pullRequestID, err)
 		os.Exit(1)
 	}
 	return profile.Current.Print(cmd.Context(), cmd, pullrequest)
