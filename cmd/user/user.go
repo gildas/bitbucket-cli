@@ -155,9 +155,8 @@ func GetUser(context context.Context, cmd *cobra.Command, userid string) (user *
 
 // GetUserFromFlags gets the user from the command
 func GetUserFromFlags(context context.Context, cmd *cobra.Command) (*User, error) {
-	id := cmd.Flag("user").Value.String()
-	if len(id) == 0 {
-		id = cmd.Flag("account").Value.String()
+	if cmd.Flag("user") == nil {
+		return nil, errors.Errorf("The command %s does not have a --user flag", cmd.Name())
 	}
-	return GetUser(context, cmd, id)
+	return GetUser(context, cmd, cmd.Flag("user").Value.String())
 }

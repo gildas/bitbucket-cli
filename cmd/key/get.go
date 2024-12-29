@@ -12,7 +12,7 @@ import (
 var getCmd = &cobra.Command{
 	Use:               "get",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get a GPG key",
+	Short:             "get a GPG key by its <fingerprint>",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
@@ -54,7 +54,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	err = profile.Get(
 		cmd.Context(),
 		cmd,
-		fmt.Sprintf("/users/%s/gpg-keys/%s", owner.ID.String(), args[0]), // TODO: Sanitize the owner
+		fmt.Sprintf("/users/%s/gpg-keys/%s", owner.ID.String(), args[0]),
 		&key,
 	)
 	if err != nil {
