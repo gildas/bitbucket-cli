@@ -432,6 +432,8 @@ You can `merge` a pull request with the `bb pullrequest merge` command:
 bb pullrequest merge 1
 ```
 
+If no pull request is provided, the command will try to merge the pull request with the current branch.
+
 You can list the comments of a pull request with the `bb pullrequest comment list` command:
 
 ```bash

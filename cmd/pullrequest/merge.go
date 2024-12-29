@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -16,7 +17,7 @@ import (
 var mergeCmd = &cobra.Command{
 	Use:               "merge [flags] <pullrequest-id>",
 	Short:             "merge a pullrequest by its <pullrequest-id>.",
-	Args:              cobra.ExactArgs(1),
+	Args:              cobra.MaximumNArgs(1),
 	ValidArgsFunction: mergeValidArgs,
 	RunE:              mergeProcess,
 }
@@ -70,10 +71,19 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 		MergeStrategy:     mergeOptions.MergeStrategy.String(),
 	}
 
-	pullRequestID := args[0]
+	var pullRequestID string
 
-	if len(pullRequestID) == 0 {
-		// TODO: Find it automatically!
+	if len(args) == 0 {
+		pullRequestIDs := GetPullRequestIDs(cmd.Context(), cmd, mergeOptions.Repository, "OPEN")
+		if len(pullRequestIDs) == 0 {
+			return errors.Errorf("No pullrequest to merge")
+		}
+		if len(pullRequestIDs) > 1 {
+			return errors.Errorf("Too many pullrequests to merge: %s", strings.Join(pullRequestIDs, ", "))
+		}
+		pullRequestID = pullRequestIDs[0]
+	} else {
+		pullRequestID = args[0]
 	}
 
 	if _, err := strconv.Atoi(pullRequestID); err != nil {
