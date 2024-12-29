@@ -636,6 +636,38 @@ bb artifact delete myartifact.zip
 
 ### GPG Keys
 
+You can list GPG keys with the `bb key list` command:
+
+```bash
+bb key list
+```
+
+By default, the keys are listed for the current user. You can specify a user with the `--user` flag.
+
+You can also get the details of a GPG key with the `bb key get` or `bb key show` command:
+
+```bash
+bb key get <fingerprint>
+```
+
+By default, the key is retrieved for the current user. You can specify a user with the `--user` flag.
+
+You can create a GPG key with the `bb key create` command:
+
+```bash
+bb key create \
+  --user <user> \
+  --key <key>
+```
+
+You can instead provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin.
+
+You can delete a GPG key with the `bb key delete` command:
+
+```bash
+bb key delete <fingerprint>
+```
+
 ### Cache
 
 The bitbucket-cli caches some data to speed up the commands. The following items are cached:
