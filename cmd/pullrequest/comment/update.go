@@ -54,7 +54,7 @@ func init() {
 	updateCmd.MarkFlagsMutuallyExclusive("line", "to")
 	_ = updateCmd.MarkFlagRequired("pullrequest")
 	_ = updateCmd.MarkFlagRequired("comment")
-	_ = updateCmd.RegisterFlagCompletionFunc("pullrequest", updateOptions.PullRequestID.CompletionFunc("pullrequest"))
+	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

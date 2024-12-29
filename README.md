@@ -432,6 +432,8 @@ You can `merge` a pull request with the `bb pullrequest merge` command:
 bb pullrequest merge 1
 ```
 
+If no pull request is provided, the command will try to merge the pull request with the current branch.
+
 You can list the comments of a pull request with the `bb pullrequest comment list` command:
 
 ```bash
@@ -632,6 +634,56 @@ Finally, you can delete an artifact with the `bb artifact delete` command:
 
 ```bash
 bb artifact delete myartifact.zip
+```
+
+### GPG Keys
+
+You can list GPG keys with the `bb key list` command:
+
+```bash
+bb key list
+```
+
+By default, the keys are listed for the current user. You can specify a user with the `--user` flag.
+
+You can also get the details of a GPG key with the `bb key get` or `bb key show` command:
+
+```bash
+bb key get <fingerprint>
+```
+
+By default, the key is retrieved for the current user. You can specify a user with the `--user` flag.
+
+You can create a GPG key with the `bb key create` command:
+
+```bash
+bb key create \
+  --user <user> \
+  --key <key>
+```
+
+You can instead provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin.
+
+You can delete a GPG key with the `bb key delete` command:
+
+```bash
+bb key delete <fingerprint>
+```
+
+### Cache
+
+The bitbucket-cli caches some data to speed up the commands. The following items are cached:
+
+- workspaces
+- projects
+- users
+
+The cache is stored in the [os.UserCacheDir](https://pkg.go.dev/os#UserCacheDir) directory, under `bitbucket`. The values are stored for a duration of 5 minutes, you can override this value with the environment variable `BITBUCKET_CLI_CACHE_DURATION` (for the format please follow [core.ParseDuration](https://pkg.go.dev/github.com/gildas/go-core#ParseDuration)). By default, the items are stored as JSON files unencrypted. To encrypt these files, you can set the environment variable `BITBUCKET_CLI_CACHE_ENCRYPTIONKEY` with an AES-256 key. The key must follow the [crypto/aes](https://pkg.go.dev/crypto/aes) requirements.
+
+You can clear the cache with the `bb cache clear` command:
+
+```bash
+bb cache clear
 ```
 
 ### Completion

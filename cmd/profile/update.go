@@ -50,9 +50,9 @@ func init() {
 	updateCmd.MarkFlagsRequiredTogether("user", "password")
 	updateCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	updateCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
-	_ = updateCmd.RegisterFlagCompletionFunc("default-workspace", updateOptions.DefaultWorkspace.CompletionFunc("default-workspace"))
-	_ = updateCmd.RegisterFlagCompletionFunc("default-project", updateOptions.DefaultProject.CompletionFunc("default-project"))
-	_ = updateCmd.RegisterFlagCompletionFunc("output", updateOptions.OutputFormat.CompletionFunc("output"))
+	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.DefaultWorkspace.CompletionFunc("default-workspace"))
+	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.DefaultProject.CompletionFunc("default-project"))
+	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.OutputFormat.CompletionFunc("output"))
 	_ = updateCmd.RegisterFlagCompletionFunc("error-processing", updateOptions.ErrorProcessing.CompletionFunc())
 }
 

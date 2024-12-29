@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -32,6 +33,22 @@ var Command = &cobra.Command{
 	},
 }
 
+var WorkspaceCache = common.NewCache[Workspace]()
+
+// GetID gets the ID of the workspace
+//
+// implements core.Identifiable
+func (workspace Workspace) GetID() uuid.UUID {
+	return uuid.UUID(workspace.ID)
+}
+
+// GetName gets the name of the workspace
+//
+// implements core.Named
+func (workspace Workspace) GetName() string {
+	return workspace.Name
+}
+
 // GetHeader gets the header for a table
 //
 // implements common.Tableable
@@ -51,7 +68,7 @@ func (workspace Workspace) GetRow(headers []string) []string {
 }
 
 // GetWorkspace gets the workspace by its slug
-func GetWorkspace(context context.Context, cmd *cobra.Command, workspace string) (*Workspace, error) {
+func GetWorkspace(context context.Context, cmd *cobra.Command, workspaceName string) (workspace *Workspace, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "get")
 
 	currentProfile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
@@ -59,20 +76,24 @@ func GetWorkspace(context context.Context, cmd *cobra.Command, workspace string)
 		return nil, err
 	}
 
-	log.Infof("Retrieving workspace %s", workspace)
-	var result Workspace
+	log.Infof("Retrieving workspace %s", workspaceName)
+
+	if workspace, err = WorkspaceCache.Get(workspaceName); err == nil {
+		log.Debugf("Workspace %s found in cache", workspaceName)
+		return workspace, nil
+	}
 
 	err = currentProfile.Get(
 		log.ToContext(context),
 		cmd,
-		fmt.Sprintf("/workspaces/%s", workspace),
-		&result,
+		fmt.Sprintf("/workspaces/%s", workspaceName),
+		&workspace,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return &result, nil
+	return workspace, nil
 }
 
 // GetWorkspaceFromGit gets the workspace from the git config
@@ -98,7 +119,7 @@ func (workspace Workspace) GetMembers(context context.Context, cmd *cobra.Comman
 }
 
 // GetWorkspaceSlugs gets the slugs of all workspaces
-func GetWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string) (slugs []string, err error) {
+func GetWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (slugs []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
 
 	log.Debugf("Getting all workspaces")

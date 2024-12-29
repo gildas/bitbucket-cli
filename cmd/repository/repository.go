@@ -15,6 +15,7 @@ import (
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +25,7 @@ type Repository struct {
 	Name                 string              `json:"name"               mapstructure:"name"`
 	FullName             string              `json:"full_name"          mapstructure:"full_name"`
 	Slug                 string              `json:"slug"               mapstructure:"slug"`
-	Owner                user.Account        `json:"owner"              mapstructure:"owner"`
+	Owner                user.User           `json:"owner"              mapstructure:"owner"`
 	Workspace            workspace.Workspace `json:"workspace"          mapstructure:"workspace"`
 	Project              project.Project     `json:"project"            mapstructure:"project"`
 	HasIssues            bool                `json:"has_issues"         mapstructure:"has_issues"`
@@ -67,6 +68,22 @@ var Command = &cobra.Command{
 	},
 }
 
+var RepositoryCache = common.NewCache[Repository]()
+
+// GetID gets the ID of the repository
+//
+// implements core.Identifiable
+func (repository Repository) GetID() uuid.UUID {
+	return uuid.UUID(repository.ID)
+}
+
+// GetName gets the name of the repository
+//
+// implements core.Named
+func (repository Repository) GetName() string {
+	return repository.Name
+}
+
 // GetHeader gets the header for a table
 //
 // implements common.Tableable
@@ -87,20 +104,36 @@ func (repository Repository) GetRow(headers []string) []string {
 
 // GetRepository gets a repository by its slug
 func GetRepository(context context.Context, cmd *cobra.Command, profile *profile.Profile, workspace, slug string) (repository *Repository, err error) {
+	log := logger.Must(logger.FromContext(context)).Child("repository", "get")
+
+	if repository, err = RepositoryCache.Get(fmt.Sprintf("%s/%s", workspace, slug)); err == nil {
+		log.Debugf("Repository %s/%s found in cache", workspace, slug)
+		return
+	}
 	err = profile.Get(
 		context,
 		cmd,
 		fmt.Sprintf("/repositories/%s/%s", workspace, slug),
 		&repository,
 	)
+	if err != nil {
+		return
+	}
+	_ = RepositoryCache.Set(*repository, fmt.Sprintf("%s/%s", workspace, slug))
 	return
 }
 
 // GetRepositoryFromGit gets a repository from a git origin
 func GetRepositoryFromGit(context context.Context, cmd *cobra.Command, profile *profile.Profile) (repository *Repository, err error) {
+	log := logger.Must(logger.FromContext(context)).Child("repository", "fromgit")
+
 	remote, err := remote.GetFromGitConfig(context, "origin")
 	if err != nil {
 		return nil, err
+	}
+	if repository, err = RepositoryCache.Get(remote.RepositoryName()); err == nil {
+		log.Debugf("Repository %s found in cache", remote.RepositoryName())
+		return
 	}
 	err = profile.Get(
 		context,
@@ -108,6 +141,10 @@ func GetRepositoryFromGit(context context.Context, cmd *cobra.Command, profile *
 		fmt.Sprintf("/repositories/%s", remote.RepositoryName()),
 		&repository,
 	)
+	if err != nil {
+		return
+	}
+	_ = RepositoryCache.Set(*repository, remote.RepositoryName())
 	return
 }
 
@@ -137,7 +174,7 @@ func GetRepositorySlugs(context context.Context, cmd *cobra.Command, workspace s
 // Implements json.Marshaler
 func (repository Repository) MarshalJSON() (data []byte, err error) {
 	type surrogate Repository
-	var owner *user.Account
+	var owner *user.User
 	var wspace *workspace.Workspace
 	var proj *project.Project
 	var br *branch
@@ -165,7 +202,7 @@ func (repository Repository) MarshalJSON() (data []byte, err error) {
 
 	data, err = json.Marshal(struct {
 		surrogate
-		Owner      *user.Account        `json:"owner,omitempty"`
+		Owner      *user.User           `json:"owner,omitempty"`
 		Workspace  *workspace.Workspace `json:"workspace,omitempty"`
 		Project    *project.Project     `json:"project,omitempty"`
 		MainBranch *branch              `json:"mainbranch,omitempty"`

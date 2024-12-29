@@ -33,7 +33,7 @@ func init() {
 	uploadCmd.Flags().Var(uploadOptions.IssueID, "issue", "Issue to upload attachments to")
 	uploadCmd.Flags().BoolVar(&uploadOptions.Progress, "progress", false, "Show progress")
 	_ = uploadCmd.MarkFlagRequired("issue")
-	_ = uploadCmd.RegisterFlagCompletionFunc("issue", uploadOptions.IssueID.CompletionFunc("issue"))
+	_ = uploadCmd.RegisterFlagCompletionFunc(uploadOptions.IssueID.CompletionFunc("issue"))
 }
 
 func uploadProcess(cmd *cobra.Command, args []string) error {

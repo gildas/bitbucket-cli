@@ -30,7 +30,7 @@ type PullRequest struct {
 	MergeCommit       *commit.Commit      `json:"merge_commit,omitempty" mapstructure:"merge_commit"`
 	CloseSourceBranch bool                `json:"close_source_branch"    mapstructure:"close_source_branch"`
 	ClosedBy          user.User           `json:"closed_by"              mapstructure:"closed_by"`
-	Author            user.Account        `json:"author"                 mapstructure:"author"`
+	Author            user.User           `json:"author"                 mapstructure:"author"`
 	Reason            string              `json:"reason"                 mapstructure:"reason"`
 	Destination       Endpoint            `json:"destination"            mapstructure:"destination"`
 	Source            Endpoint            `json:"source"                 mapstructure:"source"`
@@ -130,7 +130,7 @@ func GetPullRequestIDs(context context.Context, cmd *cobra.Command, repository s
 }
 
 // GetReviewerNicknames gets the reviewer nicknames for the current Workspace
-func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string) (nicknames []string, err error) {
+func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string, toComplete string) (nicknames []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getreviewers")
 	var pullrequestWorkspace *workspace.Workspace
 
@@ -155,7 +155,7 @@ func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []st
 }
 
 // GetBranchNames gets the branch names of a repository
-func GetBranchNames(context context.Context, cmd *cobra.Command, args []string) ([]string, error) {
+func GetBranchNames(context context.Context, cmd *cobra.Command, args []string, toComplete string) ([]string, error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getbranches")
 	log.Infof("Getting branches for profile %v", profile.Current)
 	return branch.GetBranchNames(context, cmd)

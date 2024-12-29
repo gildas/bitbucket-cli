@@ -29,7 +29,7 @@ func init() {
 
 	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
 	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get projects from")
-	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc("workspace"))
+	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -37,7 +37,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	keys, err := GetProjectKeys(cmd.Context(), cmd, args)
+	keys, err := GetProjectKeys(cmd.Context(), cmd, args, toComplete)
 	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}

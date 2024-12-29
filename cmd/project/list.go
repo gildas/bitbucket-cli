@@ -26,7 +26,7 @@ func init() {
 
 	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
 	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list projects from")
-	_ = listCmd.RegisterFlagCompletionFunc("workspace", listOptions.Workspace.CompletionFunc("workspace"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

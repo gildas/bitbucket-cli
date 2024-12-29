@@ -62,10 +62,10 @@ func init() {
 	createCmd.Flags().BoolVar(&createOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
 	_ = createCmd.MarkFlagRequired("title")
 	_ = createCmd.MarkFlagRequired("source")
-	_ = createCmd.RegisterFlagCompletionFunc("workspace", createOptions.Workspace.CompletionFunc("workspace"))
-	_ = createCmd.RegisterFlagCompletionFunc("source", createOptions.Source.CompletionFunc("source"))
-	_ = createCmd.RegisterFlagCompletionFunc("destination", createOptions.Destination.CompletionFunc("destination"))
-	_ = createCmd.RegisterFlagCompletionFunc("reviewer", createOptions.Reviewers.CompletionFunc("reviewer"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Workspace.CompletionFunc("workspace"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Source.CompletionFunc("source"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Destination.CompletionFunc("destination"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Reviewers.CompletionFunc("reviewer"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {

@@ -53,7 +53,7 @@ func init() {
 	createCmd.MarkFlagsMutuallyExclusive("line", "to")
 	_ = createCmd.MarkFlagRequired("pullrequest")
 	_ = createCmd.MarkFlagRequired("comment")
-	_ = createCmd.RegisterFlagCompletionFunc("pullrequest", createOptions.PullRequestID.CompletionFunc("pullrequest"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {

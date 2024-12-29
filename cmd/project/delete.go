@@ -38,6 +38,7 @@ func init() {
 	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
 	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
 	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
+	_ = deleteCmd.RegisterFlagCompletionFunc(createOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -45,7 +46,7 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	keys, err := GetProjectKeys(cmd.Context(), cmd, args)
+	keys, err := GetProjectKeys(cmd.Context(), cmd, args, toComplete)
 	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}

@@ -38,7 +38,7 @@ func getVAlidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	slugs, err := GetWorkspaceSlugs(cmd.Context(), cmd, args)
+	slugs, err := GetWorkspaceSlugs(cmd.Context(), cmd, args, toComplete)
 	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}

@@ -33,8 +33,8 @@ func init() {
 	getOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
 	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get reviewers from")
 	getCmd.Flags().Var(getOptions.Project, "project", "Project Key to get reviewers from")
-	_ = getCmd.RegisterFlagCompletionFunc("workspace", getOptions.Workspace.CompletionFunc("workspace"))
-	_ = getCmd.RegisterFlagCompletionFunc("project", getOptions.Project.CompletionFunc("project"))
+	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Workspace.CompletionFunc("workspace"))
+	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Project.CompletionFunc("project"))
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

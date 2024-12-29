@@ -57,7 +57,7 @@ func init() {
 	_ = createCmd.MarkFlagRequired("key")
 	_ = createCmd.MarkFlagFilename("avatar-file")
 	createCmd.MarkFlagsMutuallyExclusive("avatar-url", "avatar-file")
-	_ = createCmd.RegisterFlagCompletionFunc("workspace", createOptions.Workspace.CompletionFunc("workspace"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {

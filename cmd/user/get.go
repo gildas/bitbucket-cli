@@ -1,8 +1,6 @@
 package user
 
 import (
-	"strings"
-
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -34,16 +32,10 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	log.Infof("Displaying account %s", args[0])
-	var account *Account
-
-	if strings.ToLower(args[0]) == "myself" || strings.ToLower(args[0]) == "me" {
-		account, err = GetMe(cmd.Context(), cmd)
-	} else {
-		account, err = GetAccount(cmd.Context(), cmd, args[0])
-	}
+	log.Infof("Displaying user %s", args[0])
+	user, err := GetUser(cmd.Context(), cmd, args[0])
 	if err != nil {
 		return err
 	}
-	return profile.Print(cmd.Context(), cmd, account)
+	return profile.Print(cmd.Context(), cmd, user)
 }

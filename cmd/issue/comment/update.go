@@ -39,7 +39,7 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the issue")
 	_ = updateCmd.MarkFlagRequired("issue")
 	_ = updateCmd.MarkFlagRequired("comment")
-	_ = updateCmd.RegisterFlagCompletionFunc("issue", updateOptions.IssueID.CompletionFunc("issue"))
+	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.IssueID.CompletionFunc("issue"))
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

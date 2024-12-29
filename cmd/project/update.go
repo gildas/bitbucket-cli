@@ -55,7 +55,7 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.AvatarPath, "avatar-file", "", "Avatar of the project")
 	updateCmd.Flags().BoolVar(&updateOptions.IsPrivate, "is-private", false, "Is the project private")
 	updateCmd.MarkFlagsMutuallyExclusive("avatar-url", "avatar-file")
-	_ = updateCmd.RegisterFlagCompletionFunc("workspace", updateOptions.Workspace.CompletionFunc("workspace"))
+	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -63,7 +63,7 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	keys, err := GetProjectKeys(cmd.Context(), cmd, args)
+	keys, err := GetProjectKeys(cmd.Context(), cmd, args, toComplete)
 	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}

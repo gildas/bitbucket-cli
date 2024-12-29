@@ -33,7 +33,7 @@ func init() {
 	resolveCmd.Flags().StringVar(&resolveOptions.Repository, "repository", "", "Repository to resolve a pullrequest comment from. Defaults to the current repository")
 	resolveCmd.Flags().Var(resolveOptions.PullRequestID, "pullrequest", "Pullrequest to resolve comments from")
 	_ = resolveCmd.MarkFlagRequired("pullrequest")
-	_ = resolveCmd.RegisterFlagCompletionFunc("pullrequest", resolveOptions.PullRequestID.CompletionFunc("pullrequest"))
+	_ = resolveCmd.RegisterFlagCompletionFunc(resolveOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func resolveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

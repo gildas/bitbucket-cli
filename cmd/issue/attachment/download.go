@@ -36,7 +36,7 @@ func init() {
 	downloadCmd.Flags().StringVar(&downloadOptions.Destination, "destination", "", "Destination folder to download the attachment to. Defaults to the current folder")
 	downloadCmd.Flags().BoolVar(&downloadOptions.Progress, "progress", false, "Show progress")
 	_ = downloadCmd.MarkFlagRequired("issue")
-	_ = downloadCmd.RegisterFlagCompletionFunc("issue", downloadOptions.IssueID.CompletionFunc("issue"))
+	_ = downloadCmd.RegisterFlagCompletionFunc(downloadOptions.IssueID.CompletionFunc("issue"))
 	_ = downloadCmd.MarkFlagDirname("destination")
 }
 

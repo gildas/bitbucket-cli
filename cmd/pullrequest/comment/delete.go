@@ -39,7 +39,7 @@ func init() {
 	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
 	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
 	_ = deleteCmd.MarkFlagRequired("pullrequest")
-	_ = deleteCmd.RegisterFlagCompletionFunc("pullrequest", deleteOptions.PullRequestID.CompletionFunc("pullrequest"))
+	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

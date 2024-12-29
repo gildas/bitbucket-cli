@@ -446,7 +446,8 @@ func (profile *Profile) getTokenData() (data []byte) {
 }
 
 // getWorkspaceSlugs gets the slugs of all workspaces
-func getWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string) (slugs []string, err error) {
+func getWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (slugs []string, err error) {
+	// We have to repeat the code here because of the circular dependency with the workspace package
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
 	type Workspace struct {
 		Slug string `json:"slug"`
@@ -464,7 +465,7 @@ func getWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []strin
 }
 
 // getProjectKeys gets the keys of all projects
-func getProjectKeys(context context.Context, cmd *cobra.Command, args []string) (keys []string, err error) {
+func getProjectKeys(context context.Context, cmd *cobra.Command, args []string, toComplete string) (keys []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 	type Project struct {
 		Key string `json:"key"`

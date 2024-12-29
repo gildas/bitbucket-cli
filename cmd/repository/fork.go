@@ -59,8 +59,8 @@ func init() {
 	forkCmd.Flags().StringVar(&forkOptions.MainBranch, "main-branch", "", "Main branch of the repository")
 	forkCmd.Flags().Var(forkOptions.ForkPolicy, "fork-policy", "Fork policy of the repository. Default: no_public_forks")
 	forkCmd.MarkFlagsMutuallyExclusive("private", "public")
-	_ = forkCmd.RegisterFlagCompletionFunc("workspace", forkOptions.Workspace.CompletionFunc("workspace"))
-	_ = forkCmd.RegisterFlagCompletionFunc("project", forkOptions.Project.CompletionFunc("project"))
+	_ = forkCmd.RegisterFlagCompletionFunc(forkOptions.Workspace.CompletionFunc("workspace"))
+	_ = forkCmd.RegisterFlagCompletionFunc(forkOptions.Project.CompletionFunc("project"))
 }
 
 func forkValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

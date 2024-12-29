@@ -137,7 +137,7 @@ func GetWorkspace(cmd *cobra.Command, profile *profile.Profile) (workspace strin
 }
 
 // GetProjectKeys gets the keys of the projects in the workspace given in the command
-func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) (keys []string, err error) {
+func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string, toComplete string) (keys []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 
 	workspace := cmd.Flag("workspace").Value.String()
@@ -160,7 +160,7 @@ func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string) 
 }
 
 // GetProjectNames gets the names of the projects in the workspace given in the command
-func GetProjectNames(context context.Context, cmd *cobra.Command, args []string) (names []string, err error) {
+func GetProjectNames(context context.Context, cmd *cobra.Command, args []string, toComplete string) (names []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "names")
 
 	workspace := cmd.Flag("workspace").Value.String()

@@ -38,7 +38,7 @@ func init() {
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the issue")
 	_ = createCmd.MarkFlagRequired("issue")
 	_ = createCmd.MarkFlagRequired("comment")
-	_ = createCmd.RegisterFlagCompletionFunc("issue", createOptions.IssueID.CompletionFunc("issue"))
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.IssueID.CompletionFunc("issue"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {

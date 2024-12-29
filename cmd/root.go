@@ -10,9 +10,11 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/artifact"
 	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
+	"bitbucket.org/gildas_cherruel/bb/cmd/cache"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/component"
 	"bitbucket.org/gildas_cherruel/bb/cmd/issue"
+	"bitbucket.org/gildas_cherruel/bb/cmd/key"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
@@ -76,7 +78,7 @@ func init() {
 	_ = RootCmd.MarkFlagFilename("config")
 	_ = RootCmd.MarkFlagFilename("log")
 	_ = RootCmd.RegisterFlagCompletionFunc("profile", profile.ValidProfileNames)
-	_ = RootCmd.RegisterFlagCompletionFunc("output", CmdOptions.OutputFormat.CompletionFunc("output"))
+	_ = RootCmd.RegisterFlagCompletionFunc(CmdOptions.OutputFormat.CompletionFunc("output"))
 	RootCmd.PersistentFlags().SetNormalizeFunc(func(f *pflag.FlagSet, name string) pflag.NormalizedName {
 		switch name {
 		case "noop", "dryrun", "whatif", "what-if":
@@ -96,6 +98,8 @@ func init() {
 	RootCmd.AddCommand(repository.Command)
 	RootCmd.AddCommand(user.Command)
 	RootCmd.AddCommand(workspace.Command)
+	RootCmd.AddCommand(key.Command)
+	RootCmd.AddCommand(cache.Command)
 
 	RootCmd.SilenceUsage = true // Do not show usage when an error occurs
 	cobra.OnInitialize(initConfig)

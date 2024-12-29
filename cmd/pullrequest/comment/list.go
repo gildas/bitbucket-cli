@@ -30,7 +30,7 @@ func init() {
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequest comments from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.PullRequestID, "pullrequest", "pullrequest to list comments from")
 	_ = listCmd.MarkFlagRequired("pullrequest")
-	_ = listCmd.RegisterFlagCompletionFunc("pullrequest", listOptions.PullRequestID.CompletionFunc("pullrequest"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

@@ -19,7 +19,7 @@ type Comment struct {
 	Type        string                `json:"type"             mapstructure:"type"`
 	ID          int                   `json:"id"               mapstructure:"id"`
 	Content     common.RenderedText   `json:"content"          mapstructure:"content"`
-	User        user.Account          `json:"user"             mapstructure:"user"`
+	User        user.User             `json:"user"             mapstructure:"user"`
 	Anchor      *common.FileAnchor    `json:"inline,omitempty" mapstructure:"inline"`
 	Parent      *Comment              `json:"parent,omitempty" mapstructure:"parent"`
 	CreatedOn   time.Time             `json:"created_on"       mapstructure:"created_on"`
@@ -127,7 +127,7 @@ func (comment Comment) MarshalJSON() (data []byte, err error) {
 }
 
 // GetPullRequestIDs gets the IDs of the pullrequests
-func GetPullRequestIDs(context context.Context, cmd *cobra.Command, args []string) (ids []string, err error) {
+func GetPullRequestIDs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("pullrequest", "getids")
 
 	type PullRequest struct {

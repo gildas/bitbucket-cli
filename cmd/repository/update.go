@@ -59,8 +59,8 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.MainBranch, "main-branch", "", "Main branch of the repository")
 	updateCmd.Flags().Var(updateOptions.ForkPolicy, "fork-policy", "Fork policy of the repository. Default: no_public_forks")
 	updateCmd.MarkFlagsMutuallyExclusive("private", "public")
-	_ = updateCmd.RegisterFlagCompletionFunc("workspace", updateOptions.Workspace.CompletionFunc("workspace"))
-	_ = updateCmd.RegisterFlagCompletionFunc("project", updateOptions.Project.CompletionFunc("project"))
+	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.Workspace.CompletionFunc("workspace"))
+	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.Project.CompletionFunc("project"))
 }
 
 func updateProcess(cmd *cobra.Command, args []string) (err error) {
