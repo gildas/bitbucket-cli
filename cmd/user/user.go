@@ -121,7 +121,9 @@ func GetMe(context context.Context, cmd *cobra.Command) (user *User, err error) 
 		"/user",
 		&user,
 	)
-	_ = UserCache.Set(*user, "me")
+	if err == nil {
+		_ = UserCache.Set(*user, "me")
+	}
 	return
 }
 
@@ -147,7 +149,9 @@ func GetUser(context context.Context, cmd *cobra.Command, userid string) (user *
 				fmt.Sprintf("/users/%s", userUUID.String()),
 				&user,
 			)
-			_ = UserCache.Set(*user)
+			if err == nil {
+				_ = UserCache.Set(*user)
+			}
 		}
 	}
 	return
