@@ -634,6 +634,24 @@ Finally, you can delete an artifact with the `bb artifact delete` command:
 bb artifact delete myartifact.zip
 ```
 
+### GPG Keys
+
+### Cache
+
+The bitbucket-cli caches some data to speed up the commands. The following items are cached:
+
+- workspaces
+- projects
+- users
+
+The cache is stored in the [os.UserCacheDir](https://pkg.go.dev/os#UserCacheDir) directory, under `bitbucket`. The values are stored for a duration of 5 minutes, you can override this value with the environment variable `BITBUCKET_CLI_CACHE_DURATION` (for the format please follow [core.ParseDuration](https://pkg.go.dev/github.com/gildas/go-core#ParseDuration)). By default, the items are stored as JSON files unencrypted. To encrypt these files, you can set the environment variable `BITBUCKET_CLI_CACHE_ENCRYPTIONKEY` with an AES-256 key. The key must follow the [crypto/aes](https://pkg.go.dev/crypto/aes) requirements.
+
+You can clear the cache with the `bb cache clear` command:
+
+```bash
+bb cache clear
+```
+
 ### Completion
 
 `bb` supports completion for Bash, fish, Powershell, and zsh.
