@@ -89,11 +89,11 @@ func GetWorkspace(context context.Context, cmd *cobra.Command, workspaceName str
 		fmt.Sprintf("/workspaces/%s", workspaceName),
 		&workspace,
 	)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		_ = WorkspaceCache.Set(*workspace, workspaceName)
 	}
 
-	return workspace, nil
+	return
 }
 
 // GetWorkspaceFromGit gets the workspace from the git config
