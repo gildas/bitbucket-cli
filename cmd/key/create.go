@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
@@ -21,15 +22,17 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
-	User    string
-	Key     string
-	KeyFile string
+	User    string `json:"-"`
+	Name    string `json:"name"`
+	Key     string `json:"key"`
+	KeyFile string `json:"-"`
 }
 
 func init() {
 	Command.AddCommand(createCmd)
 
 	createCmd.Flags().StringVar(&createOptions.User, "user", "", "Owner's User ID of the key, defaults to the current user")
+	createCmd.Flags().StringVar(&createOptions.Name, "name", "", "Name of the key")
 	createCmd.Flags().StringVar(&createOptions.Key, "key", "", "GPG key to add")
 	createCmd.Flags().StringVar(&createOptions.KeyFile, "key-file", "", "File containing the GPG key to add. Use '-' to read from stdin")
 	_ = createCmd.MarkFlagFilename("key-file")
@@ -67,6 +70,9 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating GPG key for %s", owner) {
+		return nil
+	}
 	log.Infof("Creating GPG key for %s", owner)
 	var key *GPGKey
 
@@ -74,11 +80,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		cmd.Context(),
 		cmd,
 		fmt.Sprintf("/users/%s/gpg-keys", owner.ID.String()),
-		struct {
-			Key string `json:"key"`
-		}{
-			Key: createOptions.Key,
-		},
+		createOptions,
 		&key,
 	)
 	if err != nil {

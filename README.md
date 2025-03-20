@@ -659,10 +659,11 @@ You can create a GPG key with the `bb key create` command:
 ```bash
 bb key create \
   --user <user> \
+  --name <keyname> \
   --key <key>
 ```
 
-You can instead provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin.
+The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin.
 
 You can delete a GPG key with the `bb key delete` command:
 

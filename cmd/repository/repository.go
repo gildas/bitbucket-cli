@@ -116,10 +116,9 @@ func GetRepository(context context.Context, cmd *cobra.Command, profile *profile
 		fmt.Sprintf("/repositories/%s/%s", workspace, slug),
 		&repository,
 	)
-	if err != nil {
-		return
+	if err == nil {
+		_ = RepositoryCache.Set(*repository, fmt.Sprintf("%s/%s", workspace, slug))
 	}
-	_ = RepositoryCache.Set(*repository, fmt.Sprintf("%s/%s", workspace, slug))
 	return
 }
 
@@ -141,10 +140,9 @@ func GetRepositoryFromGit(context context.Context, cmd *cobra.Command, profile *
 		fmt.Sprintf("/repositories/%s", remote.RepositoryName()),
 		&repository,
 	)
-	if err != nil {
-		return
+	if err == nil {
+		_ = RepositoryCache.Set(*repository, remote.RepositoryName())
 	}
-	_ = RepositoryCache.Set(*repository, remote.RepositoryName())
 	return
 }
 
