@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -42,13 +43,18 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	owner, err := user.GetUserFromFlags(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	log.Infof("Deleting GPG keys %v", args)
 
 	for _, fingerprint := range args {
 		err := profile.Delete(
 			cmd.Context(),
 			cmd,
-			fmt.Sprintf("/user/gpg-keys/%s", fingerprint),
+			fmt.Sprintf("/users/%s/gpg-keys/%s", owner.ID, fingerprint),
 			nil,
 		)
 		if err != nil {
