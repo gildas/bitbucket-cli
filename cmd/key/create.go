@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
@@ -69,6 +70,9 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating GPG key for %s", owner) {
+		return nil
+	}
 	log.Infof("Creating GPG key for %s", owner)
 	var key *GPGKey
 
