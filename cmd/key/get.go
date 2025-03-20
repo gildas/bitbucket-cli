@@ -54,7 +54,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	err = profile.Get(
 		cmd.Context(),
 		cmd,
-		fmt.Sprintf("/users/%s/gpg-keys/%s", owner.ID.String(), args[0]),
+		fmt.Sprintf("/users/%s/gpg-keys/%s", owner.ID, args[0]),
 		&key,
 	)
 	if err != nil {
