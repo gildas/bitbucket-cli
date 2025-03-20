@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>bitbucket-cli</id>
-    <version>0.11.0</version>
+    <version>0.12.0</version>
     <owners>Gildas Cherruel</owners>
     <title>bitbucket-cli (Install)</title>
     <authors>Gildas Cherruel</authors>
@@ -18,8 +18,9 @@
     <summary>Command line interface for Bitbucket</summary>
     <description>The Bitbucket Command Line Interface brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.</description>
     <releaseNotes>
-- PR creation/update accept --reviewer with names and completion
-- workspace completion
+- GPG Keys support
+- cache
+- PR merge with no arguments
     </releaseNotes>
   </metadata>
   <files>
