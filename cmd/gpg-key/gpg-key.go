@@ -15,15 +15,15 @@ import (
 )
 
 type GPGKey struct {
-	Type        string       `json:"type" mapstructure:"type"`
+	Type        string       `json:"type"               mapstructure:"type"`
 	Parent      string       `json:"parent_fingerprint" mapstructure:"parent_fingerprint"`
-	Fingerprint string       `json:"fingerprint" mapstructure:"fingerprint"`
-	KeyID       string       `json:"key_id" mapstructure:"key_id"`
-	Name        string       `json:"name" mapstructure:"name"`
-	AddedOn     time.Time    `json:"added_on" mapstructure:"added_on"`
-	CreatedOn   time.Time    `json:"created_on" mapstructure:"created_on"`
-	Links       common.Links `json:"links" mapstructure:"links"`
-	Owner       user.User    `json:"owner" mapstructure:"owner"`
+	Fingerprint string       `json:"fingerprint"        mapstructure:"fingerprint"`
+	KeyID       string       `json:"key_id"             mapstructure:"key_id"`
+	Name        string       `json:"name"               mapstructure:"name"`
+	AddedOn     time.Time    `json:"added_on"           mapstructure:"added_on"`
+	CreatedOn   time.Time    `json:"created_on"         mapstructure:"created_on"`
+	Links       common.Links `json:"links"              mapstructure:"links"`
+	Owner       user.User    `json:"owner"              mapstructure:"owner"`
 }
 
 // Command represents this folder's command
