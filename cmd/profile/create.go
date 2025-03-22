@@ -40,6 +40,7 @@ func init() {
 	createCmd.Flags().StringVar(&createOptions.Password, "password", "", "Password of the profile")
 	createCmd.Flags().StringVar(&createOptions.ClientID, "client-id", "", "Client ID of the profile")
 	createCmd.Flags().StringVar(&createOptions.ClientSecret, "client-secret", "", "Client Secret of the profile")
+	createCmd.Flags().Uint16Var(&createOptions.CallbackPort, "callback-port", 0, "Port to listen to for the Authorization Code Grant")
 	createCmd.Flags().StringVar(&createOptions.AccessToken, "access-token", "", "Access Token of the profile")
 	createCmd.Flags().Var(createOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
 	createCmd.Flags().Var(createOptions.DefaultProject, "default-project", "Default project of the profile")

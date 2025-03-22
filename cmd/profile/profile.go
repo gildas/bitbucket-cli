@@ -22,21 +22,22 @@ import (
 // Profile describes the configuration needed to connect to BitBucket
 type Profile struct {
 	Name             string                 `json:"name"                       mapstructure:"name"`
-	Description      string                 `json:"description,omitempty"      mapstructure:"description,omitempty"  yaml:",omitempty"`
-	Default          bool                   `json:"default"                    mapstructure:"default"                yaml:",omitempty"`
-	DefaultWorkspace string                 `json:"defaultWorkspace,omitempty" mapstructure:"defaultWorkspace"       yaml:",omitempty"`
-	DefaultProject   string                 `json:"defaultProject,omitempty"   mapstructure:"defaultProject"         yaml:",omitempty"`
+	Description      string                 `json:"description,omitempty"      mapstructure:"description,omitempty"     yaml:",omitempty"`
+	Default          bool                   `json:"default"                    mapstructure:"default"                   yaml:",omitempty"`
+	DefaultWorkspace string                 `json:"defaultWorkspace,omitempty" mapstructure:"defaultWorkspace"          yaml:",omitempty"`
+	DefaultProject   string                 `json:"defaultProject,omitempty"   mapstructure:"defaultProject"            yaml:",omitempty"`
 	ErrorProcessing  common.ErrorProcessing `json:"errorProcessing,omitempty"  mapstructure:"errorProcessing,omitempty" yaml:",omitempty"`
-	OutputFormat     string                 `json:"outputFormat,omitempty"     mapstructure:"outputFormat,omitempty" yaml:",omitempty"`
-	Progress         bool                   `json:"progress,omitempty"         mapstructure:"progress,omitempty"     yaml:",omitempty"`
-	User             string                 `json:"user,omitempty"             mapstructure:"user"                   yaml:",omitempty"`
-	Password         string                 `json:"password,omitempty"         mapstructure:"password"               yaml:",omitempty"`
-	ClientID         string                 `json:"clientID,omitempty"         mapstructure:"clientID"               yaml:",omitempty"`
-	ClientSecret     string                 `json:"clientSecret,omitempty"     mapstructure:"clientSecret"           yaml:",omitempty"`
-	AccessToken      string                 `json:"accessToken,omitempty"      mapstructure:"accessToken"            yaml:",omitempty"`
-	RefreshToken     string                 `json:"-"                          mapstructure:"refreshToken"           yaml:"-"`
-	TokenExpires     time.Time              `json:"-"                          mapstructure:"tokenExpires"           yaml:"-"`
-	TokenScopes      []string               `json:"-"                          mapstructure:"tokenScopes"            yaml:"-"`
+	OutputFormat     string                 `json:"outputFormat,omitempty"     mapstructure:"outputFormat,omitempty"    yaml:",omitempty"`
+	Progress         bool                   `json:"progress,omitempty"         mapstructure:"progress,omitempty"        yaml:",omitempty"`
+	User             string                 `json:"user,omitempty"             mapstructure:"user"                      yaml:",omitempty"`
+	Password         string                 `json:"password,omitempty"         mapstructure:"password"                  yaml:",omitempty"`
+	ClientID         string                 `json:"clientID,omitempty"         mapstructure:"clientID"                  yaml:",omitempty"`
+	ClientSecret     string                 `json:"clientSecret,omitempty"     mapstructure:"clientSecret"              yaml:",omitempty"`
+	CallbackPort     uint16                 `json:"callbackPort,omitempty"     mapstructure:"callbackPort"              yaml:",omitempty"`
+	AccessToken      string                 `json:"accessToken,omitempty"      mapstructure:"accessToken"               yaml:",omitempty"`
+	RefreshToken     string                 `json:"-"                          mapstructure:"refreshToken"              yaml:"-"`
+	TokenExpires     time.Time              `json:"-"                          mapstructure:"tokenExpires"              yaml:"-"`
+	TokenScopes      []string               `json:"-"                          mapstructure:"tokenScopes"               yaml:"-"`
 }
 
 // Current is the current profile
@@ -143,6 +144,9 @@ func (profile *Profile) Update(other Profile) error {
 	}
 	if len(other.ClientSecret) > 0 {
 		profile.ClientSecret = other.ClientSecret
+	}
+	if other.CallbackPort > 0 {
+		profile.CallbackPort = other.CallbackPort
 	}
 	if len(other.AccessToken) > 0 {
 		profile.AccessToken = other.AccessToken
