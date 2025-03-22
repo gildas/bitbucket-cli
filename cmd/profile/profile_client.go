@@ -219,6 +219,63 @@ func (profile *Profile) getProgressWriter(size int64, description string) *progr
 	)
 }
 
+func (profile *Profile) CodeGrantCallback(resultchan chan error) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log := logger.Must(logger.FromContext(r.Context())).Child(nil, nil, "profile", profile.Name)
+
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		if r.URL.Path == "/favicon.ico" {
+			_, _ = w.Write([]byte{})
+			return
+		}
+
+		log.Infof("Received callback from BitBucket")
+		code := r.URL.Query().Get("code")
+		if len(code) == 0 {
+			log.Errorf("No code in the callback")
+			http.Error(w, "No code in the callback", http.StatusBadRequest)
+			return
+		}
+		log.Infof("Received code %s", code)
+
+		log.Infof("Requesting authorization token for profile %s", profile.Name)
+		result, err := request.Send(&request.Options{
+			Method:        http.MethodPost,
+			Authorization: request.BasicAuthorization(profile.ClientID, profile.ClientSecret),
+			URL:           core.Must(url.Parse("https://bitbucket.org/site/oauth2/access_token")),
+			Payload:       map[string]string{"grant_type": "authorization_code", "code": code},
+			Timeout:       30 * time.Second,
+			Logger:        log,
+		}, nil)
+		if err != nil {
+			if result != nil {
+				var errorResponse struct {
+					Error            string `json:"error"`
+					ErrorDescription string `json:"error_description"`
+				}
+				if jerr := result.UnmarshalContentJSON(&errorResponse); jerr == nil {
+					var details *errors.Error
+					status := http.StatusInternalServerError
+					if errors.As(err, &details) {
+						status = details.Code
+					}
+					http.Error(w, errorResponse.ErrorDescription, status)
+				}
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+			resultchan <- err
+			return
+		}
+		profile.saveAccessToken(result.Data)
+		_, _ = w.Write([]byte("Authorization Code received. You can close this window."))
+		resultchan <- nil
+	})
+}
+
 func (profile *Profile) authorize(context context.Context) (authorization string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "authorize")
 

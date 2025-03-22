@@ -1,4 +1,4 @@
-package key
+package sshkey
 
 import (
 	"fmt"
@@ -13,9 +13,9 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete [flags] <fingerprints...>",
+	Use:               "delete [flags] <identifiers...>",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete GPG keys by their <fingerprint>.",
+	Short:             "delete SSH keys by their <identifier>.",
 	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: deleteValidArgs,
 	RunE:              deleteProcess,
@@ -42,7 +42,7 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetGPGKeyFingerprints(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
+	return GetSSHKeyFingerprints(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
@@ -60,11 +60,11 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 
 	var merr errors.MultiError
 	for _, fingerprint := range args {
-		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting GPG key %s for user %s", fingerprint, owner.ID) {
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting SSH key %s for user %s", fingerprint, owner.ID) {
 			err := profile.Delete(
 				cmd.Context(),
 				cmd,
-				fmt.Sprintf("/users/%s/gpg-keys/%s", owner.ID, fingerprint),
+				fmt.Sprintf("/users/%s/ssh-keys/%s", owner.ID, fingerprint),
 				nil,
 			)
 			if err != nil {

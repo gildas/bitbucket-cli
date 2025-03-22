@@ -1,4 +1,4 @@
-package key
+package sshkey
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 var getCmd = &cobra.Command{
 	Use:               "get",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get a GPG key by its <fingerprint>",
+	Short:             "get a SSH key by its <fingerprint>",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
@@ -32,7 +32,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetGPGKeyFingerprints(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
+	return GetSSHKeyFingerprints(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {
@@ -48,13 +48,13 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	log.Infof("Getting GPG key %s", args[0])
-	var key *GPGKey
+	log.Infof("Getting SSH key %s", args[0])
+	var key *SSHKey
 
 	err = profile.Get(
 		cmd.Context(),
 		cmd,
-		fmt.Sprintf("/users/%s/gpg-keys/%s", owner.ID, args[0]),
+		fmt.Sprintf("/users/%s/ssh-keys/%s", owner.ID, args[0]),
 		&key,
 	)
 	if err != nil {

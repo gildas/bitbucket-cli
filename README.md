@@ -107,7 +107,8 @@ export BB_OUTPUT_FORMAT=json
 bb profile create \
   --name myprofile \
   --client-id <your-client-id> \
-  --client-secret <your-client-secret>
+  --client-secret <your-client-secret> \
+  --callback-port 8080
 ```
 
 You can also pass the `--default` flag to make this profile the default one, or pass a `--output` flag to change the profile output format.
@@ -118,7 +119,8 @@ You can also pass the `--progress` flag to display a progress bar when upload/do
 
 Profiles support the following authentications:
 
-- [OAuth 2.0](https://support.atlassian.com/bitbucket-cloud/docs/use-oauth-on-bitbucket-cloud/) with the `--client-id` and `--client-secret` flags
+- [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-) with the `--client-id`, `--client-secret`, and `--callback-port` flags
+- [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-) with the `--client-id` and `--client-secret` flags
 - [App passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/) with the `--user` and `--password` flags.
 - [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags.
 
@@ -208,6 +210,26 @@ export BB_CONFIG=~/.bb/config.json
 ```bash
 bb --config ~/.bb/config.json workspace list
 ```
+
+#### Adding an OAUTH 2.0 Profile
+
+To add an OAuth 2.0 profile, you need to create an OAuth consumer on Bitbucket. First, go to the settings page <https://bitbucket.org/xxxx/workspace/settings> of the Bitbucket workspace you want a consumer for (where `xxxx` is the workspace name/ID). On that page, click on the `OAuth consumers` link in the `Access management` section. Then click on the `Add consumer` button. Fill in the form.
+
+To use an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to fill in the `Callback URL` with a link like <http://localhost:yyyy> (where `yyyy` is the port you want to use and provide to the `--callback-port` flag of `bb profile create`) and **do not** enable the check box for `This is a private consumer`.
+
+To use an [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-), you will need to enable the check box for `This is a private consumer` and **do not** fill in the `Callback URL`.
+
+In both cases, you will need to fill in the permissions you want to grant to the consumer.
+
+Once you hit the `Save` button, your OAuth consumer will be created and you can use the credentials (client identifier and secret) provided to configure your profile with `bb`.
+
+Once the profile is created in `bb`, for an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to authorize the profile with the following command:
+
+```bash
+bb profile authorize myprofile
+```
+
+You can also use the `--verbose` to get some information about the authorization process.
 
 ### Workspaces
 
@@ -641,7 +663,7 @@ bb artifact delete myartifact.zip
 You can list GPG keys with the `bb key list` command:
 
 ```bash
-bb key list
+bb gpg-key list
 ```
 
 By default, the keys are listed for the current user. You can specify a user with the `--user` flag.
@@ -649,26 +671,61 @@ By default, the keys are listed for the current user. You can specify a user wit
 You can also get the details of a GPG key with the `bb key get` or `bb key show` command:
 
 ```bash
-bb key get <fingerprint>
+bb gpg-key get <fingerprint>
 ```
 
 By default, the key is retrieved for the current user. You can specify a user with the `--user` flag.
 
-You can create a GPG key with the `bb key create` command:
+You can create a GPG key with the `bb gpg-key create` command:
 
 ```bash
-bb key create \
+bb gpg-key create \
   --user <user> \
   --name <keyname> \
   --key <key>
 ```
 
-The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin.
+The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin. If the `--user` flag is not provided, the key is created for the user associated with the current profile.
 
-You can delete a GPG key with the `bb key delete` command:
+You can delete one or more GPG keys with the `bb gpg-key delete` command:
 
 ```bash
-bb key delete <fingerprint>
+bb gpg-key delete <fingerprint>
+```
+
+### SSH Keys
+
+You can list SSH keys with the `bb key list` command:
+
+```bash
+bb ssh-key list
+```
+
+By default, the keys are listed for the current user. You can specify a user with the `--user` flag.
+
+You can also get the details of an SSH key with the `bb ssh-key get` or `bb ssh-key show` command:
+
+```bash
+bb ssh-key get <fingerprint>
+```
+
+By default, the key is retrieved for the current user. You can specify a user with the `--user` flag.
+
+You can create an SSH key with the `bb ssh-key create` command:
+
+```bash
+bb ssh-key create \
+  --user <user> \
+  --name <keyname> \
+  --key <key>
+```
+
+The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin. If the `--user` flag is not provided, the key is created for the user associated with the current profile.
+
+You can delete one or more SSH keys with the `bb ssh-key delete` command:
+
+```bash
+bb ssh-key delete <fingerprint>
 ```
 
 ### Cache
