@@ -663,7 +663,7 @@ bb artifact delete myartifact.zip
 You can list GPG keys with the `bb key list` command:
 
 ```bash
-bb key list
+bb gpg-key list
 ```
 
 By default, the keys are listed for the current user. You can specify a user with the `--user` flag.
@@ -671,26 +671,61 @@ By default, the keys are listed for the current user. You can specify a user wit
 You can also get the details of a GPG key with the `bb key get` or `bb key show` command:
 
 ```bash
-bb key get <fingerprint>
+bb gpg-key get <fingerprint>
 ```
 
 By default, the key is retrieved for the current user. You can specify a user with the `--user` flag.
 
-You can create a GPG key with the `bb key create` command:
+You can create a GPG key with the `bb gpg-key create` command:
 
 ```bash
-bb key create \
+bb gpg-key create \
   --user <user> \
   --name <keyname> \
   --key <key>
 ```
 
-The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin.
+The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin. If the `--user` flag is not provided, the key is created for the user associated with the current profile.
 
-You can delete a GPG key with the `bb key delete` command:
+You can delete one or more GPG keys with the `bb gpg-key delete` command:
 
 ```bash
-bb key delete <fingerprint>
+bb gpg-key delete <fingerprint>
+```
+
+### SSH Keys
+
+You can list SSH keys with the `bb key list` command:
+
+```bash
+bb ssh-key list
+```
+
+By default, the keys are listed for the current user. You can specify a user with the `--user` flag.
+
+You can also get the details of an SSH key with the `bb ssh-key get` or `bb ssh-key show` command:
+
+```bash
+bb ssh-key get <fingerprint>
+```
+
+By default, the key is retrieved for the current user. You can specify a user with the `--user` flag.
+
+You can create an SSH key with the `bb ssh-key create` command:
+
+```bash
+bb ssh-key create \
+  --user <user> \
+  --name <keyname> \
+  --key <key>
+```
+
+The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin. If the `--user` flag is not provided, the key is created for the user associated with the current profile.
+
+You can delete one or more SSH keys with the `bb ssh-key delete` command:
+
+```bash
+bb ssh-key delete <fingerprint>
 ```
 
 ### Cache

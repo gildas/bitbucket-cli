@@ -19,6 +19,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
+	sshkey "bitbucket.org/gildas_cherruel/bb/cmd/ssh-key"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -99,6 +100,7 @@ func init() {
 	RootCmd.AddCommand(user.Command)
 	RootCmd.AddCommand(workspace.Command)
 	RootCmd.AddCommand(gpgkey.Command)
+	RootCmd.AddCommand(sshkey.Command)
 	RootCmd.AddCommand(cache.Command)
 
 	RootCmd.SilenceUsage = true // Do not show usage when an error occurs
