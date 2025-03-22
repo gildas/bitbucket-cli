@@ -13,8 +13,8 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/cache"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/component"
+	"bitbucket.org/gildas_cherruel/bb/cmd/gpg-key"
 	"bitbucket.org/gildas_cherruel/bb/cmd/issue"
-	"bitbucket.org/gildas_cherruel/bb/cmd/key"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
@@ -98,7 +98,7 @@ func init() {
 	RootCmd.AddCommand(repository.Command)
 	RootCmd.AddCommand(user.Command)
 	RootCmd.AddCommand(workspace.Command)
-	RootCmd.AddCommand(key.Command)
+	RootCmd.AddCommand(gpgkey.Command)
 	RootCmd.AddCommand(cache.Command)
 
 	RootCmd.SilenceUsage = true // Do not show usage when an error occurs

@@ -1,4 +1,4 @@
-package key
+package gpgkey
 
 import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"

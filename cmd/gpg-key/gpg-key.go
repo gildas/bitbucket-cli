@@ -1,4 +1,4 @@
-package key
+package gpgkey
 
 import (
 	"context"
@@ -28,8 +28,9 @@ type GPGKey struct {
 
 // Command represents this folder's command
 var Command = &cobra.Command{
-	Use:   "key",
-	Short: "Manage GPG keys",
+	Use:     "gpg-key",
+	Aliases: []string{"key"}, // backward compatibility
+	Short:   "Manage GPG keys",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Key requires a subcommand:")
 		for _, command := range cmd.Commands() {
