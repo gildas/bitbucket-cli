@@ -5,9 +5,9 @@ $packageArgs = @{
   packageName   = $env:ChocolateyPackageName
   unzipLocation = $toolsDir
   fileType      = 'exe'
-  file64        = "$toolsDir\bitbucket-cli-0.12.1-windows-amd64.7z"
+  file64        = "$toolsDir\bitbucket-cli-0.13.0-windows-amd64.7z"
   softwareName  = 'bitbucket-cli*'
-  checksum64    = '1a6673e27373f87e8055773acc3e7c01fa1bf2eb9abf8085ecdcc3bae67d7ab4'
+  checksum64    = 'ee2b796b55349f0efecbc68e2a6fbbd48729f27646c36e66f64ebda6cf0e4e66'
   checksumType64= 'sha256'
 }
 
