@@ -8,6 +8,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/comment"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
@@ -27,9 +28,16 @@ type Endpoint struct {
 }
 
 type Activity struct {
-	PullRequest *PullRequestReference `json:"pull_request" mapstructure:"pullrequest"`
-	Approval    *Approval             `json:"approval,omitempty"     mapstructure:"approval"`
-	Update      *Update               `json:"update,omitempty"       mapstructure:"update"`
+	PullRequest PullRequestReference `json:"pull_request" mapstructure:"pullrequest"`
+	Approval    *Approval            `json:"approval,omitempty"     mapstructure:"approval"`
+	Comment     *comment.Comment     `json:"comment,omitempty"      mapstructure:"comment"`
+	Update      *Update              `json:"update,omitempty"       mapstructure:"update"`
+}
+
+type Approval struct {
+	Date        time.Time             `json:"date"        mapstructure:"date"`
+	User        user.User             `json:"user"        mapstructure:"user"`
+	PullRequest *PullRequestReference `json:"pullrequest" mapstructure:"pullrequest"`
 }
 
 type Update struct {
@@ -52,12 +60,6 @@ type Update struct {
 	TaskCount         uint64              `json:"task_count"             mapstructure:"task_count"`
 	CreatedOn         time.Time           `json:"created_on"             mapstructure:"created_on"`
 	UpdatedOn         time.Time           `json:"updated_on"             mapstructure:"updated_on"`
-}
-
-type Approval struct {
-	Date        time.Time             `json:"date"        mapstructure:"date"`
-	User        user.User             `json:"user"        mapstructure:"user"`
-	PullRequest *PullRequestReference `json:"pullrequest" mapstructure:"pullrequest"`
 }
 
 type PullRequestReference struct {
@@ -121,6 +123,10 @@ func (activity Activity) GetRow(headers []string) []string {
 func (activity *Activity) Validate() error {
 	var merr errors.MultiError
 
+	if activity.Approval == nil && activity.Comment == nil && activity.Update == nil {
+		merr.Append(errors.ArgumentMissing.With("approval, comment, or update"))
+	}
+
 	return merr.AsError()
 }
 
@@ -132,6 +138,8 @@ func (activity Activity) String() string {
 }
 
 // MarshalJSON implements the json.Marshaler interface.
+//
+// implements json.Marshaler
 func (activity Activity) MarshalJSON() (data []byte, err error) {
 	type surrogate Activity
 
@@ -141,4 +149,19 @@ func (activity Activity) MarshalJSON() (data []byte, err error) {
 		surrogate: surrogate(activity),
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+//
+// implements json.Unmarshaler
+func (activity *Activity) UnmarshalJSON(data []byte) (err error) {
+	type surrogate Activity
+
+	var surrogateActivity surrogate
+	if err = json.Unmarshal(data, &surrogateActivity); err != nil {
+		return errors.JSONUnmarshalError.WrapIfNotMe(err)
+	}
+
+	*activity = Activity(surrogateActivity)
+	return errors.JSONUnmarshalError.Wrap(activity.Validate())
 }

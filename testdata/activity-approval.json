@@ -1,0 +1,51 @@
+{
+  "pull_request": {
+    "type": "pullrequest",
+    "id": 3,
+    "title": "Add README.md",
+    "draft": false,
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/dummyworkspace/dummyrepo/pullrequests/3"
+      },
+      "html": {
+        "href": "https://bitbucket.org/dummyworkspace/dummyrepo/pull-requests/3"
+      }
+    }
+  },
+  "approval": {
+    "date": "2025-04-17T07:10:57.603622+00:00",
+    "user": {
+      "display_name": "Dummy User",
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/users/%7Bddc4305b-23d8-479b-9c17-eda2543808b2%7D"
+        },
+        "avatar": {
+          "href": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/initials/JD-3.png"
+        },
+        "html": {
+          "href": "https://bitbucket.org/%7Bddc4305b-23d8-479b-9c17-eda2543808b2%7D/"
+        }
+      },
+      "type": "user",
+      "uuid": "{ddc4305b-23d8-479b-9c17-eda2543808b2}",
+      "account_id": "8x5gab0fa766111da47rm0a4",
+      "nickname": "Dummy User"
+    },
+    "pullrequest": {
+      "type": "pullrequest",
+      "id": 3,
+      "title": "Add README.md",
+      "draft": false,
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/dummyworkspace/dummyrepo/pullrequests/3"
+        },
+        "html": {
+          "href": "https://bitbucket.org/dummyworkspace/dummyrepo/pull-requests/3"
+        }
+      }
+    }
+  }
+}

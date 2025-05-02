@@ -84,24 +84,46 @@ func (suite *ActivitySuite) UnmarshalData(filename string, v interface{}) error 
 // *****************************************************************************
 
 func (suite *ActivitySuite) TestCanUnmarshalApproval() {
-	payload := suite.LoadTestData("activity.json")
-	var ac activity.Activity
-	err := json.Unmarshal(payload, &ac)
+	payload := suite.LoadTestData("activity-approval.json")
+	var activity activity.Activity
+	err := json.Unmarshal(payload, &activity)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(ac)
-	_, err = json.Marshal(ac)
+	suite.Require().NotNil(activity)
+	_, err = json.Marshal(activity)
 	suite.Require().NoError(err)
-	suite.Assert().NotEmpty(ac.Approval)
-	suite.Assert().Empty(ac.Update)
+	suite.Assert().NotEmpty(activity.Approval)
+	suite.Assert().Empty(activity.Comment)
+	suite.Assert().Empty(activity.Update)
 }
 func (suite *ActivitySuite) TestCanUnmarshalUpdate() {
-	payload := suite.LoadTestData("activity2.json")
-	var ac activity.Activity
-	err := json.Unmarshal(payload, &ac)
+	payload := suite.LoadTestData("activity-update.json")
+	var activity activity.Activity
+	err := json.Unmarshal(payload, &activity)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(ac)
-	_, err = json.Marshal(ac)
+	suite.Require().NotNil(activity)
+	_, err = json.Marshal(activity)
 	suite.Require().NoError(err)
-	suite.Assert().Empty(ac.Approval)
-	suite.Assert().NotEmpty(ac.Update)
+	suite.Assert().Empty(activity.Approval)
+	suite.Assert().Empty(activity.Comment)
+	suite.Assert().NotEmpty(activity.Update)
+}
+
+func (suite *ActivitySuite) TestCanUnmarshalComment() {
+	payload := suite.LoadTestData("activity-comment.json")
+	var activity activity.Activity
+	err := json.Unmarshal(payload, &activity)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(activity)
+	_, err = json.Marshal(activity)
+	suite.Require().NoError(err)
+	suite.Assert().Empty(activity.Approval)
+	suite.Assert().NotEmpty(activity.Comment)
+	suite.Assert().Empty(activity.Update)
+}
+
+func (suite *ActivitySuite) TestShouldFailUnmarshalWithoutApprovalNorCommentNorUpdate() {
+	payload := suite.LoadTestData("activity-missing.json")
+	var activity activity.Activity
+	err := json.Unmarshal(payload, &activity)
+	suite.Require().Error(err)
 }
