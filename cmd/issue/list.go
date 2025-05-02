@@ -57,5 +57,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No issue found")
 		return nil
 	}
+	core.Sort(issues, func(a, b Issue) bool { return a.ID < b.ID })
 	return profile.Current.Print(cmd.Context(), cmd, Issues(issues))
 }

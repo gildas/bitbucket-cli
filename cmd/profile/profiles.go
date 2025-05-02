@@ -156,5 +156,6 @@ func ValidProfileNames(cmd *cobra.Command, args []string, toComplete string) ([]
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return Profiles.Names(), cobra.ShellCompDirectiveNoFileComp
+	names := Profiles.Names()
+	return common.FilterValidArgs(names, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }

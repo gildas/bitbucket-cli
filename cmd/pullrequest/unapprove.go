@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -38,7 +39,12 @@ func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return GetPullRequestIDs(cmd.Context(), cmd, unapproveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	ids, err := prcommon.GetPullRequestIDsWithState(cmd.Context(), cmd, "OPEN")
+	if err != nil {
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
+	}
+	return common.FilterValidArgs(ids, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func unapproveProcess(cmd *cobra.Command, args []string) (err error) {

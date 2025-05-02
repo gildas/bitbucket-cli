@@ -2,6 +2,7 @@ package branch
 
 import (
 	"context"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
@@ -40,12 +41,12 @@ func GetBranches(context context.Context, cmd *cobra.Command) (branches []Branch
 }
 
 // GetBranchNames gets the branch names of a repository
-func GetBranchNames(context context.Context, cmd *cobra.Command) (brancheNames []string, err error) {
+func GetBranchNames(context context.Context, cmd *cobra.Command) (names []string, err error) {
 	branches, err := GetBranches(context, cmd)
 	if err != nil {
 		return []string{}, err
 	}
-	return core.Map(branches, func(branch Branch) string {
-		return branch.Name
-	}), nil
+	names = core.Map(branches, func(branch Branch) string { return branch.Name })
+	core.Sort(names, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return names, nil
 }

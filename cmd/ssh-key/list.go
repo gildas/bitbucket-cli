@@ -1,7 +1,10 @@
 package sshkey
 
 import (
+	"strings"
+
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -34,5 +37,8 @@ func listProcess(cmd *cobra.Command, args []string) error {
 	if len(keys) == 0 {
 		log.Infof("No key found")
 	}
+	core.Sort(keys, func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.ID.String()), strings.ToLower(b.ID.String())) == -1
+	})
 	return profile.Current.Print(cmd.Context(), cmd, SSHKeys(keys))
 }

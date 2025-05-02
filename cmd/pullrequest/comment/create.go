@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	prcommon "bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -41,7 +42,7 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.PullRequestID = flags.NewEnumFlagWithFunc("", GetPullRequestIDs)
+	createOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
 	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create a pullrequest comment into. Defaults to the current repository")
 	createCmd.Flags().Var(createOptions.PullRequestID, "pullrequest", "Pullrequest to create comments to")
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the pullrequest")

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
@@ -68,14 +69,14 @@ func GetSSHKeys(context context.Context, cmd *cobra.Command) (keys []SSHKey, err
 }
 
 // GetSSHKeyFingerprints gets the fingerprints of the SSHKeys
-func GetSSHKeyFingerprints(context context.Context, cmd *cobra.Command) []string {
+func GetSSHKeyFingerprints(context context.Context, cmd *cobra.Command) (fingerprints []string, err error) {
 	keys, err := GetSSHKeys(context, cmd)
 	if err != nil {
-		return []string{}
+		return []string{}, err
 	}
-	return core.Map(keys, func(key SSHKey) string {
-		return key.Fingerprint
-	})
+	fingerprints = core.Map(keys, func(key SSHKey) string { return key.Fingerprint })
+	core.Sort(fingerprints, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return fingerprints, nil
 }
 
 // String gets a string representation of the SSHKey

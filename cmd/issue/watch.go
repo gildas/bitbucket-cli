@@ -34,7 +34,12 @@ func watchValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetIssueIDs(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
+	ids, err := GetIssueIDs(cmd.Context(), cmd)
+	if err != nil {
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
+	}
+	return common.FilterValidArgs(ids, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func watchProcess(cmd *cobra.Command, args []string) (err error) {

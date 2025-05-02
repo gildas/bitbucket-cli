@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-flags"
@@ -39,9 +40,10 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 
 	keys, err := GetProjectKeys(cmd.Context(), cmd, args, toComplete)
 	if err != nil {
+		cobra.CompErrorln(err.Error())
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return keys, cobra.ShellCompDirectiveNoFileComp
+	return common.FilterValidArgs(keys, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {

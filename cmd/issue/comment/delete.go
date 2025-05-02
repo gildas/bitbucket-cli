@@ -52,9 +52,10 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	}
 	commentIDs, err := GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, deleteOptions.IssueID.Value)
 	if err != nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
 	}
-	return commentIDs, cobra.ShellCompDirectiveNoFileComp
+	return common.FilterValidArgs(commentIDs, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {

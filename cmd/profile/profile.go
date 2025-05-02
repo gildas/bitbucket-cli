@@ -463,9 +463,9 @@ func getWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []strin
 		log.Errorf("Failed to get workspaces", err)
 		return []string{}, err
 	}
-	return core.Map(workspaces, func(workspace Workspace) string {
-		return workspace.Slug
-	}), nil
+	slugs = core.Map(workspaces, func(workspace Workspace) string { return workspace.Slug })
+	core.Sort(slugs, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return slugs, nil
 }
 
 // getProjectKeys gets the keys of all projects
@@ -487,7 +487,7 @@ func getProjectKeys(context context.Context, cmd *cobra.Command, args []string, 
 		log.Errorf("Failed to get projects", err)
 		return
 	}
-	return core.Map(projects, func(project Project) string {
-		return project.Key
-	}), err
+	keys = core.Map(projects, func(project Project) string { return project.Key })
+	core.Sort(keys, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return keys, nil
 }

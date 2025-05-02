@@ -126,25 +126,6 @@ func (comment Comment) MarshalJSON() (data []byte, err error) {
 	return data, errors.JSONMarshalError.Wrap(err)
 }
 
-// GetPullRequestIDs gets the IDs of the pullrequests
-func GetPullRequestIDs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (ids []string, err error) {
-	log := logger.Must(logger.FromContext(context)).Child("pullrequest", "getids")
-
-	type PullRequest struct {
-		ID int `json:"id" mapstructure:"id"`
-	}
-
-	log.Infof("Getting all pullrequests")
-	pullrequests, err := profile.GetAll[PullRequest](context, cmd, "pullrequests")
-	if err != nil {
-		log.Errorf("Failed to get pullrequests", err)
-		return []string{}, err
-	}
-	return core.Map(pullrequests, func(pullrequest PullRequest) string {
-		return fmt.Sprintf("%d", pullrequest.ID)
-	}), nil
-}
-
 // GetPullRequestCommentIDs gets the IDs of the comments for a pullrequest
 func GetPullRequestCommentIDs(context context.Context, cmd *cobra.Command, PullRequestID string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("pullrequest", "getids")

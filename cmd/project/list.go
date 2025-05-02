@@ -2,9 +2,11 @@ package project
 
 import (
 	"fmt"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -55,5 +57,8 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No project found")
 		return nil
 	}
+	core.Sort(projects, func(a, b Project) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	})
 	return currentProfile.Print(cmd.Context(), cmd, Projects(projects))
 }

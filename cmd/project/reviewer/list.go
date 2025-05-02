@@ -2,9 +2,11 @@ package reviewer
 
 import (
 	"fmt"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -59,5 +61,8 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No reviewer found")
 		return nil
 	}
+	core.Sort(reviewers, func(a, b Reviewer) bool {
+		return strings.Compare(strings.ToLower(a.User.Username), strings.ToLower(b.User.Username)) == -1
+	})
 	return profile.Current.Print(cmd.Context(), cmd, Reviewers(reviewers))
 }

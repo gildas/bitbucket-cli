@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	prcommon "bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -26,7 +27,7 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.PullRequestID = flags.NewEnumFlagWithFunc("", GetPullRequestIDs)
+	listOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequest comments from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.PullRequestID, "pullrequest", "pullrequest to list comments from")
 	_ = listCmd.MarkFlagRequired("pullrequest")
@@ -53,6 +54,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No comment found")
 		return nil
 	}
+	core.Sort(comments, func(a, b Comment) bool { return a.ID < b.ID })
 	return profile.Current.Print(
 		cmd.Context(),
 		cmd,

@@ -1,0 +1,16 @@
+{
+  "pull_request": {
+    "type": "pullrequest",
+    "id": 3,
+    "title": "Add README.md",
+    "draft": false,
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/dummyworkspace/dummyrepo/pullrequests/3"
+      },
+      "html": {
+        "href": "https://bitbucket.org/dummyworkspace/dummyrepo/pull-requests/3"
+      }
+    }
+  }
+}

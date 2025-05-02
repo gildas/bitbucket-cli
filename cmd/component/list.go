@@ -1,7 +1,10 @@
 package component
 
 import (
+	"strings"
+
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -35,5 +38,8 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No component found")
 		return nil
 	}
+	core.Sort(components, func(a, b Component) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	})
 	return profile.Current.Print(cmd.Context(), cmd, Components(components))
 }

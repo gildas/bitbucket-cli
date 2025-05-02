@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/activity"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/comment"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
@@ -56,6 +58,7 @@ var Command = &cobra.Command{
 
 func init() {
 	Command.AddCommand(comment.Command)
+	Command.AddCommand(activity.Command)
 }
 
 // GetHeader gets the header for a table
@@ -109,26 +112,6 @@ func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 	return data, errors.JSONMarshalError.Wrap(err)
 }
 
-// GetPullRequestIDs gets the pullrequest Ids for completion
-func GetPullRequestIDs(context context.Context, cmd *cobra.Command, repository string, state string) []string {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "getpullrequests")
-
-	log.Infof("Getting open pullrequests for repository %s", approveOptions.Repository)
-	pullrequests, err := profile.GetAll[PullRequest](
-		log.ToContext(context),
-		cmd,
-		fmt.Sprintf("pullrequests?state=%s", state),
-	)
-	if err != nil {
-		log.Errorf("Failed to get pullrequests for repository %s", repository, err)
-		return []string{}
-	}
-
-	return core.Map(pullrequests, func(pullrequest PullRequest) string {
-		return fmt.Sprintf("%d", pullrequest.ID)
-	})
-}
-
 // GetReviewerNicknames gets the reviewer nicknames for the current Workspace
 func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string, toComplete string) (nicknames []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getreviewers")
@@ -149,14 +132,19 @@ func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []st
 		return []string{}, err
 	}
 	members, _ := pullrequestWorkspace.GetMembers(context, cmd)
-	return core.Map(members, func(member workspace.Member) string {
-		return member.User.Nickname
-	}), nil
+	nicknames = core.Map(members, func(member workspace.Member) string { return member.User.Nickname })
+	core.Sort(nicknames, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return nicknames, nil
 }
 
 // GetBranchNames gets the branch names of a repository
 func GetBranchNames(context context.Context, cmd *cobra.Command, args []string, toComplete string) ([]string, error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getbranches")
 	log.Infof("Getting branches for profile %v", profile.Current)
-	return branch.GetBranchNames(context, cmd)
+	names, err := branch.GetBranchNames(context, cmd)
+	if err != nil {
+		cobra.CompErrorln(err.Error())
+		return []string{}, err
+	}
+	return common.FilterValidArgs(names, args, toComplete), nil
 }

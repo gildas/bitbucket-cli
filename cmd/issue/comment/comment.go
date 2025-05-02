@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
@@ -130,9 +131,9 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string, toC
 		log.Errorf("Failed to get issues", err)
 		return []string{}, err
 	}
-	return core.Map(issues, func(issue Issue) string {
-		return fmt.Sprintf("%d", issue.ID)
-	}), nil
+	ids = core.Map(issues, func(issue Issue) string { return fmt.Sprintf("%d", issue.ID) })
+	core.Sort(ids, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return ids, nil
 }
 
 // GetIssueCommentIDs gets the IDs of the issues
@@ -144,7 +145,7 @@ func GetIssueCommentIDs(context context.Context, cmd *cobra.Command, currentProf
 		log.Errorf("Failed to get issues", err)
 		return []string{}, err
 	}
-	return core.Map(comments, func(comment Comment) string {
-		return fmt.Sprintf("%d", comment.ID)
-	}), nil
+	ids = core.Map(comments, func(comment Comment) string { return fmt.Sprintf("%d", comment.ID) })
+	core.Sort(ids, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return ids, nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -44,9 +45,10 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	}
 	commentIDs, err := GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, deleteOptions.IssueID.Value)
 	if err != nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
 	}
-	return commentIDs, cobra.ShellCompDirectiveNoFileComp
+	return common.FilterValidArgs(commentIDs, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) (err error) {

@@ -1,0 +1,74 @@
+{
+  "comment": {
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit-mk-2/pullrequests/5695/comments/118571088"
+      },
+      "html": {
+        "href": "https://bitbucket.org/atlassian/atlaskit-mk-2/pull-requests/5695/_/diff#comment-118571088"
+      }
+    },
+    "deleted": false,
+    "pullrequest": {
+      "type": "pullrequest",
+      "id": 5695,
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit-mk-2/pullrequests/5695"
+        },
+        "html": {
+          "href": "https://bitbucket.org/atlassian/atlaskit-mk-2/pull-requests/5695"
+        }
+      },
+      "title": "username/NONE: small change from onFocus to onClick to handle tabbing through the page and not expand the editor unless a click event triggers it"
+    },
+    "content": {
+      "raw": "inline with to a dn from lines",
+      "markup": "markdown",
+      "html": "<p>inline with to a dn from lines</p>",
+      "type": "rendered"
+    },
+    "created_on": "2019-09-27T00:33:46.039178+00:00",
+    "user": {
+      "display_name": "Name Lastname",
+      "uuid": "{ddc4305b-23d8-479b-9c17-eda2543808b2}",
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/users/%7B%7D"
+        },
+        "html": {
+          "href": "https://bitbucket.org/%7B%7D/"
+        },
+        "avatar": {
+          "href": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/:/128"
+        }
+      },
+      "type": "user",
+      "nickname": "Name",
+      "account_id": ""
+    },
+    "updated_on": "2019-09-27T00:33:46.055384+00:00",
+    "inline": {
+      "context_lines": "",
+      "to": null,
+      "path": "",
+      "outdated": false,
+      "from": 211
+    },
+    "type": "pullrequest_comment",
+    "id": 118571088
+  },
+  "pull_request": {
+    "type": "pullrequest",
+    "id": 5695,
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/atlassian/atlaskit-mk-2/pullrequests/5695"
+      },
+      "html": {
+        "href": "https://bitbucket.org/atlassian/atlaskit-mk-2/pull-requests/5695"
+      }
+    },
+    "title": "username/NONE: small change from onFocus to onClick to handle tabbing through the page and not expand the editor unless a click event triggers it"
+  }
+}

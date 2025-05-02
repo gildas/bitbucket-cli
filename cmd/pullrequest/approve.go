@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -31,6 +32,7 @@ func init() {
 }
 
 func approveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "validargs")
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
@@ -39,7 +41,13 @@ func approveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return GetPullRequestIDs(cmd.Context(), cmd, approveOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	ids, err := prcommon.GetPullRequestIDsWithState(cmd.Context(), cmd, "OPEN")
+	if err != nil {
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
+	}
+	log.Debugf("Fetched %d pullrequest ids", len(ids))
+	return common.FilterValidArgs(ids, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func approveProcess(cmd *cobra.Command, args []string) (err error) {

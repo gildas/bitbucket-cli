@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
@@ -154,9 +155,9 @@ func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string, 
 		log.Errorf("Failed to get projects", err)
 		return
 	}
-	return core.Map(projects, func(project Project) string {
-		return project.Key
-	}), nil
+	keys = core.Map(projects, func(project Project) string { return project.Key })
+	core.Sort(keys, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return keys, nil
 }
 
 // GetProjectNames gets the names of the projects in the workspace given in the command
@@ -178,7 +179,7 @@ func GetProjectNames(context context.Context, cmd *cobra.Command, args []string,
 		log.Errorf("Failed to get projects", err)
 		return
 	}
-	return core.Map(projects, func(project Project) string {
-		return project.Name
-	}), nil
+	names = core.Map(projects, func(project Project) string { return project.Name })
+	core.Sort(names, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return names, nil
 }

@@ -47,9 +47,10 @@ func downloadValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]
 
 	attachmentNames, err := GetAttachmentNames(cmd.Context(), cmd, deleteOptions.IssueID.Value)
 	if err != nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
 	}
-	return attachmentNames, cobra.ShellCompDirectiveNoFileComp
+	return common.FilterValidArgs(attachmentNames, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func downloadProcess(cmd *cobra.Command, args []string) error {

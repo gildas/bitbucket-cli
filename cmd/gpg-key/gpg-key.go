@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
@@ -67,14 +68,14 @@ func GetGPGKeys(context context.Context, cmd *cobra.Command) (keys []GPGKey, err
 }
 
 // GetGPGKeyFingerprints gets the fingerprints of the GPGKeys
-func GetGPGKeyFingerprints(context context.Context, cmd *cobra.Command) []string {
+func GetGPGKeyFingerprints(context context.Context, cmd *cobra.Command) (fingerprints []string, err error) {
 	keys, err := GetGPGKeys(context, cmd)
 	if err != nil {
-		return []string{}
+		return
 	}
-	return core.Map(keys, func(key GPGKey) string {
-		return key.Fingerprint
-	})
+	fingerprints = core.Map(keys, func(key GPGKey) string { return key.Fingerprint })
+	core.Sort(fingerprints, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return fingerprints, nil
 }
 
 // String gets a string representation of the GPGKey

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -46,5 +47,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No pullrequest found")
 		return
 	}
+	core.Sort(pullrequests, func(a, b PullRequest) bool { return a.ID < b.ID })
 	return profile.Current.Print(cmd.Context(), cmd, PullRequests(pullrequests))
 }
