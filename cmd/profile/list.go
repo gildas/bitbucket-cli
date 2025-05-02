@@ -1,6 +1,9 @@
 package profile
 
 import (
+	"strings"
+
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -24,5 +27,8 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No profiles found")
 		return
 	}
+	core.Sort(Profiles, func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	})
 	return Current.Print(cmd.Context(), cmd, Profiles)
 }

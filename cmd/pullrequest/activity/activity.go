@@ -27,13 +27,13 @@ type Endpoint struct {
 }
 
 type Activity struct {
-	PullRequest *PullRequestReference `json:"pull_request"     mapstructure:"pullrequest"`
-	Approval    *Approval             `json:"approval"         mapstructure:"approval"`
-	Update      *Update               `json:"update"           mapstructure:"update"`
+	PullRequest *PullRequestReference `json:"pull_request" mapstructure:"pullrequest"`
+	Approval    *Approval             `json:"approval,omitempty"     mapstructure:"approval"`
+	Update      *Update               `json:"update,omitempty"       mapstructure:"update"`
 }
 
 type Update struct {
-	Date              time.Time           `json:"date"       mapstructure:"date"`
+	Date              time.Time           `json:"date"                   mapstructure:"date"`
 	Type              string              `json:"type"                   mapstructure:"type"`
 	ID                uint64              `json:"id"                     mapstructure:"id"`
 	Title             string              `json:"title"                  mapstructure:"title"`
@@ -55,9 +55,9 @@ type Update struct {
 }
 
 type Approval struct {
-	Date        time.Time             `json:"date"       mapstructure:"date"`
-	User        user.User             `json:"user"       mapstructure:"user"`
-	PullRequest *PullRequestReference `json:"pullrequest"     mapstructure:"pullrequest"`
+	Date        time.Time             `json:"date"        mapstructure:"date"`
+	User        user.User             `json:"user"        mapstructure:"user"`
+	PullRequest *PullRequestReference `json:"pullrequest" mapstructure:"pullrequest"`
 }
 
 type PullRequestReference struct {

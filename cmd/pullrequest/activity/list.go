@@ -54,6 +54,18 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No activities found")
 		return nil
 	}
+	core.Sort(activities, func(a, b Activity) bool {
+		if a.PullRequest.ID < b.PullRequest.ID {
+			return true
+		}
+		if a.Update != nil && b.Update != nil {
+			return a.Update.Date.Before(b.Update.Date)
+		}
+		if a.Approval != nil && b.Approval != nil {
+			return a.Approval.Date.Before(b.Approval.Date)
+		}
+		return false
+	})
 	return profile.Current.Print(
 		cmd.Context(),
 		cmd,

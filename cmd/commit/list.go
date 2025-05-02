@@ -2,6 +2,7 @@ package commit
 
 import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -35,5 +36,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No branch found")
 		return
 	}
+	core.Sort(commits, func(a, b Commit) bool { return a.Date.Before(b.Date) })
 	return profile.Current.Print(cmd.Context(), cmd, Commits(commits))
 }

@@ -54,6 +54,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No comment found")
 		return nil
 	}
+	core.Sort(comments, func(a, b Comment) bool { return a.ID < b.ID })
 	return profile.Current.Print(
 		cmd.Context(),
 		cmd,
