@@ -3,6 +3,7 @@ package attachment
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
@@ -74,9 +75,9 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string, toC
 		log.Errorf("Failed to get issues", err)
 		return []string{}, err
 	}
-	return core.Map(issues, func(issue Issue) string {
-		return fmt.Sprintf("%d", issue.ID)
-	}), nil
+	ids = core.Map(issues, func(issue Issue) string { return fmt.Sprintf("%d", issue.ID) })
+	core.Sort(ids, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return ids, nil
 }
 
 // GetAttachmentNames gets the names of the attachments
@@ -89,7 +90,7 @@ func GetAttachmentNames(context context.Context, cmd *cobra.Command, issueID str
 		log.Errorf("Failed to get attachments", err)
 		return []string{}, err
 	}
-	return core.Map(attachments, func(attachment Attachment) string {
-		return attachment.Name
-	}), nil
+	names = core.Map(attachments, func(attachment Attachment) string { return attachment.Name })
+	core.Sort(names, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return names, nil
 }

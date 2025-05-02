@@ -50,9 +50,10 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 
 	attachmentNames, err := GetAttachmentNames(cmd.Context(), cmd, deleteOptions.IssueID.Value)
 	if err != nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
 	}
-	return attachmentNames, cobra.ShellCompDirectiveNoFileComp
+	return common.FilterValidArgs(attachmentNames, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {

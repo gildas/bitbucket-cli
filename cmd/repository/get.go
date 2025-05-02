@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
@@ -39,7 +40,12 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetRepositorySlugs(cmd.Context(), cmd, getOptions.Workspace.String()), cobra.ShellCompDirectiveNoFileComp
+	slugs, err := GetRepositorySlugs(cmd.Context(), cmd, getOptions.Workspace.String())
+	if err != nil {
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
+	}
+	return common.FilterValidArgs(slugs, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {

@@ -3,6 +3,7 @@ package artifact
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -51,15 +52,15 @@ func (artifact Artifact) GetRow(headers []string) []string {
 }
 
 // GetArtifactNames gets the names of the artifacts
-func GetArtifactNames(context context.Context, cmd *cobra.Command) (names []string) {
+func GetArtifactNames(context context.Context, cmd *cobra.Command) (names []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("artifact", "getnames")
 
 	artifacts, err := profile.GetAll[Artifact](cmd.Context(), cmd, "downloads")
 	if err != nil {
 		log.Errorf("Failed to get artifacts: %s", err)
-		return []string{}
+		return
 	}
-	return core.Map(artifacts, func(artifact Artifact) string {
-		return artifact.Name
-	})
+	names = core.Map(artifacts, func(artifact Artifact) string { return artifact.Name })
+	core.Sort(names, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return names, nil
 }

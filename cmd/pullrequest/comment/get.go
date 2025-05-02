@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -28,7 +29,7 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.PullRequestID = flags.NewEnumFlagWithFunc("", GetPullRequestIDs)
+	getOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
 	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get a pullrequest comment from. Defaults to the current repository")
 	getCmd.Flags().Var(getOptions.PullRequestID, "pullrequest", "Pullrequest to get comments from")
 	_ = getCmd.MarkFlagRequired("pullrequest")

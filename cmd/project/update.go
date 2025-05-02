@@ -65,9 +65,10 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 
 	keys, err := GetProjectKeys(cmd.Context(), cmd, args, toComplete)
 	if err != nil {
+		cobra.CompErrorln(err.Error())
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return keys, cobra.ShellCompDirectiveNoFileComp
+	return common.FilterValidArgs(keys, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func updateProcess(cmd *cobra.Command, args []string) error {

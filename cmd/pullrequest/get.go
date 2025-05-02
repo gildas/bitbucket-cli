@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -38,7 +40,12 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return GetPullRequestIDs(cmd.Context(), cmd, getOptions.Repository, "ALL"), cobra.ShellCompDirectiveNoFileComp
+	ids, err := prcommon.GetPullRequestIDsWithState(cmd.Context(), cmd, "ALL")
+	if err != nil {
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
+	}
+	return common.FilterValidArgs(ids, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {

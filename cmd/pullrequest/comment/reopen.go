@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -29,7 +30,7 @@ var reopenOptions struct {
 func init() {
 	Command.AddCommand(reopenCmd)
 
-	reopenOptions.PullRequestID = flags.NewEnumFlagWithFunc("", GetPullRequestIDs)
+	reopenOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
 	reopenCmd.Flags().StringVar(&reopenOptions.Repository, "repository", "", "Repository to reopen a pullrequest comment from. Defaults to the current repository")
 	reopenCmd.Flags().Var(reopenOptions.PullRequestID, "pullrequest", "Pullrequest to reopen comments from")
 	_ = reopenCmd.MarkFlagRequired("pullrequest")

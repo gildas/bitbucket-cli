@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -39,7 +40,12 @@ func declineValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return GetPullRequestIDs(cmd.Context(), cmd, declineOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	ids, err := prcommon.GetPullRequestIDsWithState(cmd.Context(), cmd, "OPEN")
+	if err != nil {
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
+	}
+	return common.FilterValidArgs(ids, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func declineProcess(cmd *cobra.Command, args []string) (err error) {

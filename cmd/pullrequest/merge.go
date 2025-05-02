@@ -8,6 +8,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -49,7 +50,12 @@ func mergeValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return GetPullRequestIDs(cmd.Context(), cmd, mergeOptions.Repository, "OPEN"), cobra.ShellCompDirectiveNoFileComp
+	ids, err := prcommon.GetPullRequestIDsWithState(cmd.Context(), cmd, "OPEN")
+	if err != nil {
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
+	}
+	return common.FilterValidArgs(ids, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func mergeProcess(cmd *cobra.Command, args []string) (err error) {
@@ -74,7 +80,10 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 	var pullRequestID string
 
 	if len(args) == 0 {
-		pullRequestIDs := GetPullRequestIDs(cmd.Context(), cmd, mergeOptions.Repository, "OPEN")
+		pullRequestIDs, err := prcommon.GetPullRequestIDsWithState(cmd.Context(), cmd, "OPEN")
+		if err != nil {
+			return err
+		}
 		if len(pullRequestIDs) == 0 {
 			return errors.Errorf("No pullrequest to merge")
 		}

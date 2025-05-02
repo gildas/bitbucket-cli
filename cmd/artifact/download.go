@@ -46,7 +46,12 @@ func downloadValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetArtifactNames(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
+	names, err := GetArtifactNames(cmd.Context(), cmd)
+	if err != nil {
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
+	}
+	return common.FilterValidArgs(names, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {

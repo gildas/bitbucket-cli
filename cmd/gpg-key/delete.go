@@ -42,7 +42,12 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	return GetGPGKeyFingerprints(cmd.Context(), cmd), cobra.ShellCompDirectiveNoFileComp
+	fingerprints, err := GetGPGKeyFingerprints(cmd.Context(), cmd)
+	if err != nil {
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
+	}
+	return common.FilterValidArgs(fingerprints, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {

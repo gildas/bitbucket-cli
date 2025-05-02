@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
@@ -112,15 +113,15 @@ func (issue Issue) MarshalJSON() (data []byte, err error) {
 }
 
 // GetIssueIDs gets the IDs of the issues
-func GetIssueIDs(context context.Context, cmd *cobra.Command) (ids []string) {
+func GetIssueIDs(context context.Context, cmd *cobra.Command) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
 	issues, err := profile.GetAll[Issue](context, cmd, "issues")
 	if err != nil {
 		log.Errorf("Failed to get issues", err)
-		return []string{}
+		return
 	}
-	return core.Map(issues, func(issue Issue) string {
-		return fmt.Sprintf("%d", issue.ID)
-	})
+	ids = core.Map(issues, func(issue Issue) string { return fmt.Sprintf("%d", issue.ID) })
+	core.Sort(ids, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return ids, nil
 }
