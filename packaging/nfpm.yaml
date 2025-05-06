@@ -17,6 +17,7 @@ description: |
 vendor: "Gildas Cherruel"
 homepage: "https://bitbucket.org/gildas_cherruel/bb"
 license: "MIT"
+changelog: changelog.yaml
 contents:
 - src: ./bin/{{.Env.PLATFORM}}/{{.Env.PROJECT}}
   dst: /usr/bin/{{.Env.PROJECT}}
