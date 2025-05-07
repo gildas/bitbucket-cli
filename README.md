@@ -41,6 +41,13 @@ You can get `bb` from [Chocolatey](https://chocolatey.org) with:
 choco install bitbucket-cli
 ```
 
+You can also install `bb` with [scoop](https://scoop.sh):
+
+```bash
+scoop bucket add gildas https://github.com/gildas/scoop-bucket
+scoop install bitbucket-cli
+```
+
 ### Binaries
 
 You can download the latest version of `bb` from the [downloads](https://bitbucket.org/gildas_cherruel/bb/downloads/) page.
