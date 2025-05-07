@@ -1,0 +1,47 @@
+debug: false
+package-name: "bitbucket-cli"
+owner: "Gildas Cherruel <gildas@breizh.org>"
+exclude-merge-commits: true
+filters:
+  exclude:
+    - "^test:"
+    - "^test\\("
+    - "^chore: update$"
+    - "^chore: docs$"
+    - "^docs: update$"
+    - "^chore: schema$"
+    - "^chore: typo$"
+    - "^chore: auto-update generated files$"
+    - "^chore: update schema$"
+    - "^chore: schema update$"
+    - "^chore\\(deps\\): "
+    - "^(build|ci): "
+    - "merge conflict"
+    - "Merged in "
+    - Merge pull request
+    - Merge remote-tracking branch
+    - Merge branch
+    - "Bumped to version"
+    - "Updated go packages"
+    - Updated modules
+    - Updated packagin
+    - Updated Documentation
+    - go mod tidy
+    - cosmetics
+    - typo
+    - typos
+groups:
+  - title: "New Features"
+    regexp: '^.*?feat(\(.+\))??!?:.+$'
+    order: 100
+  - title: "Security updates"
+    regexp: '^.*?sec(\(.+\))??!?:.+$'
+    order: 150
+  - title: "Bug fixes"
+    regexp: '^.*?(fix|refactor)(\(.+\))??!?:.+$'
+    order: 200
+  - title: "Documentation updates"
+    regexp: ^.*?docs?(\(.+\))??!?:.+$
+    order: 400
+  - title: Other work
+    order: 9999
