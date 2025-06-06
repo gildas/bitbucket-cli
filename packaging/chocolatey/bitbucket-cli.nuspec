@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>bitbucket-cli</id>
-    <version>0.13.0</version>
+    <version>0.14.0</version>
     <owners>Gildas Cherruel</owners>
     <title>bitbucket-cli (Install)</title>
     <authors>Gildas Cherruel</authors>
@@ -18,8 +18,9 @@
     <summary>Command line interface for Bitbucket</summary>
     <description>The Bitbucket Command Line Interface brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.</description>
     <releaseNotes>
-- OAUTH2 with Authorization Code Grant support
-- SSH Keys support
+- Added pr activity command
+- List commands now sort their output
+- Completions are sorted and filtered by the given pattern
     </releaseNotes>
   </metadata>
   <files>
