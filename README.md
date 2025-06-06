@@ -1,14 +1,26 @@
 # Bitbucket Command Line Interface
 
-[bb](https://bitbucket.org/gildas_cherruel/bb) is the missing command line interface for Bitbucket.
+**Important Note**
 
-The [Bitbucket Command Line Interface](https://bitbucket.org/gildas_cherruel/bb) brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
+Because of [Important changes coming to Bitbucket Cloud’s free plan](https://www.atlassian.com/blog/bitbucket/important-changes-coming-to-bitbucket-clouds-free-plan), I cannot keep bitbucket-cli on bitbucket.org anymore, which is quite ironic....
+
+I am moving the repository to [here](https://github.com/gildas/bitbucket-cli) where I can upload the binaries for your consumption.
+
+And at some point in the near future, I will shutdown the [bitbucket repository](https://bitbucket.org/gildas_cherruel/bb).
+
+
+
+[bb](https://github.com/gildas/bitbucket-cli) is the missing command line interface for Bitbucket.
+
+The [Bitbucket Command Line Interface](https://github.com/gildas/bitbucket-cli) brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
 
 ## Installation
 
+**Note**: Please be patient as I move the binaries to Github. It should take a few days to get everything in place. Thank you for your understanding and patience 🙂.
+
 ### Linux
 
-You can grab the latest Debian/Ubuntu package on the [Downloads](https://bitbucket.org/gildas_cherruel/bb/downloads) pages.
+You can grab the latest Debian/Ubuntu package on the [Downloads](https://github.com/gildas/bitbucket-cli/releases) pages.
 
 If you use [Homebrew](https://brew.sh), you can install `bb` with:
 
@@ -50,7 +62,7 @@ scoop install bitbucket-cli
 
 ### Binaries
 
-You can download the latest version of `bb` from the [downloads](https://bitbucket.org/gildas_cherruel/bb/downloads/) page.
+You can download the latest version of `bb` from the [downloads](https://github.com/gildas/bitbucket-cli/releases) page.
 
 Once you get the `bb` executable, you can install/copy it anywhere in your `$PATH`.
 
