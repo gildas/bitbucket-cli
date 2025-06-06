@@ -3,4 +3,19 @@ VERIFICATION
 Verification is intended to assist the Chocolatey moderators and community
 in verifying that this package's contents are trustworthy.
 
-I, Gildas Cherruel, am the author of this package that lives on https://bitbucket.org/gildas_cherruel/bb
+I, Gildas Cherruel, am the author of this package that lives on https://github.com/gildas/bitbucket-cli
+
+The Package can ve verified by checking the following:
+
+1. Go to:
+  https://github.com/gildas/bitbucket-cli/releases/download/v0.14.0/bitbucket-cli-0.14.0-windows-amd64.7z
+
+  to download the application binary.
+
+2. You can verify the integrity of the downloaded file by checking its SHA256 hash:
+
+  checksum: f02a1988f2509831dba30e75e2b5b1fa359f4bc07e373049b7235103253b5672
+
+  with the PowerShell function `Get-FileHash` or the Chocolatey `checksum.exe` utility.
+
+3. Finally, all commits are signed with my GPG key, which is available on my GitHub profile.

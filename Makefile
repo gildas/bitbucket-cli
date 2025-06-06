@@ -66,7 +66,7 @@ COPY    ?= cp -f
 # Flags
 #MAKEFLAGS += --silent
 # GO
-export GOPRIVATE   ?= bitbucket.org/gildas_cherruel/*
+#export GOPRIVATE   ?= 
 export CGO_ENABLED  = 0
 ifneq ($(what),)
 TEST_ARG := -run '$(what)'

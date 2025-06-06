@@ -15,7 +15,7 @@ description: |
   platform to your command line. Creating and merging Pull Requests, cloning
   repositories, and more are now just a few keystrokes away.
 vendor: "Gildas Cherruel"
-homepage: "https://bitbucket.org/gildas_cherruel/bb"
+homepage: "https://github.com/gildas/bitbucket-cli"
 license: "MIT"
 changelog: changelog.yaml
 contents:
