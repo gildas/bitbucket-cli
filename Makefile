@@ -30,7 +30,7 @@ PROJECT   != basename "$(PWD)"
 endif
 PACKAGE   = bitbucket-cli
 PACKAGE   ?= $(PROJECT)
-PLATFORMS ?= darwin-amd64 darwin-arm64 linux-amd64 linux-arm64 windows-amd64 windows-arm64
+PLATFORMS ?= darwin/amd64 darwin/arm64 linux/amd64 linux/arm64 windows/amd64 windows/arm64
 export PACKAGE PROJECT VERSION BRANCH COMMIT BUILD REVISION
 
 # Files
@@ -259,37 +259,37 @@ __archive_snap__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap \
 	;
 
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz: $(BIN_DIR)/darwin-amd64/$(PROJECT)
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz: $(BIN_DIR)/darwin/amd64/$(PROJECT)
 	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_arm64.tar.gz: $(BIN_DIR)/darwin-arm64/$(PROJECT)
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_arm64.tar.gz: $(BIN_DIR)/darwin/arm64/$(PROJECT)
 	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_amd64.tar.gz: $(BIN_DIR)/linux-amd64/$(PROJECT)
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_amd64.tar.gz: $(BIN_DIR)/linux/amd64/$(PROJECT)
 	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_arm64.tar.gz: $(BIN_DIR)/linux-arm64/$(PROJECT)
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_arm64.tar.gz: $(BIN_DIR)/linux/arm64/$(PROJECT)
 	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.zip: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.zip: $(BIN_DIR)/windows/amd64/$(PROJECT).exe
 	$Q $(ZIP) -9 -q --junk-paths $@ $<
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.zip: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.zip: $(BIN_DIR)/windows/arm64/$(PROJECT).exe
 	$Q $(ZIP) -9 -q --junk-paths $@ $<
 
 packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z
 	$Q $(COPY) $< $@
 packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z
 	$Q $(COPY) $< $@
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows/amd64/$(PROJECT).exe
 	$Q $(7ZIP) a -r $@ $<
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows/arm64/$(PROJECT).exe
 	$Q $(7ZIP) a -r $@ $<
 
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux-amd64/$(PROJECT)
-	$Q PLATFORM=linux-amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux-arm64/$(PROJECT)
-	$Q PLATFORM=linux-arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux/amd64/$(PROJECT)
+	$Q PLATFORM=linux/amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux/arm64/$(PROJECT)
+	$Q PLATFORM=linux/arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
 
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux-amd64/$(PROJECT)
-	$Q PLATFORM=linux-amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux-arm64/$(PROJECT)
-	$Q PLATFORM=linux-arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux/amd64/$(PROJECT)
+	$Q PLATFORM=linux/amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux/arm64/$(PROJECT)
+	$Q PLATFORM=linux/arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
 
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap: packaging/snap/snapcraft.yaml
 	$Q $(RM) $@
@@ -303,42 +303,45 @@ __build_all__:       $(foreach platform, $(PLATFORMS), $(BIN_DIR)/$(platform)/$(
 __fetch_modules__: ; $(info $(M) Fetching Modules...)
 	$Q $(GO) mod download
 
-$(BIN_DIR)/darwin-amd64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/darwin-amd64/$(PROJECT): export GOOS=darwin
-$(BIN_DIR)/darwin-amd64/$(PROJECT): export GOARCH=amd64
-$(BIN_DIR)/darwin-amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin-amd64; $(info $(M) building application for darwin Intel)
+$(BIN_DIR)/darwin: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/darwin/amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/darwin/amd64/$(PROJECT): export GOOS=darwin
+$(BIN_DIR)/darwin/amd64/$(PROJECT): export GOARCH=amd64
+$(BIN_DIR)/darwin/amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin/amd64; $(info $(M) building application for darwin Intel)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/darwin-arm64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/darwin-arm64/$(PROJECT): export GOOS=darwin
-$(BIN_DIR)/darwin-arm64/$(PROJECT): export GOARCH=arm64
-$(BIN_DIR)/darwin-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin-arm64; $(info $(M) building application for darwin M1)
+$(BIN_DIR)/darwin/arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/darwin/arm64/$(PROJECT): export GOOS=darwin
+$(BIN_DIR)/darwin/arm64/$(PROJECT): export GOARCH=arm64
+$(BIN_DIR)/darwin/arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin/arm64; $(info $(M) building application for darwin M1)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/linux-amd64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/linux-amd64/$(PROJECT): export GOOS=linux
-$(BIN_DIR)/linux-amd64/$(PROJECT): export GOARCH=amd64
-$(BIN_DIR)/linux-amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux-amd64; $(info $(M) building application for linux amd64)
+$(BIN_DIR)/linux: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/linux/amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/linux/amd64/$(PROJECT): export GOOS=linux
+$(BIN_DIR)/linux/amd64/$(PROJECT): export GOARCH=amd64
+$(BIN_DIR)/linux/amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/amd64; $(info $(M) building application for linux amd64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/linux-arm64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/linux-arm64/$(PROJECT): export GOOS=linux
-$(BIN_DIR)/linux-arm64/$(PROJECT): export GOARCH=arm64
-$(BIN_DIR)/linux-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux-arm64; $(info $(M) building application for linux arm64)
+$(BIN_DIR)/linux/arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/linux/arm64/$(PROJECT): export GOOS=linux
+$(BIN_DIR)/linux/arm64/$(PROJECT): export GOARCH=arm64
+$(BIN_DIR)/linux/arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/arm64; $(info $(M) building application for linux arm64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/windows-amd64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/windows-amd64/$(PROJECT): $(BIN_DIR)/windows-amd64/$(PROJECT).exe;
-$(BIN_DIR)/windows-amd64/$(PROJECT).exe: export GOOS=windows
-$(BIN_DIR)/windows-amd64/$(PROJECT).exe: export GOARCH=amd64
-$(BIN_DIR)/windows-amd64/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows-amd64; $(info $(M) building application for windows amd64)
+$(BIN_DIR)/windows: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/windows/amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/windows/amd64/$(PROJECT): $(BIN_DIR)/windows/amd64/$(PROJECT).exe;
+$(BIN_DIR)/windows/amd64/$(PROJECT).exe: export GOOS=windows
+$(BIN_DIR)/windows/amd64/$(PROJECT).exe: export GOARCH=amd64
+$(BIN_DIR)/windows/amd64/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows/amd64; $(info $(M) building application for windows amd64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/windows-arm64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/windows-arm64/$(PROJECT): $(BIN_DIR)/windows-arm64/$(PROJECT).exe;
-$(BIN_DIR)/windows-arm64/$(PROJECT).exe: export GOOS=windows
-$(BIN_DIR)/windows-arm64/$(PROJECT).exe: export GOARCH=arm64
-$(BIN_DIR)/windows-arm64/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows-arm64; $(info $(M) building application for windows arm64)
+$(BIN_DIR)/windows/arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/windows/arm64/$(PROJECT): $(BIN_DIR)/windows/arm64/$(PROJECT).exe;
+$(BIN_DIR)/windows/arm64/$(PROJECT).exe: export GOOS=windows
+$(BIN_DIR)/windows/arm64/$(PROJECT).exe: export GOARCH=arm64
+$(BIN_DIR)/windows/arm64/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows/arm64; $(info $(M) building application for windows arm64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 $(BIN_DIR)/pi:   $(BIN_DIR) ; $(MKDIR)
