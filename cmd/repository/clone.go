@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 
@@ -27,6 +28,7 @@ var cloneOptions struct {
 	Workspace   *flags.EnumFlag
 	Destination string
 	Bare        bool
+	Username    string
 }
 
 func init() {
@@ -36,6 +38,7 @@ func init() {
 	cloneCmd.Flags().Var(cloneOptions.Workspace, "workspace", "Workspace to clone repositories from. If omitted, it will be extracted from the repository name")
 	cloneCmd.Flags().StringVar(&cloneOptions.Destination, "destination", "", "Destination folder. Default is the repository name")
 	cloneCmd.Flags().BoolVar(&cloneOptions.Bare, "bare", false, "Clone as a bare repository")
+	cloneCmd.Flags().StringVar(&cloneOptions.Username, "username", "", "Username to use for authentication. If not set, your git and ssh configuration will take precedence")
 	_ = cloneCmd.MarkFlagDirname("destination")
 	_ = cloneCmd.RegisterFlagCompletionFunc(cloneOptions.Workspace.CompletionFunc("workspace"))
 }
@@ -79,11 +82,24 @@ func cloneProcess(cmd *cobra.Command, args []string) error {
 		log.Debugf("Destination not specified, using repository slug as destination: %s", cloneOptions.Destination)
 	}
 
+	var user *url.Userinfo
+
+	if len(cloneOptions.Username) > 0 {
+		user = url.User(cloneOptions.Username)
+	}
+
+	repoURL := url.URL{
+		Scheme: "https",
+		Host:   "bitbucket.org",
+		Path:   fmt.Sprintf("/%s/%s.git", cloneOptions.Workspace.String(), args[0]),
+		User:   user,
+	}
+	log.Debugf("Cloning repository from %s", repoURL.String())
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Cloning repository %s/%s into %s", cloneOptions.Workspace, args[0], cloneOptions.Destination) {
 		return nil
 	}
 	_, err := git.PlainCloneContext(log.ToContext(cmd.Context()), cloneOptions.Destination, cloneOptions.Bare, &git.CloneOptions{
-		URL:      fmt.Sprintf("https://bitbucket.org/%s/%s.git", cloneOptions.Workspace.String(), args[0]),
+		URL:      repoURL.String(),
 		Progress: os.Stdout,
 	})
 	return err
