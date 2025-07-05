@@ -10,7 +10,7 @@ rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subs
 
 # Folders
 BIN_DIR  ?= $(CURDIR)/bin
-DEST_DIR ?= /usr/bin
+DEST_DIR ?= /usr/local/bin
 LOG_DIR  ?= log
 TMP_DIR  ?= tmp
 COV_DIR  ?= tmp/coverage
@@ -73,6 +73,11 @@ TEST_ARG := -run '$(what)'
 else
 TEST_ARG :=
 endif
+ifeq ($(DEST_DIR), /usr/local/bin)
+  ifneq ($(GOPATH),)
+DEST_DIR := $(GOPATH)/bin
+  endif
+endif
 
 ifeq ($(OS), Windows_NT)
   OSTYPE = windows
@@ -126,9 +131,16 @@ archive: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debia
 
 build: __build_init__ __build_all__; @ ## Build the application for all platforms
 
-install: $(BIN_DIR)/$(OSTYPE)-$(OSARCH)/$(PROJECT); @ ## Install the application
+install: $(BIN_DIR)/$(OSTYPE)/$(OSARCH)/$(PROJECT); @ ## Install the application
 	$(info $(M) Installing application for $(OSTYPE) on $(OSARCH) in $(DEST_DIR)...)
-	$Q install $(BIN_DIR)/$(OSTYPE)-$(OSARCH)/$(PROJECT) $(DEST_DIR)/$(PROJECT)
+	$Q if [ -w "$(DEST_DIR)" ]; then \
+		install $(BIN_DIR)/$(OSTYPE)/$(OSARCH)/$(PROJECT) $(DEST_DIR)/$(PROJECT) ; \
+	else \
+		echo "    using sudo to install the application..." ; \
+		sudo install $(BIN_DIR)/$(OSTYPE)/$(OSARCH)/$(PROJECT) $(DEST_DIR)/$(PROJECT) ; \
+	fi
+	$(info $(SUCCESS)   Get some help with $(PROJECT) --help )
+	$(info $(SUCCESS)   Make your life easier and load the shell completion with: `source <( $(PROJECT) completion $(shell echo -n $${SHELL##*/})))
 
 dep:; $(info $(M) Updating Modules...) @ ## Updates the GO Modules
 	$Q $(GO) get -u ./...
