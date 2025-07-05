@@ -360,6 +360,21 @@ bb repo list --workspace myworkspace
 
 If you do not provide a workspace, the command will attempt to list all repositories you have access to, which can take a very long time.
 
+You can narrow down the list of repositories with the `--role`, `--project`, `--project-key`, `--has-issues`, `--has-wiki`, `--is-private`, `--language`, and `--main-branch` flags:
+
+```bash
+bb repo list --workspace myworkspace \
+  --role        owner \
+  --project     myproject \
+  --has-issues  true \
+  --has-wiki    true \
+  --is-private  false \
+  --language    go \
+  --main-branch master
+```
+
+All filterers are optional and combined with an AND operator.
+
 You can also get the details of a repository with the `bb repo get` or `bb repo show` command. If the `--workspace` flag is not provided, the default workspace of the profile is used (if the profile does not have a default workspace, the command will fail):
 
 ```bash
