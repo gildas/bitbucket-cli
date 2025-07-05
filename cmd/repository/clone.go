@@ -34,7 +34,7 @@ func init() {
 
 	cloneOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
 	cloneCmd.Flags().Var(cloneOptions.Workspace, "workspace", "Workspace to clone repositories from. If omitted, it will be extracted from the repository name")
-	cloneCmd.Flags().StringVar(&cloneOptions.Destination, "destination", ".", "Destination folder. Default is the repository name")
+	cloneCmd.Flags().StringVar(&cloneOptions.Destination, "destination", "", "Destination folder. Default is the repository name")
 	cloneCmd.Flags().BoolVar(&cloneOptions.Bare, "bare", false, "Clone as a bare repository")
 	_ = cloneCmd.MarkFlagDirname("destination")
 	_ = cloneCmd.RegisterFlagCompletionFunc(cloneOptions.Workspace.CompletionFunc("workspace"))
@@ -76,9 +76,10 @@ func cloneProcess(cmd *cobra.Command, args []string) error {
 
 	if len(cloneOptions.Destination) == 0 {
 		cloneOptions.Destination = strings.TrimSuffix(args[0], ".git")
+		log.Debugf("Destination not specified, using repository slug as destination: %s", cloneOptions.Destination)
 	}
 
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Cloning repository %s/%s", cloneOptions.Workspace, args[0]) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Cloning repository %s/%s into %s", cloneOptions.Workspace, args[0], cloneOptions.Destination) {
 		return nil
 	}
 	_, err := git.PlainCloneContext(log.ToContext(cmd.Context()), cloneOptions.Destination, cloneOptions.Bare, &git.CloneOptions{
