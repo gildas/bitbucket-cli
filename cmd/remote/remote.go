@@ -38,12 +38,24 @@ func Get(context context.Context, reader io.Reader, name string) (remote *Remote
 
 // RepositoryName gets the full repository name from the remote URL (without the .git extension)
 func (remote Remote) RepositoryName() string {
+	if strings.HasPrefix(remote.URL, "bitbucket.org:") {
+		if strings.HasSuffix(remote.URL, ".git") {
+			return remote.URL[strings.Index(remote.URL, ":")+1 : len(remote.URL)-4]
+		}
+		return remote.URL[strings.Index(remote.URL, ":")+1:]
+	}
 	if strings.HasPrefix(remote.URL, "git@") {
 		if strings.HasSuffix(remote.URL, ".git") {
 			return remote.URL[strings.LastIndex(remote.URL, ":")+1 : len(remote.URL)-4]
 		}
 		return remote.URL[strings.LastIndex(remote.URL, ":")+1:]
 	} else if strings.HasPrefix(remote.URL, "https://") {
+		previousToLastSlash := strings.LastIndex(remote.URL[:strings.LastIndex(remote.URL, "/")], "/")
+		if strings.HasSuffix(remote.URL, ".git") {
+			return remote.URL[previousToLastSlash+1 : len(remote.URL)-4]
+		}
+		return remote.URL[previousToLastSlash+1:]
+	} else if strings.HasPrefix(remote.URL, "ssh://") {
 		previousToLastSlash := strings.LastIndex(remote.URL[:strings.LastIndex(remote.URL, "/")], "/")
 		if strings.HasSuffix(remote.URL, ".git") {
 			return remote.URL[previousToLastSlash+1 : len(remote.URL)-4]
