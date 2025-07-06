@@ -130,3 +130,8 @@ func GetReviewerUserIDs(context context.Context, cmd *cobra.Command, project str
 		return reviewer.User.ID.String()
 	}), nil
 }
+
+// GetDefaultReviewers gets the reviewers in the given workspace and project
+func GetDefaultReviewers(context context.Context, cmd *cobra.Command, workspace, project string) (reviewers []Reviewer, err error) {
+	return profile.GetAll[Reviewer](context, cmd, fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspace, project))
+}
