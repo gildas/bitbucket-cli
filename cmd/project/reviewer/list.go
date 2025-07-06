@@ -48,7 +48,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all reviewers")
-	reviewers, err := GetDefaultReviewers(cmd.Context(), cmd, workspace, project)
+	reviewers, err := GetProjectDefaultReviewers(cmd.Context(), cmd, workspace, project)
 	if err != nil {
 		return err
 	}

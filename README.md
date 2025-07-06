@@ -8,8 +8,6 @@ I am moving the repository to [here](https://github.com/gildas/bitbucket-cli) wh
 
 And at some point in the near future, I will shutdown the [bitbucket repository](https://bitbucket.org/gildas_cherruel/bb).
 
-
-
 [bb](https://github.com/gildas/bitbucket-cli) is the missing command line interface for Bitbucket.
 
 The [Bitbucket Command Line Interface](https://github.com/gildas/bitbucket-cli) brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
@@ -463,6 +461,18 @@ bb pullrequest create \
   --source "my-branch" \
   --destination "master"
 ```
+
+You can add reviewers to the pull request with the `--reviewer` flag:
+
+```bash
+bb pullrequest create \
+  --title "My pull request" \
+  --source "my-branch" \
+  --destination "master" \
+  --reviewer    username1 --reviewer {userUUID2}
+```
+
+If the first reviewer is `default`, the command will try to get the default reviewers from the project settings.
 
 You can get the details of a pull request with the `bb pullrequest get` or `bb pullrequest show` command:
 
