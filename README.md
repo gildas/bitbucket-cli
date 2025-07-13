@@ -134,6 +134,8 @@ You can also pass the `--default-workspace` and/or `--default-project` flags to 
 
 You can also pass the `--progress` flag to display a progress bar when upload/downloading artifacts and attachments.
 
+By default, the password or client secret is stored in the vault of the operating system (Windows Credential Manager, macOS Keychain, or Linux Secret Service). You can pass the `--no-vault` flag to disable this feature and store the password or client secret in plain text in the configuration file. This is not recommended, but can be useful for testing purposes.
+
 Profiles support the following authentications:
 
 - [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-) with the `--client-id`, `--client-secret`, and `--callback-port` flags
