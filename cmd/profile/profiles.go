@@ -142,10 +142,43 @@ func (profiles profiles) SetCurrent(name string) {
 }
 
 // Load loads the profiles from a viper key
-func (profiles *profiles) Load() error {
+func (profiles *profiles) Load(context context.Context) error {
+	log := logger.Must(logger.FromContext(context)).Child("profiles", "load")
 
+	log.Infof("Loading profiles from %s", viper.ConfigFileUsed())
 	if err := viper.UnmarshalKey("profiles", &profiles); err != nil {
 		return err
+	}
+	log.Debugf("Loaded %d profiles", len(*profiles))
+
+	// Get the secret stuff from the Windows credential manager or linux/macOS keychain if not set
+	for _, profile := range *profiles {
+		if len(profile.ClientID) > 0 {
+			if len(profile.ClientSecret) == 0 {
+				if credential, err := profile.GetCredentialFromVault("bitbucket-cli", profile.ClientID); err == nil {
+					profile.ClientSecret = credential.Password
+					log.Infof("Loaded client secret for clientID %s from the vault", profile.ClientID)
+				} else {
+					log.Errorf("failed to get client secret for profile %s: %v", profile.Name, err)
+				}
+			}
+		} else if len(profile.User) > 0 {
+			if len(profile.Password) == 0 {
+				if credential, err := profile.GetCredentialFromVault("bitbucket-cli", profile.User); err == nil {
+					profile.Password = credential.Password
+					log.Infof("Loaded password for user %s from the vault", profile.User)
+				} else {
+					log.Errorf("failed to get password for profile %s: %v", profile.Name, err)
+				}
+			}
+		} else if len(profile.AccessToken) == 0 {
+			if credential, err := profile.GetCredentialFromVault("bitbucket-cli", profile.Name); err == nil {
+				profile.AccessToken = credential.Password
+				log.Infof("Loaded access token for profile %s from the vault", profile.Name)
+			} else {
+				log.Errorf("failed to get access token for profile %s: %v", profile.Name, err)
+			}
+		}
 	}
 	return nil
 }

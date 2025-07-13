@@ -29,6 +29,7 @@ type Profile struct {
 	ErrorProcessing    common.ErrorProcessing `json:"errorProcessing,omitempty"    mapstructure:"errorProcessing,omitempty"   yaml:",omitempty"`
 	OutputFormat       string                 `json:"outputFormat,omitempty"       mapstructure:"outputFormat,omitempty"      yaml:",omitempty"`
 	Progress           bool                   `json:"progress,omitempty"           mapstructure:"progress,omitempty"          yaml:",omitempty"`
+	VaultKey           string                 `json:"vaultKey,omitempty"           mapstructure:"vaultKey,omitempty"          yaml:",omitempty"`
 	User               string                 `json:"user,omitempty"               mapstructure:"user"                        yaml:",omitempty"`
 	Password           string                 `json:"password,omitempty"           mapstructure:"password"                    yaml:",omitempty"`
 	ClientID           string                 `json:"clientID,omitempty"           mapstructure:"clientID"                    yaml:",omitempty"`
@@ -69,7 +70,7 @@ func GetProfileFromCommand(context context.Context, cmd *cobra.Command) (profile
 		}
 	} else if Current == nil {
 		if len(Profiles) == 0 {
-			err = Profiles.Load()
+			err = Profiles.Load(context)
 			if err != nil {
 				return nil, err
 			}
@@ -182,19 +183,13 @@ func (profile *Profile) Validate() error {
 	if len(profile.Name) == 0 {
 		merr.Append(errors.ArgumentMissing.With("name"))
 	}
-	// We must have either an access token or a user/password or a clientID/clientSecret
+	// We must have either an access token, a user, or a clientID
+	// password and clientSecret are now retrieved from the vault
 	if len(profile.AccessToken) == 0 && len(profile.ClientID) == 0 && len(profile.User) == 0 {
-		merr.Append(errors.ArgumentMissing.With("accessToken, or user/password, or clientID/clientSecret"))
-	} else if len(profile.AccessToken) == 0 {
-		if len(profile.User) != 0 {
-			if len(profile.Password) == 0 {
-				merr.Append(errors.ArgumentMissing.With("password"))
-			}
-		} else if len(profile.ClientID) != 0 {
-			if len(profile.ClientSecret) == 0 {
-				merr.Append(errors.ArgumentMissing.With("clientSecret"))
-			}
-		}
+		merr.Append(errors.ArgumentMissing.With("accessToken, user, or clientID"))
+	}
+	if len(profile.VaultKey) == 0 {
+		profile.VaultKey = "bitbucket-cli"
 	}
 	if len(profile.CloneProtocol) == 0 {
 		profile.CloneProtocol = "git"
@@ -203,7 +198,7 @@ func (profile *Profile) Validate() error {
 		merr.Append(errors.ArgumentInvalid.With("cloneProtocol", profile.CloneProtocol))
 	}
 	if len(profile.CloneVaultKey) == 0 {
-		profile.CloneVaultKey = "bitbucket-cli"
+		profile.CloneVaultKey = "bitbucket-cli-clone"
 	}
 	return merr.AsError()
 }

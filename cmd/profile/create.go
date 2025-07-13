@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -26,6 +27,7 @@ var createOptions struct {
 	DefaultProject   *flags.EnumFlag
 	OutputFormat     *flags.EnumFlag
 	CloneProtocol    *flags.EnumFlag
+	NoVault          bool
 }
 
 func init() {
@@ -38,6 +40,8 @@ func init() {
 	createCmd.Flags().StringVarP(&createOptions.Name, "name", "n", "", "Name of the profile")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the profile")
 	createCmd.Flags().BoolVar(&createOptions.Default, "default", false, "True if this is the default profile")
+	createCmd.Flags().StringVar(&createOptions.VaultKey, "vault-key", "bitbucket-cli", "Vault key to use for storing credentials. Default is bitbucket-cli. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
+	createCmd.Flags().BoolVar(&createOptions.NoVault, "no-vault", false, "Do not store credentials in the vault. This will store them in plain text in the configuration file.")
 	createCmd.Flags().StringVarP(&createOptions.User, "user", "u", "", "User's name of the profile")
 	createCmd.Flags().StringVar(&createOptions.Password, "password", "", "Password of the profile")
 	createCmd.Flags().StringVar(&createOptions.ClientID, "client-id", "", "Client ID of the profile")
@@ -47,7 +51,7 @@ func init() {
 	createCmd.Flags().Var(createOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
 	createCmd.Flags().Var(createOptions.DefaultProject, "default-project", "Default project of the profile")
 	createCmd.Flags().Var(createOptions.CloneProtocol, "clone-protocol", "Default protocol to use for cloning repositories. Default is git, can be https, git, or ssh")
-	createCmd.Flags().StringVar(&createOptions.CloneVaultKey, "clone-vault-key", "bitbucket-cli", "Vault key to use for authentication when cloning with the https protocol. Default is bitbucket-cli. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
+	createCmd.Flags().StringVar(&createOptions.CloneVaultKey, "clone-vault-key", "bitbucket-cli-clone", "Vault key to use for authentication when cloning with the https protocol. Default is bitbucket-cli-clone. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
 	createCmd.Flags().StringVar(&createOptions.CloneVaultUsername, "clone-vault-username", "", "Username to use for authentication when retrieving credentials from the vault.")
 	createCmd.Flags().Var(createOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	createCmd.Flags().Var(&createOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
@@ -56,6 +60,7 @@ func init() {
 	createCmd.MarkFlagsRequiredTogether("user", "password")
 	createCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	createCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
+	createCmd.MarkFlagsMutuallyExclusive("vault-key", "no-vault")
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.CloneProtocol.CompletionFunc("clone-protocol"))
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.OutputFormat.CompletionFunc("output"))
 	_ = createCmd.RegisterFlagCompletionFunc("error-processing", createOptions.ErrorProcessing.CompletionFunc())
@@ -87,6 +92,60 @@ func createProcess(cmd *cobra.Command, args []string) error {
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating profile %s", createOptions.Name) {
 		return nil
 	}
+
+	// Store the client secret/password/access token in the vault if provided
+	if createOptions.NoVault {
+		if len(createOptions.ClientID) > 0 && len(createOptions.ClientSecret) == 0 {
+			return errors.ArgumentMissing.With("clientSecret", "A client secret is required when using a client ID since it is not stored in the vault.")
+		} else if len(createOptions.User) > 0 && len(createOptions.Password) == 0 {
+			return errors.ArgumentMissing.With("password", "A password is required when using a user since it is not stored in the vault.")
+		} else if len(createOptions.AccessToken) == 0 {
+			return errors.ArgumentMissing.With("accessToken", "An access token is required when using a user since it is not stored in the vault")
+		}
+	} else {
+		if len(createOptions.ClientID) > 0 {
+			if len(createOptions.ClientSecret) > 0 {
+				if err := createOptions.SetCredentialInVault(createOptions.VaultKey, createOptions.ClientID, createOptions.ClientSecret); err != nil {
+					log.Errorf("Failed to store client secret in the vault, the secret will be stored in plain text in the configuration file", err)
+					fmt.Fprintf(os.Stderr, "Failed to store client secret in the vault, the secret will be stored in plain text in the configuration file: %s\n", err)
+				} else {
+					log.Infof("Stored client secret in the vault for %s", createOptions.ClientID)
+					createOptions.ClientSecret = "" // Clear the secret from the profile
+				}
+			} else {
+				if credential, err := createOptions.GetCredentialFromVault(createOptions.VaultKey, createOptions.ClientID); err == nil {
+					createOptions.ClientSecret = credential.Password
+				} else {
+					return errors.New("A client secret is required when using a client ID since it is not stored in the vault. Please provide it with --client-secret or store it in the vault with the command")
+				}
+			}
+		} else if len(createOptions.User) > 0 {
+			if len(createOptions.Password) > 0 {
+				if err := createOptions.SetCredentialInVault(createOptions.VaultKey, createOptions.User, createOptions.Password); err != nil {
+					log.Errorf("Failed to store user password in the vault, the password will be stored in plain text in the configuration file", err)
+					fmt.Fprintf(os.Stderr, "Failed to store user password in the vault, the password will be stored in plain text in the configuration file: %s\n", err)
+				} else {
+					log.Infof("Stored user password in the vault for %s", createOptions.User)
+					createOptions.Password = "" // Clear the password from the profile
+				}
+			} else {
+				if credential, err := createOptions.GetCredentialFromVault(createOptions.VaultKey, createOptions.User); err == nil {
+					createOptions.Password = credential.Password
+				} else {
+					return errors.New("A password is required when using a user since it is not stored in the vault. Please provide it with --password or store it in the vault with the command")
+				}
+			}
+		} else if len(createOptions.AccessToken) > 0 {
+			if err := createOptions.SetCredentialInVault(createOptions.VaultKey, createOptions.Name, createOptions.AccessToken); err != nil {
+				log.Errorf("Failed to store access token in the vault, the token will be stored in plain text in the configuration file", err)
+				fmt.Fprintf(os.Stderr, "Failed to store access token in the vault, the token will be stored in plain text in the configuration file: %s\n", err)
+			} else {
+				log.Infof("Stored access token in the vault for %s", createOptions.Name)
+				createOptions.AccessToken = "" // Clear the access token from the profile
+			}
+		}
+	}
+
 	Profiles.Add(&createOptions.Profile)
 	viper.Set("profiles", Profiles)
 	if len(viper.ConfigFileUsed()) > 0 {

@@ -42,10 +42,40 @@ func deleteProcess(cmd *cobra.Command, args []string) (err error) {
 	if deleteOptions.All {
 		log.Infof("Deleting all profiles")
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting all profiles") {
+			for _, profileName := range Profiles.Names() {
+				if profile, found := Profiles.Find(profileName); found {
+					log.Infof("Deleting credential for profile %s", profile.Name)
+					if len(profile.ClientID) > 0 {
+						_ = profile.DeleteCredentialFromVault(profile.VaultKey, profile.ClientID)
+						log.Debugf("Deleted client secret for clientID %s from the vault", profile.ClientID)
+					} else if len(profile.User) > 0 {
+						_ = profile.DeleteCredentialFromVault(profile.VaultKey, profile.User)
+						log.Debugf("Deleted user secret for user %s from the vault", profile.User)
+					} else if len(profile.Name) > 0 {
+						_ = profile.DeleteCredentialFromVault(profile.VaultKey, profile.Name)
+						log.Debugf("Deleted name secret for profile %s from the vault", profile.Name)
+					}
+				}
+			}
 			deleted = Profiles.Delete(Profiles.Names()...)
 		}
 	} else {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting profiles %s", strings.Join(args, ", ")) {
+			for _, profileName := range args {
+				if profile, found := Profiles.Find(profileName); found {
+					log.Infof("Deleting credential for profile %s", profile.Name)
+					if len(profile.ClientID) > 0 {
+						_ = profile.DeleteCredentialFromVault(profile.VaultKey, profile.ClientID)
+						log.Debugf("Deleted client secret for clientID %s from the vault", profile.ClientID)
+					} else if len(profile.User) > 0 {
+						_ = profile.DeleteCredentialFromVault(profile.VaultKey, profile.User)
+						log.Debugf("Deleted user secret for user %s from the vault", profile.User)
+					} else if len(profile.Name) > 0 {
+						_ = profile.DeleteCredentialFromVault(profile.VaultKey, profile.Name)
+						log.Debugf("Deleted name secret for profile %s from the vault", profile.Name)
+					}
+				}
+			}
 			deleted = Profiles.Delete(args...)
 		}
 	}
