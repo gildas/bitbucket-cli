@@ -120,6 +120,27 @@ func (profile Profile) GetRow(headers []string) []string {
 	return row
 }
 
+// Redact redacts sensitive information from the profile
+//
+// implements logger.Redactable
+func (profile Profile) Redact() any {
+	redacted := profile
+	if len(redacted.ClientSecret) > 0 {
+		redacted.ClientSecret = logger.RedactWithHash(redacted.ClientSecret)
+	}
+	if len(redacted.Password) > 0 {
+		redacted.Password = logger.RedactWithHash(redacted.Password)
+	}
+	if len(redacted.AccessToken) > 0 {
+		redacted.AccessToken = logger.RedactWithHash(redacted.AccessToken)
+	}
+	if len(redacted.RefreshToken) > 0 {
+		redacted.RefreshToken = logger.RedactWithHash(redacted.RefreshToken)
+	}
+	redacted.TokenScopes = nil
+	return redacted
+}
+
 // Update updates this profile with the given one
 func (profile *Profile) Update(other Profile) error {
 	if len(other.Name) > 0 {
