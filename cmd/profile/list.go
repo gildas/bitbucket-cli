@@ -30,5 +30,9 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	core.Sort(Profiles, func(a, b *Profile) bool {
 		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
 	})
+	Profiles = core.Map(Profiles, func(profile *Profile) *Profile {
+		_ = profile.Validate()
+		return profile
+	})
 	return Current.Print(cmd.Context(), cmd, Profiles)
 }
