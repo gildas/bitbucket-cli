@@ -1,13 +1,5 @@
 # Bitbucket Command Line Interface
 
-**Important Note**
-
-Because of [Important changes coming to Bitbucket Cloud’s free plan](https://www.atlassian.com/blog/bitbucket/important-changes-coming-to-bitbucket-clouds-free-plan), I cannot keep bitbucket-cli on bitbucket.org anymore, which is quite ironic....
-
-I am moving the repository to [here](https://github.com/gildas/bitbucket-cli) where I can upload the binaries for your consumption.
-
-And at some point in the near future, I will shutdown the [bitbucket repository](https://bitbucket.org/gildas_cherruel/bb).
-
 [bb](https://github.com/gildas/bitbucket-cli) is the missing command line interface for Bitbucket.
 
 The [Bitbucket Command Line Interface](https://github.com/gildas/bitbucket-cli) brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
