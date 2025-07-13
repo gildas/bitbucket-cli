@@ -21,23 +21,26 @@ import (
 
 // Profile describes the configuration needed to connect to BitBucket
 type Profile struct {
-	Name             string                 `json:"name"                       mapstructure:"name"`
-	Description      string                 `json:"description,omitempty"      mapstructure:"description,omitempty"     yaml:",omitempty"`
-	Default          bool                   `json:"default"                    mapstructure:"default"                   yaml:",omitempty"`
-	DefaultWorkspace string                 `json:"defaultWorkspace,omitempty" mapstructure:"defaultWorkspace"          yaml:",omitempty"`
-	DefaultProject   string                 `json:"defaultProject,omitempty"   mapstructure:"defaultProject"            yaml:",omitempty"`
-	ErrorProcessing  common.ErrorProcessing `json:"errorProcessing,omitempty"  mapstructure:"errorProcessing,omitempty" yaml:",omitempty"`
-	OutputFormat     string                 `json:"outputFormat,omitempty"     mapstructure:"outputFormat,omitempty"    yaml:",omitempty"`
-	Progress         bool                   `json:"progress,omitempty"         mapstructure:"progress,omitempty"        yaml:",omitempty"`
-	User             string                 `json:"user,omitempty"             mapstructure:"user"                      yaml:",omitempty"`
-	Password         string                 `json:"password,omitempty"         mapstructure:"password"                  yaml:",omitempty"`
-	ClientID         string                 `json:"clientID,omitempty"         mapstructure:"clientID"                  yaml:",omitempty"`
-	ClientSecret     string                 `json:"clientSecret,omitempty"     mapstructure:"clientSecret"              yaml:",omitempty"`
-	CallbackPort     uint16                 `json:"callbackPort,omitempty"     mapstructure:"callbackPort"              yaml:",omitempty"`
-	AccessToken      string                 `json:"accessToken,omitempty"      mapstructure:"accessToken"               yaml:",omitempty"`
-	RefreshToken     string                 `json:"-"                          mapstructure:"refreshToken"              yaml:"-"`
-	TokenExpires     time.Time              `json:"-"                          mapstructure:"tokenExpires"              yaml:"-"`
-	TokenScopes      []string               `json:"-"                          mapstructure:"tokenScopes"               yaml:"-"`
+	Name               string                 `json:"name"                         mapstructure:"name"`
+	Description        string                 `json:"description,omitempty"        mapstructure:"description,omitempty"       yaml:",omitempty"`
+	Default            bool                   `json:"default"                      mapstructure:"default"                     yaml:",omitempty"`
+	DefaultWorkspace   string                 `json:"defaultWorkspace,omitempty"   mapstructure:"defaultWorkspace"            yaml:",omitempty"`
+	DefaultProject     string                 `json:"defaultProject,omitempty"     mapstructure:"defaultProject"              yaml:",omitempty"`
+	ErrorProcessing    common.ErrorProcessing `json:"errorProcessing,omitempty"    mapstructure:"errorProcessing,omitempty"   yaml:",omitempty"`
+	OutputFormat       string                 `json:"outputFormat,omitempty"       mapstructure:"outputFormat,omitempty"      yaml:",omitempty"`
+	Progress           bool                   `json:"progress,omitempty"           mapstructure:"progress,omitempty"          yaml:",omitempty"`
+	User               string                 `json:"user,omitempty"               mapstructure:"user"                        yaml:",omitempty"`
+	Password           string                 `json:"password,omitempty"           mapstructure:"password"                    yaml:",omitempty"`
+	ClientID           string                 `json:"clientID,omitempty"           mapstructure:"clientID"                    yaml:",omitempty"`
+	ClientSecret       string                 `json:"clientSecret,omitempty"       mapstructure:"clientSecret"                yaml:",omitempty"`
+	CallbackPort       uint16                 `json:"callbackPort,omitempty"       mapstructure:"callbackPort"                yaml:",omitempty"`
+	AccessToken        string                 `json:"accessToken,omitempty"        mapstructure:"accessToken"                 yaml:",omitempty"`
+	RefreshToken       string                 `json:"-"                            mapstructure:"refreshToken"                yaml:"-"`
+	TokenExpires       time.Time              `json:"-"                            mapstructure:"tokenExpires"                yaml:"-"`
+	TokenScopes        []string               `json:"-"                            mapstructure:"tokenScopes"                 yaml:"-"`
+	CloneProtocol      string                 `json:"cloneProtocol,omitempty"      mapstructure:"cloneProtocol,omitempty"     yaml:",omitempty"`
+	CloneVaultKey      string                 `json:"cloneVaultKey,omitempty"      mapstructure:"cloneVaultKey,omitempty"      yaml:",omitempty"`
+	CloneVaultUsername string                 `json:"cloneVaultUsername,omitempty" mapstructure:"cloneVaultUsername,omitempty" yaml:",omitempty"`
 }
 
 // Current is the current profile
@@ -160,6 +163,15 @@ func (profile *Profile) Update(other Profile) error {
 	if len(other.DefaultProject) > 0 {
 		profile.DefaultProject = other.DefaultProject
 	}
+	if len(other.CloneProtocol) > 0 {
+		profile.CloneProtocol = other.CloneProtocol
+	}
+	if len(other.CloneVaultKey) > 0 {
+		profile.CloneVaultKey = other.CloneVaultKey
+	}
+	if len(other.CloneVaultUsername) > 0 {
+		profile.CloneVaultUsername = other.CloneVaultUsername
+	}
 	return profile.Validate()
 }
 
@@ -183,6 +195,15 @@ func (profile *Profile) Validate() error {
 				merr.Append(errors.ArgumentMissing.With("clientSecret"))
 			}
 		}
+	}
+	if len(profile.CloneProtocol) == 0 {
+		profile.CloneProtocol = "git"
+	}
+	if profile.CloneProtocol != "git" && profile.CloneProtocol != "https" && profile.CloneProtocol != "ssh" {
+		merr.Append(errors.ArgumentInvalid.With("cloneProtocol", profile.CloneProtocol))
+	}
+	if len(profile.CloneVaultKey) == 0 {
+		profile.CloneVaultKey = "bitbucket-cli"
 	}
 	return merr.AsError()
 }

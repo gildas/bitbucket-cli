@@ -403,6 +403,27 @@ By default, the repository is cloned in a folder with the same name as the repos
 bb repo clone --workspace myworkspace --destination myfolder myrepository
 ```
 
+By default, the repository is cloned using the `git` protocol. You can change the protocol with the `--clone-protocol` flag. The supported protocols are `https`, `git`, and `ssh`. The default protocol can also be set in the profile with the `--clone-protocol` flag when creating or updating a profile.
+
+```bash
+bb repo clone --clone-protocol https myrepository
+```
+
+When using the ssh protocol, you can also specify the SSH key to use with the `--ssh-key` flag (by default the key configured is SSH for bitbucket.org is used, and if nothing is configured: `~/.ssh/id_rsa`):
+
+```bash
+bb repo clone --ssh-key /path/to/ssh/key myrepository
+```
+
+When using the `https` protocol while cloning a private repository, you can specify the username to use for authentication with the `--username` flag. If the username is not provided, the `cloneVaultUsername` from the profile is used. If the profile does not have a `cloneVaultUsername`, you cannot clone a private repository with the `https` protocol.
+
+On Linux and macOS, the system keychain will be used to retrieve the credentials. You can set the `cloneVaultKey` in the profile to use a specific key in the keychain. If not set, the default value is `bitbucket-cli`. You can also set the `cloneVaultUsername` in the profile to use a specific username for authentication.  
+On Windows, the Windows Credential Manager will be used to retrieve the credentials. And the username should be `<cloneVaultKey>:<cloneVaultUsername>`.
+
+```bash
+bb repo clone --username myusername myrepository
+```
+
 You can create a repository with the `bb repo create` command:
 
 ```bash

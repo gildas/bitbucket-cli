@@ -26,6 +26,7 @@ var updateOptions struct {
 	DefaultWorkspace *flags.EnumFlag
 	DefaultProject   *flags.EnumFlag
 	OutputFormat     *flags.EnumFlag
+	CloneProtocol    *flags.EnumFlag
 }
 
 func init() {
@@ -34,6 +35,7 @@ func init() {
 	updateOptions.DefaultWorkspace = flags.NewEnumFlagWithFunc("", getWorkspaceSlugs)
 	updateOptions.DefaultProject = flags.NewEnumFlagWithFunc("", getProjectKeys)
 	updateOptions.OutputFormat = flags.NewEnumFlag("json", "yaml", "table")
+	updateOptions.CloneProtocol = flags.NewEnumFlag("+git", "https", "ssh")
 	updateCmd.Flags().StringVarP(&updateOptions.Name, "name", "n", "", "Name of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the profile")
 	updateCmd.Flags().BoolVar(&updateOptions.Default, "default", false, "True if this is the default profile")
@@ -44,6 +46,9 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.AccessToken, "access-token", "", "Access Token of the profile")
 	updateCmd.Flags().Var(updateOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
 	updateCmd.Flags().Var(updateOptions.DefaultProject, "default-project", "Default project of the profile")
+	updateCmd.Flags().Var(updateOptions.CloneProtocol, "clone-protocol", "Default protocol to use for cloning repositories. Default is git, can be https, git, or ssh")
+	updateCmd.Flags().StringVar(&updateOptions.CloneVaultKey, "clone-vault-key", "bitbucket-cli", "Vault key to use for authentication when cloning with the https protocol. Default is bitbucket-cli. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
+	updateCmd.Flags().StringVar(&updateOptions.CloneVaultUsername, "clone-vault-username", "", "Username to use for authentication when retrieving credentials from the vault.")
 	updateCmd.Flags().Var(updateOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	updateCmd.Flags().Var(&updateOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
 	updateCmd.Flags().BoolVar(&updateOptions.Progress, "progress", false, "Show progress during upload/download operations.")
@@ -52,6 +57,7 @@ func init() {
 	updateCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.DefaultWorkspace.CompletionFunc("default-workspace"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.DefaultProject.CompletionFunc("default-project"))
+	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.CloneProtocol.CompletionFunc("clone-protocol"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.OutputFormat.CompletionFunc("output"))
 	_ = updateCmd.RegisterFlagCompletionFunc("error-processing", updateOptions.ErrorProcessing.CompletionFunc())
 }
@@ -67,6 +73,9 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	}
 	if len(updateOptions.OutputFormat.String()) > 0 {
 		updateOptions.Profile.OutputFormat = updateOptions.OutputFormat.String()
+	}
+	if len(updateOptions.CloneProtocol.String()) > 0 {
+		updateOptions.Profile.CloneProtocol = updateOptions.CloneProtocol.String()
 	}
 	log.Infof("Checking if profile %s exists (Valid Names: %v)", args[0], Profiles.Names())
 	profile, found := Profiles.Find(args[0])
