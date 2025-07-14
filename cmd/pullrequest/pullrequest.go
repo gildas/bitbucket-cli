@@ -65,7 +65,7 @@ func init() {
 //
 // implements common.Tableable
 func (pullrequest PullRequest) GetHeader(short bool) []string {
-	return []string{"ID", "Title", "Description", "source", "destination", "state"}
+	return []string{"ID", "TITLE", "BRANCH", "CREATED AT", "STATE"}
 }
 
 // GetRow gets the row for a table
@@ -73,12 +73,11 @@ func (pullrequest PullRequest) GetHeader(short bool) []string {
 // implements common.Tableable
 func (pullrequest PullRequest) GetRow(headers []string) []string {
 	return []string{
-		fmt.Sprintf("%d", pullrequest.ID),
+		fmt.Sprintf("#%d", pullrequest.ID),
 		pullrequest.Title,
-		pullrequest.Description,
 		pullrequest.Source.Branch.Name,
-		pullrequest.Destination.Branch.Name,
-		pullrequest.State,
+		pullrequest.CreatedOn.Format("2006-01-02 15:04:05"),
+		strings.ToUpper(pullrequest.State),
 	}
 }
 
