@@ -51,7 +51,7 @@ func init() {
 	createCmd.Flags().Var(createOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
 	createCmd.Flags().Var(createOptions.DefaultProject, "default-project", "Default project of the profile")
 	createCmd.Flags().Var(createOptions.CloneProtocol, "clone-protocol", "Default protocol to use for cloning repositories. Default is git, can be https, git, or ssh")
-	createCmd.Flags().StringVar(&createOptions.CloneVaultKey, "clone-vault-key", "bitbucket-cli-clone", "Vault key to use for authentication when cloning with the https protocol. Default is bitbucket-cli-clone. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
+	createCmd.Flags().StringVar(&createOptions.CloneVaultKey, "clone-vault-key", "", "Vault key to use for authentication when cloning with the https protocol. Default is the vault key. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
 	createCmd.Flags().StringVar(&createOptions.CloneVaultUsername, "clone-vault-username", "", "Username to use for authentication when retrieving credentials from the vault.")
 	createCmd.Flags().Var(createOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	createCmd.Flags().Var(&createOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")

@@ -218,9 +218,6 @@ func (profile *Profile) Validate() error {
 	if profile.CloneProtocol != "git" && profile.CloneProtocol != "https" && profile.CloneProtocol != "ssh" {
 		merr.Append(errors.ArgumentInvalid.With("cloneProtocol", profile.CloneProtocol))
 	}
-	if len(profile.CloneVaultKey) == 0 {
-		profile.CloneVaultKey = "bitbucket-cli-clone"
-	}
 	return merr.AsError()
 }
 
