@@ -129,15 +129,21 @@ func cloneProcess(cmd *cobra.Command, args []string) error {
 		vaultUsername := cloneOptions.Username
 		if len(vaultUsername) == 0 {
 			vaultUsername = profile.Current.CloneVaultUsername
+			if len(vaultUsername) == 0 {
+				vaultUsername = profile.Current.User
+			}
 		}
 		if len(vaultUsername) > 0 {
 			vaultKey := cloneOptions.VaultKey
 			if len(vaultKey) == 0 {
 				vaultKey = profile.Current.CloneVaultKey
+				if len(vaultKey) == 0 {
+					vaultKey = profile.Current.VaultKey
+				}
 			}
 			credential, err := profile.Current.GetCredentialFromVault(vaultKey, vaultUsername)
 			if err != nil {
-				return errors.Join(fmt.Errorf("failed to retrieve credential from vault with key %s", cloneOptions.VaultKey), err)
+				return errors.Join(fmt.Errorf("failed to retrieve credential for user %s from vault with key %s", vaultUsername, vaultKey), err)
 			}
 			options.Auth = credential.AsHTTPBasicAuth()
 		}
