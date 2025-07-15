@@ -155,7 +155,7 @@ func (profiles *profiles) Load(context context.Context) error {
 	for _, profile := range *profiles {
 		if len(profile.ClientID) > 0 {
 			if len(profile.ClientSecret) == 0 {
-				if credential, err := profile.GetCredentialFromVault("bitbucket-cli", profile.ClientID); err == nil {
+				if credential, err := profile.GetCredentialFromVault(profile.VaultKey, profile.ClientID); err == nil {
 					profile.ClientSecret = credential.Password
 					log.Infof("Loaded client secret for clientID %s from the vault", profile.ClientID)
 				} else {
@@ -164,7 +164,7 @@ func (profiles *profiles) Load(context context.Context) error {
 			}
 		} else if len(profile.User) > 0 {
 			if len(profile.Password) == 0 {
-				if credential, err := profile.GetCredentialFromVault("bitbucket-cli", profile.User); err == nil {
+				if credential, err := profile.GetCredentialFromVault(profile.VaultKey, profile.User); err == nil {
 					profile.Password = credential.Password
 					log.Infof("Loaded password for user %s from the vault", profile.User)
 				} else {
@@ -172,7 +172,7 @@ func (profiles *profiles) Load(context context.Context) error {
 				}
 			}
 		} else if len(profile.AccessToken) == 0 {
-			if credential, err := profile.GetCredentialFromVault("bitbucket-cli", profile.Name); err == nil {
+			if credential, err := profile.GetCredentialFromVault(profile.VaultKey, profile.Name); err == nil {
 				profile.AccessToken = credential.Password
 				log.Infof("Loaded access token for profile %s from the vault", profile.Name)
 			} else {
