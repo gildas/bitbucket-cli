@@ -145,6 +145,8 @@ func cloneProcess(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return errors.Join(fmt.Errorf("failed to retrieve credential for user %s from vault with key %s", vaultUsername, vaultKey), err)
 			}
+			log.Debugf("Credentials: vaultKey=%s, user=%s", vaultKey, vaultUsername)
+			log.Tracef("Credentials: password=%s", credential.Password) // Use this level only if you are sure the password is not sensitive and you have password retrieval issues
 			options.Auth = credential.AsHTTPBasicAuth()
 		}
 	}
