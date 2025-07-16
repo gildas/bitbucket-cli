@@ -32,7 +32,7 @@ func GitClone(context context.Context, workspace, repository, destination, usern
 	if err != nil {
 		return err
 	}
-	shell := strings.TrimSpace(strings.Split(string(out), ": ")[6])
+	shell := strings.TrimSpace(strings.Split(string(out), ":")[6])
 	cmd := exec.Command(shell, "-c", fmt.Sprintf("git clone %s %s", repoURL.String(), cloneOptions.Destination))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
