@@ -34,6 +34,7 @@ var cloneOptions struct {
 	SshKeyFilename string
 	VaultKey       string
 	Username       string
+	Password       string
 }
 
 func init() {
@@ -47,7 +48,8 @@ func init() {
 	cloneCmd.Flags().Var(cloneOptions.Protocol, "protocol", "Protocol to use for cloning. Default is set in the profile, can be https, git, or ssh")
 	cloneCmd.Flags().StringVar(&cloneOptions.SshKeyFilename, "ssh-key-file", "", "Path to the SSH private key file. Default is ~/.ssh/id_rsa")
 	cloneCmd.Flags().StringVar(&cloneOptions.VaultKey, "vault-key", "", "Vault key to use for authentication. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used. If not set, your git and ssh configuration will take precedence")
-	cloneCmd.Flags().StringVar(&cloneOptions.Username, "username", "", "Username for authentication. If not set, it will be retrieved from the git or bitbucket-cli configuration")
+	cloneCmd.Flags().StringVar(&cloneOptions.Username, "username", "", "Username for authentication. If not set, it will be retrieved from the bitbucket-cli configuration")
+	cloneCmd.Flags().StringVar(&cloneOptions.Password, "password", "", "Password for authentication. If not set, it will be retrieved from the bitbucket-cli configuration")
 	_ = cloneCmd.MarkFlagDirname("destination")
 	_ = cloneCmd.MarkFlagFilename("ssh-key-file")
 	_ = cloneCmd.RegisterFlagCompletionFunc(cloneOptions.Workspace.CompletionFunc("workspace"))
@@ -66,7 +68,7 @@ func cloneValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 	return common.FilterValidArgs(slugs, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
-func cloneProcess(cmd *cobra.Command, args []string) error {
+func cloneProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "clone")
 
 	if profile.Current == nil {
@@ -141,16 +143,20 @@ func cloneProcess(cmd *cobra.Command, args []string) error {
 					vaultKey = profile.Current.VaultKey
 				}
 			}
-			credential, err := profile.Current.GetCredentialFromVault(vaultKey, vaultUsername)
-			if err != nil {
-				return errors.Join(fmt.Errorf("failed to retrieve credential for user %s from vault with key %s", vaultUsername, vaultKey), err)
+			credential := &profile.Credential{Username: vaultUsername, Password: cloneOptions.Password}
+			if len(credential.Password) == 0 {
+				credential.Password = profile.Current.Password
+				if len(credential.Password) == 0 {
+					if credential, err = profile.Current.GetCredentialFromVault(vaultKey, vaultUsername); err != nil {
+						return errors.Join(fmt.Errorf("failed to retrieve credential for user %s from vault with key %s", vaultUsername, vaultKey), err)
+					}
+				}
 			}
 			log.Debugf("Credentials: vaultKey=%s, user=%s", vaultKey, vaultUsername)
-			log.Tracef("Credentials: password=%s", credential.Password) // Use this level only if you are sure the password is not sensitive and you have password retrieval issues
 			options.Auth = credential.AsHTTPBasicAuth()
 		}
 	}
 
-	_, err := git.PlainCloneContext(log.ToContext(cmd.Context()), cloneOptions.Destination, cloneOptions.Bare, &options)
+	_, err = git.PlainCloneContext(log.ToContext(cmd.Context()), cloneOptions.Destination, cloneOptions.Bare, &options)
 	return err
 }
