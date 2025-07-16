@@ -136,24 +136,8 @@ func cloneProcess(cmd *cobra.Command, args []string) (err error) {
 			}
 		}
 		if len(vaultUsername) > 0 {
-			vaultKey := cloneOptions.VaultKey
-			if len(vaultKey) == 0 {
-				vaultKey = profile.Current.CloneVaultKey
-				if len(vaultKey) == 0 {
-					vaultKey = profile.Current.VaultKey
-				}
-			}
-			credential := &profile.Credential{Username: vaultUsername, Password: cloneOptions.Password}
-			if len(credential.Password) == 0 {
-				credential.Password = profile.Current.Password
-				if len(credential.Password) == 0 {
-					if credential, err = profile.Current.GetCredentialFromVault(vaultKey, vaultUsername); err != nil {
-						return errors.Join(fmt.Errorf("failed to retrieve credential for user %s from vault with key %s", vaultUsername, vaultKey), err)
-					}
-				}
-			}
-			log.Debugf("Credentials: vaultKey=%s, user=%s", vaultKey, vaultUsername)
-			options.Auth = credential.AsHTTPBasicAuth()
+			// go-git does not support username with bitbucket.org authentication, so we need to call git directly
+			return GitClone(cmd.Context(), cloneOptions.Workspace.String(), args[0], cloneOptions.Destination, vaultUsername)
 		}
 	}
 
