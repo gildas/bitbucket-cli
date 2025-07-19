@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/gildas/go-logger"
 )
@@ -28,11 +29,14 @@ func GitClone(context context.Context, workspace, repository, destination, usern
 	if len(shell) == 0 {
 		shell = "cmd.exe"
 	}
-	switch shell {
-	case "cmd.exe":
-		cmd = exec.Command(shell, "/C", fmt.Sprintf("git clone %s %s", repoURL.String(), destination))
+	log.Debugf("Using shell: %s", shell)
+	switch filepath.Base(shell) {
 	case "powershell.exe":
 		cmd = exec.Command(shell, "Start-Process", "git", "-ArgumentList", fmt.Sprintf(`"clone", "%s", "%s"`, repoURL.String(), destination), "-NoNewWindow")
+	case "cmd.exe":
+		fallthrough // Use cmd.exe for cloning
+	default:
+		cmd = exec.Command(shell, "/C", fmt.Sprintf("git clone %s %s", repoURL.String(), destination))
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
