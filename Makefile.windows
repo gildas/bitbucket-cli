@@ -4,9 +4,10 @@
 SHELL := pwsh.exe
 # Creates the parent directory of the target if needed
 MKDIR_PARENT =  @pwsh -Command { if (!(Test-Path $(@D))) { New-Item -ItemType Directory -Path $(@D) | Out-Null } }
-MKDIR = pwsh -Command { New-Item -ItemType Directory -Path $@ | Out-Null }
+MKDIR = @pwsh -Command { if (!(Test-Path $@)) { New-Item -ItemType Directory -Path $@ | Out-Null } }
 TOUCH = @pwsh -Command { if (Test-Path $@) { (Get-Item $@).LastWriteTime=(Get-Date) } else { New-Item -Path $@ | Out-Null } }
 M = $(shell Write-Output "`e[34;1m>`e[0m")
+P = Write-Output
 
 # Stamps
 STAMP     != Get-Date -UFormat "%Y%m%d%H%M%S"
