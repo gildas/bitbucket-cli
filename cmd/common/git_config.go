@@ -14,10 +14,17 @@ import (
 // OpenGitConfig opens the .git/config file in the current folder or one of its parents
 func OpenGitConfig(context context.Context) (io.ReadCloser, error) {
 	log := logger.Must(logger.FromContext(context)).Child("remote", "opengitconfig")
-	folder := "."
+	folder, err := filepath.Abs(".")
+	if err != nil {
+		folder = "."
+	}
+	last := folder + "dummy"
 
-	for {
+	 for {
 		filename := filepath.Join(folder, ".git/config")
+		if folder == last {
+			return nil, errors.NotFound.With("file", filename)
+		}
 		log.Debugf("opening %s", filename)
 		file, err := os.Open(filename)
 		if err == nil {
@@ -29,7 +36,8 @@ func OpenGitConfig(context context.Context) (io.ReadCloser, error) {
 		if folder == "/" {
 			return nil, errors.New("not a git repository")
 		}
-		folder += "/.."
+		last = folder
+		folder = filepath.Dir(folder)
 	}
 }
 
