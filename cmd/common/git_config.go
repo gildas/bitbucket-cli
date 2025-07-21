@@ -20,7 +20,7 @@ func OpenGitConfig(context context.Context) (io.ReadCloser, error) {
 	}
 	last := folder + "dummy"
 
-	 for {
+	for {
 		filename := filepath.Join(folder, ".git/config")
 		if folder == last {
 			return nil, errors.NotFound.With("file", filename)

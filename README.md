@@ -135,6 +135,12 @@ Profiles support the following authentications:
 - [App passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/) with the `--user` and `--password` flags.
 - [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags.
 
+When you use a username/password, the password is stored in the vault of the operating system (Windows Credential Manager, macOS Keychain, or Linux Secret Service). You can pass the `--no-vault` flag to disable this feature and store the password in plain text in the configuration file. This is not recommended, but can be useful for testing purposes. On Linux and macOS, you can also pass the `--vault-key` flag to set the key to use in the system keychain. By default, the key is `bitbucket-cli`. On Windows, this option is not available.
+
+You can also pass the `--clone-protocol` flag to set the default protocol to use when cloning repositories. The supported protocols are `https`, `git`, and `ssh`. This option can be overridden with the `--protocol` flag when using `repo clone`.
+
+In case you are not using a user/password, you can also pass a `--clone-user` flag to set the username to use when cloning repositories with the `https` protocol. If you use a user/password, you don't need to set this flag, usually, ans the username will be used for cloning repositories. This option can be overridden with the `--user` flag when using `repo clone`.
+
 You can get the list of your profiles with the `bb profile list` command:
 
 ```bash
@@ -378,6 +384,13 @@ You can clone a repository with the `bb repo clone` command:
 ```bash
 bb repo clone myworkspace/myrepository
 ```
+
+You can set the protocol to use when cloning a repository with the `--protocol` flag. The supported protocols are `https`, `git`, and `ssh`. If not provided, the protocol set in the profile is used (if the profile does not have a protocol set, the default is `git`).
+
+When using the `ssh` protocol, you can specify the SSH key to use with the `--ssh-key-file` flag. If not provided, the key set in the profile is used (if the profile does not have a key set, the default is `~/.ssh/id_rsa`).
+
+When using the `https` protocol while cloning a private repository, you can specify the username to use for authentication with the `--user` flag. If the username is not provided, the `cloneUser` from the profile is used. If the profile does not have a `cloneUser`, you cannot clone a private repository with the `https` protocol.
+
 
 or, with the `--workspace` flag:
 

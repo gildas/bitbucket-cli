@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-errors"
@@ -40,7 +41,9 @@ func init() {
 	updateCmd.Flags().StringVarP(&updateOptions.Name, "name", "n", "", "Name of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the profile")
 	updateCmd.Flags().BoolVar(&updateOptions.Default, "default", false, "True if this is the default profile")
-	updateCmd.Flags().StringVar(&updateOptions.VaultKey, "vault-key", "bitbucket-cli", "Vault key to use for storing credentials. Default is bitbucket-cli. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
+	if runtime.GOOS != "windows" {
+		updateCmd.Flags().StringVar(&updateOptions.VaultKey, "vault-key", "bitbucket-cli", "Vault key to use for storing credentials. Default is bitbucket-cli. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
+	}
 	updateCmd.Flags().StringVarP(&updateOptions.User, "user", "u", "", "User's name of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.Password, "password", "", "Password of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.ClientID, "client-id", "", "Client ID of the profile")
@@ -49,8 +52,7 @@ func init() {
 	updateCmd.Flags().Var(updateOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
 	updateCmd.Flags().Var(updateOptions.DefaultProject, "default-project", "Default project of the profile")
 	updateCmd.Flags().Var(updateOptions.CloneProtocol, "clone-protocol", "Default protocol to use for cloning repositories. Default is git, can be https, git, or ssh")
-	updateCmd.Flags().StringVar(&updateOptions.CloneVaultKey, "clone-vault-key", "bitbucket-cli-clone", "Vault key to use for authentication when cloning with the https protocol. Default is bitbucket-cli-clone. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
-	updateCmd.Flags().StringVar(&updateOptions.CloneVaultUsername, "clone-vault-username", "", "Username to use for authentication when retrieving credentials from the vault.")
+	updateCmd.Flags().StringVar(&updateOptions.CloneUser, "clone-user", "", "Username to use when cloning repositories. Default is the username of the profile.")
 	updateCmd.Flags().Var(updateOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	updateCmd.Flags().Var(&updateOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
 	updateCmd.Flags().BoolVar(&updateOptions.Progress, "progress", false, "Show progress during upload/download operations.")

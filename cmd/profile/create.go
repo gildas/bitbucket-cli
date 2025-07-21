@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-errors"
@@ -40,7 +41,9 @@ func init() {
 	createCmd.Flags().StringVarP(&createOptions.Name, "name", "n", "", "Name of the profile")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the profile")
 	createCmd.Flags().BoolVar(&createOptions.Default, "default", false, "True if this is the default profile")
-	createCmd.Flags().StringVar(&createOptions.VaultKey, "vault-key", "bitbucket-cli", "Vault key to use for storing credentials. Default is bitbucket-cli. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
+	if runtime.GOOS != "windows" {
+		createCmd.Flags().StringVar(&createOptions.VaultKey, "vault-key", "bitbucket-cli", "Vault key to use for storing credentials. Default is bitbucket-cli. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
+	}
 	createCmd.Flags().BoolVar(&createOptions.NoVault, "no-vault", false, "Do not store credentials in the vault. This will store them in plain text in the configuration file.")
 	createCmd.Flags().StringVarP(&createOptions.User, "user", "u", "", "User's name of the profile")
 	createCmd.Flags().StringVar(&createOptions.Password, "password", "", "Password of the profile")
@@ -51,8 +54,7 @@ func init() {
 	createCmd.Flags().Var(createOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
 	createCmd.Flags().Var(createOptions.DefaultProject, "default-project", "Default project of the profile")
 	createCmd.Flags().Var(createOptions.CloneProtocol, "clone-protocol", "Default protocol to use for cloning repositories. Default is git, can be https, git, or ssh")
-	createCmd.Flags().StringVar(&createOptions.CloneVaultKey, "clone-vault-key", "", "Vault key to use for authentication when cloning with the https protocol. Default is the vault key. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
-	createCmd.Flags().StringVar(&createOptions.CloneVaultUsername, "clone-vault-username", "", "Username to use for authentication when retrieving credentials from the vault.")
+	createCmd.Flags().StringVar(&createOptions.CloneUser, "clone-user", "", "Username to use when cloning repositories. Default is the username of the profile.")
 	createCmd.Flags().Var(createOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	createCmd.Flags().Var(&createOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
 	createCmd.Flags().BoolVar(&createOptions.Progress, "progress", false, "Show progress during upload/download operations.")
