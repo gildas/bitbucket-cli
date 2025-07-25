@@ -62,7 +62,9 @@ func init() {
 	createCmd.MarkFlagsRequiredTogether("user", "password")
 	createCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	createCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
-	createCmd.MarkFlagsMutuallyExclusive("vault-key", "no-vault")
+	if runtime.GOOS != "windows" {
+		createCmd.MarkFlagsMutuallyExclusive("vault-key", "no-vault")
+	}
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.CloneProtocol.CompletionFunc("clone-protocol"))
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.OutputFormat.CompletionFunc("output"))
 	_ = createCmd.RegisterFlagCompletionFunc("error-processing", createOptions.ErrorProcessing.CompletionFunc())
