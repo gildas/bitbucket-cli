@@ -6,11 +6,12 @@ Q = $(if $(filter 1,$V),,@)
 E := 
 S := $E $E
 M = $(shell printf "\033[34;1m▶\033[0m")
+P = echo -e
 rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 
 # Folders
 BIN_DIR  ?= $(CURDIR)/bin
-DEST_DIR ?= /usr/bin
+DEST_DIR ?= /usr/local/bin
 LOG_DIR  ?= log
 TMP_DIR  ?= tmp
 COV_DIR  ?= tmp/coverage
@@ -30,7 +31,7 @@ PROJECT   != basename "$(PWD)"
 endif
 PACKAGE   = bitbucket-cli
 PACKAGE   ?= $(PROJECT)
-PLATFORMS ?= darwin-amd64 darwin-arm64 linux-amd64 linux-arm64 windows-amd64 windows-arm64
+PLATFORMS ?= darwin/amd64 darwin/arm64 linux/amd64 linux/arm64 windows/amd64 windows/arm64
 export PACKAGE PROJECT VERSION BRANCH COMMIT BUILD REVISION
 
 # Files
@@ -66,12 +67,17 @@ COPY    ?= cp -f
 # Flags
 #MAKEFLAGS += --silent
 # GO
-export GOPRIVATE   ?= bitbucket.org/gildas_cherruel/*
+#export GOPRIVATE   ?= 
 export CGO_ENABLED  = 0
 ifneq ($(what),)
 TEST_ARG := -run '$(what)'
 else
 TEST_ARG :=
+endif
+ifeq ($(DEST_DIR), /usr/local/bin)
+  ifneq ($(GOPATH),)
+DEST_DIR := $(GOPATH)/bin
+  endif
 endif
 
 ifeq ($(OS), Windows_NT)
@@ -108,13 +114,10 @@ endif
 .PHONY: all archive build dep fmt gendoc help install lint logview publish run start stop test version vet watch
 
 help: Makefile; ## Display this help
-	@echo
-	@echo "$(PROJECT) version $(VERSION) build $(BUILD) in $(BRANCH) branch"
-	@echo "Make recipes you can run: "
-	@echo
+	@$P "$(PROJECT) version $(VERSION) build " $(BUILD) " in $(BRANCH) branch"
+	@$P "Make recipes you can run: "
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) |\
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
-	@echo
 
 all: test build; ## Test and Build the application
 
@@ -126,9 +129,16 @@ archive: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debia
 
 build: __build_init__ __build_all__; @ ## Build the application for all platforms
 
-install: $(BIN_DIR)/$(OSTYPE)-$(OSARCH)/$(PROJECT); @ ## Install the application
+install: $(BIN_DIR)/$(OSTYPE)/$(OSARCH)/$(PROJECT); @ ## Install the application
 	$(info $(M) Installing application for $(OSTYPE) on $(OSARCH) in $(DEST_DIR)...)
-	$Q install $(BIN_DIR)/$(OSTYPE)-$(OSARCH)/$(PROJECT) $(DEST_DIR)/$(PROJECT)
+	$Q if [ -w "$(DEST_DIR)" ]; then \
+		install $(BIN_DIR)/$(OSTYPE)/$(OSARCH)/$(PROJECT) $(DEST_DIR)/$(PROJECT) ; \
+	else \
+		$P "    using sudo to install the application..." ; \
+		sudo install $(BIN_DIR)/$(OSTYPE)/$(OSARCH)/$(PROJECT) $(DEST_DIR)/$(PROJECT) ; \
+	fi
+	$(info $(SUCCESS)   Get some help with $(PROJECT) --help )
+	$(info $(SUCCESS)   Make your life easier and load the shell completion with: `source <( $(PROJECT) completion $(shell $P -n $${SHELL##*/})))
 
 dep:; $(info $(M) Updating Modules...) @ ## Updates the GO Modules
 	$Q $(GO) get -u ./...
@@ -155,7 +165,7 @@ clean:; $(info $(M) Cleaning up folders and files...) @ ## Clean up
 	$Q rm -rf $(TMP_DIR)  2> /dev/null
 
 version:; @ ## Get the version of this project
-	@echo $(VERSION)
+	@$P "$(VERSION)"
 
 # Development server (Hot Restart on code changes)
 start:; @ ## Run the server and restart it as soon as the code changes
@@ -208,20 +218,20 @@ $(BIN_DIR)/$(PROJECT).pdf: README.md ; $(info $(M) Generating PDF documentation 
 .PHONY: __start__
 __start__: stop $(BIN_DIR)/$(GOOS)/$(PROJECT) | $(TMP_DIR) $(LOG_DIR); $(info $(M) Starting $(PROJECT) on $(GOOS))
 	$(info $(M)   Check the logs in $(LOG_DIR) with `make logview`)
-	$Q DEBUG=1 LOG_DESTINATION="$(LOG_DIR)/$(PROJECT).log" $(BIN_DIR)/$(GOOS)/$(PROJECT) & echo $$! > $(TMP_DIR)/$(PROJECT).pid
+	$Q DEBUG=1 LOG_DESTINATION="$(LOG_DIR)/$(PROJECT).log" $(BIN_DIR)/$(GOOS)/$(PROJECT) & $P $$! > $(TMP_DIR)/$(PROJECT).pid
 
 # publish recipes
 .PHONY: __publish_init__ __publish_binaries__ __publish_snap__
 __publish_init__:;
 __publish_binaries__: archive
 	$(info $(M) Uploading the binary packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.tar.gz), go run . artifact upload --progress $(archive) ;)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.zip),    go run . artifact upload --progress $(archive) ;)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.7z),     go run . artifact upload --progress $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.tar.gz), gh release upload v$(VERSION) $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.zip),    gh release upload v$(VERSION) $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.7z),     gh release upload v$(VERSION) $(archive) ;)
 	$(info $(M) Uploading the Debian packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.deb),    go run . artifact upload --progress $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.deb),    gh release upload v$(VERSION) $(archive) ;)
 	$(info $(M) Uploading the RPM packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.rpm),    go run . artifact upload --progress $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.rpm),    gh release upload v$(VERSION) $(archive) ;)
 
 __publish_snap__: \
 	$(TMP_DIR)/__publish_snap__ \
@@ -259,37 +269,37 @@ __archive_snap__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap \
 	;
 
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz: $(BIN_DIR)/darwin-amd64/$(PROJECT)
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz: $(BIN_DIR)/darwin/amd64/$(PROJECT)
 	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_arm64.tar.gz: $(BIN_DIR)/darwin-arm64/$(PROJECT)
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_arm64.tar.gz: $(BIN_DIR)/darwin/arm64/$(PROJECT)
 	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_amd64.tar.gz: $(BIN_DIR)/linux-amd64/$(PROJECT)
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_amd64.tar.gz: $(BIN_DIR)/linux/amd64/$(PROJECT)
 	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_arm64.tar.gz: $(BIN_DIR)/linux-arm64/$(PROJECT)
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_arm64.tar.gz: $(BIN_DIR)/linux/arm64/$(PROJECT)
 	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.zip: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.zip: $(BIN_DIR)/windows/amd64/$(PROJECT).exe
 	$Q $(ZIP) -9 -q --junk-paths $@ $<
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.zip: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.zip: $(BIN_DIR)/windows/arm64/$(PROJECT).exe
 	$Q $(ZIP) -9 -q --junk-paths $@ $<
 
 packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z
 	$Q $(COPY) $< $@
 packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z
 	$Q $(COPY) $< $@
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows-amd64/$(PROJECT).exe
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows/amd64/$(PROJECT).exe
 	$Q $(7ZIP) a -r $@ $<
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows-arm64/$(PROJECT).exe
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows/arm64/$(PROJECT).exe
 	$Q $(7ZIP) a -r $@ $<
 
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux-amd64/$(PROJECT)
-	$Q PLATFORM=linux-amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux-arm64/$(PROJECT)
-	$Q PLATFORM=linux-arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux/amd64/$(PROJECT)
+	$Q PLATFORM=linux/amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
+$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux/arm64/$(PROJECT)
+	$Q PLATFORM=linux/arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
 
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux-amd64/$(PROJECT)
-	$Q PLATFORM=linux-amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux-arm64/$(PROJECT)
-	$Q PLATFORM=linux-arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux/amd64/$(PROJECT)
+	$Q PLATFORM=linux/amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux/arm64/$(PROJECT)
+	$Q PLATFORM=linux/arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
 
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap: packaging/snap/snapcraft.yaml
 	$Q $(RM) $@
@@ -303,42 +313,45 @@ __build_all__:       $(foreach platform, $(PLATFORMS), $(BIN_DIR)/$(platform)/$(
 __fetch_modules__: ; $(info $(M) Fetching Modules...)
 	$Q $(GO) mod download
 
-$(BIN_DIR)/darwin-amd64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/darwin-amd64/$(PROJECT): export GOOS=darwin
-$(BIN_DIR)/darwin-amd64/$(PROJECT): export GOARCH=amd64
-$(BIN_DIR)/darwin-amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin-amd64; $(info $(M) building application for darwin Intel)
+$(BIN_DIR)/darwin: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/darwin/amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/darwin/amd64/$(PROJECT): export GOOS=darwin
+$(BIN_DIR)/darwin/amd64/$(PROJECT): export GOARCH=amd64
+$(BIN_DIR)/darwin/amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin/amd64; $(info $(M) building application for darwin Intel)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/darwin-arm64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/darwin-arm64/$(PROJECT): export GOOS=darwin
-$(BIN_DIR)/darwin-arm64/$(PROJECT): export GOARCH=arm64
-$(BIN_DIR)/darwin-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin-arm64; $(info $(M) building application for darwin M1)
+$(BIN_DIR)/darwin/arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/darwin/arm64/$(PROJECT): export GOOS=darwin
+$(BIN_DIR)/darwin/arm64/$(PROJECT): export GOARCH=arm64
+$(BIN_DIR)/darwin/arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin/arm64; $(info $(M) building application for darwin M1)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/linux-amd64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/linux-amd64/$(PROJECT): export GOOS=linux
-$(BIN_DIR)/linux-amd64/$(PROJECT): export GOARCH=amd64
-$(BIN_DIR)/linux-amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux-amd64; $(info $(M) building application for linux amd64)
+$(BIN_DIR)/linux: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/linux/amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/linux/amd64/$(PROJECT): export GOOS=linux
+$(BIN_DIR)/linux/amd64/$(PROJECT): export GOARCH=amd64
+$(BIN_DIR)/linux/amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/amd64; $(info $(M) building application for linux amd64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/linux-arm64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/linux-arm64/$(PROJECT): export GOOS=linux
-$(BIN_DIR)/linux-arm64/$(PROJECT): export GOARCH=arm64
-$(BIN_DIR)/linux-arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux-arm64; $(info $(M) building application for linux arm64)
+$(BIN_DIR)/linux/arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/linux/arm64/$(PROJECT): export GOOS=linux
+$(BIN_DIR)/linux/arm64/$(PROJECT): export GOARCH=arm64
+$(BIN_DIR)/linux/arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/arm64; $(info $(M) building application for linux arm64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/windows-amd64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/windows-amd64/$(PROJECT): $(BIN_DIR)/windows-amd64/$(PROJECT).exe;
-$(BIN_DIR)/windows-amd64/$(PROJECT).exe: export GOOS=windows
-$(BIN_DIR)/windows-amd64/$(PROJECT).exe: export GOARCH=amd64
-$(BIN_DIR)/windows-amd64/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows-amd64; $(info $(M) building application for windows amd64)
+$(BIN_DIR)/windows: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/windows/amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/windows/amd64/$(PROJECT): $(BIN_DIR)/windows/amd64/$(PROJECT).exe;
+$(BIN_DIR)/windows/amd64/$(PROJECT).exe: export GOOS=windows
+$(BIN_DIR)/windows/amd64/$(PROJECT).exe: export GOARCH=amd64
+$(BIN_DIR)/windows/amd64/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows/amd64; $(info $(M) building application for windows amd64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/windows-arm64: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/windows-arm64/$(PROJECT): $(BIN_DIR)/windows-arm64/$(PROJECT).exe;
-$(BIN_DIR)/windows-arm64/$(PROJECT).exe: export GOOS=windows
-$(BIN_DIR)/windows-arm64/$(PROJECT).exe: export GOARCH=arm64
-$(BIN_DIR)/windows-arm64/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows-arm64; $(info $(M) building application for windows arm64)
+$(BIN_DIR)/windows/arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/windows/arm64/$(PROJECT): $(BIN_DIR)/windows/arm64/$(PROJECT).exe;
+$(BIN_DIR)/windows/arm64/$(PROJECT).exe: export GOOS=windows
+$(BIN_DIR)/windows/arm64/$(PROJECT).exe: export GOARCH=arm64
+$(BIN_DIR)/windows/arm64/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows/arm64; $(info $(M) building application for windows arm64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 $(BIN_DIR)/pi:   $(BIN_DIR) ; $(MKDIR)

@@ -3,24 +3,24 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>bitbucket-cli</id>
-    <version>0.14.0</version>
+    <version>0.15.0</version>
     <owners>Gildas Cherruel</owners>
     <title>bitbucket-cli (Install)</title>
     <authors>Gildas Cherruel</authors>
-    <projectUrl>https://bitbucket.org/gildas_cherruel/bb</projectUrl>
-    <packageSourceUrl>https://bitbucket.org/gildas_cherruel/bb/src/master/packaging/chocolatey</packageSourceUrl>
-    <licenseUrl>https://bitbucket.org/gildas_cherruel/bb/src/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/gildas/bitbucket-cli</projectUrl>
+    <packageSourceUrl>https://github.com/gildas/bitbucket-cli/blob/master/packaging/chocolatey</packageSourceUrl>
+    <licenseUrl>https://github.com/gildas/bitbucket-cli/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <projectSourceUrl>https://bitbucket.org/gildas_cherruel/bb/src/master</projectSourceUrl>
-    <docsUrl>https://bitbucket.org/gildas_cherruel/bb/src/master/README.md</docsUrl>
-    <bugTrackerUrl>https://bitbucket.org/gildas_cherruel/bb/issues</bugTrackerUrl>
+    <projectSourceUrl>https://github.com/gildas/bitbucket-cli/blob/master</projectSourceUrl>
+    <docsUrl>https://github.com/gildas/bitbucket-cli/blob/master/README.md</docsUrl>
+    <bugTrackerUrl>https://github.com/gildas/bitbucket-cli/issues</bugTrackerUrl>
     <tags>bitbucket cli</tags>
     <summary>Command line interface for Bitbucket</summary>
     <description>The Bitbucket Command Line Interface brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.</description>
     <releaseNotes>
-- Added pr activity command
-- List commands now sort their output
-- Completions are sorted and filtered by the given pattern
+- Password and tokens are now stored in the Windows Credential Manager
+- Fork private repositories via https
+- Moved to github.com
     </releaseNotes>
   </metadata>
   <files>

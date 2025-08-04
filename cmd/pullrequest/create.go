@@ -7,6 +7,8 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/project/reviewer"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -34,7 +36,6 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
-	Workspace         *flags.EnumFlag
 	Repository        string
 	Title             string
 	Description       string
@@ -47,22 +48,19 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
 	createOptions.Source = flags.NewEnumFlagWithFunc("", GetBranchNames)
 	createOptions.Destination = flags.NewEnumFlagWithFunc("", GetBranchNames)
 	createOptions.Reviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(GetReviewerNicknames)
 
-	createCmd.Flags().Var(createOptions.Workspace, "workspace", "Workspace to create pullrequest in")
 	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create pullrequest in. Defaults to the current repository")
 	createCmd.Flags().StringVar(&createOptions.Title, "title", "", "Title of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the pullrequest")
 	createCmd.Flags().Var(createOptions.Source, "source", "Source branch of the pullrequest")
 	createCmd.Flags().Var(createOptions.Destination, "destination", "Destination branch of the pullrequest")
-	createCmd.Flags().Var(createOptions.Reviewers, "reviewer", "Reviewer(s) of the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname")
+	createCmd.Flags().Var(createOptions.Reviewers, "reviewer", "Reviewer(s) of the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname. If the first reviewer is `default`, the command will try to find the default reviewers from the repository or project settings.")
 	createCmd.Flags().BoolVar(&createOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
 	_ = createCmd.MarkFlagRequired("title")
 	_ = createCmd.MarkFlagRequired("source")
-	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Workspace.CompletionFunc("workspace"))
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Source.CompletionFunc("source"))
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Destination.CompletionFunc("destination"))
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Reviewers.CompletionFunc("reviewer"))
@@ -88,7 +86,33 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	if len(createOptions.Destination.Value) > 0 {
 		payload.Destination = &Endpoint{Branch: Branch{Name: createOptions.Destination.Value}}
 	}
+
+	pullrequestRepository, err := repository.GetRepositoryFromGit(cmd.Context(), cmd, profile.Current)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get repository: %s\n", err)
+		os.Exit(1)
+	}
+	log.Record("repository", pullrequestRepository).Infof("Using repository: %s", pullrequestRepository.Slug)
+
 	if len(createOptions.Reviewers.Values) > 0 {
+		if createOptions.Reviewers.Values[0] == "default" {
+			// Find the default reviewers from the repo or project settings
+			var reviewers []reviewer.Reviewer
+
+			log.Debugf("No reviewers in the repository, trying to get default reviewers from project settings")
+			reviewers, err = reviewer.GetProjectDefaultReviewers(cmd.Context(), cmd, pullrequestRepository.Workspace.Slug, pullrequestRepository.Project.Key)
+			if err != nil {
+				log.Errorf("Failed to get default reviewers", err)
+				return err
+			}
+			log.Debugf("Found %d default reviewers", len(reviewers))
+			// Replace the first reviewer with the list of default reviewers and appends the rest
+			createOptions.Reviewers.Values = append(
+				core.Map(reviewers, func(reviewer reviewer.Reviewer) string { return reviewer.User.ID.String() }),
+				createOptions.Reviewers.Values[1:]...,
+			)
+		}
+
 		isMember := func(member workspace.Member, id string) bool {
 			if id, err := common.ParseUUID(id); err == nil {
 				return member.User.ID == id
@@ -96,18 +120,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			return member.User.AccountID == id || strings.EqualFold(member.User.Nickname, id) || strings.EqualFold(member.User.Name, id)
 		}
 
-		var pullrequestWorkspace *workspace.Workspace
-		if len(createOptions.Workspace.Value) > 0 {
-			pullrequestWorkspace, err = workspace.GetWorkspace(cmd.Context(), cmd, createOptions.Workspace.Value)
-		} else {
-			pullrequestWorkspace, err = workspace.GetWorkspaceFromGit(cmd.Context(), cmd)
-		}
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to get repository: %s\n", err)
-			os.Exit(1)
-		}
-
-		members, _ := pullrequestWorkspace.GetMembers(cmd.Context(), cmd)
+		members, _ := pullrequestRepository.Workspace.GetMembers(cmd.Context(), cmd)
 		payload.Reviewers = make([]user.User, 0, len(createOptions.Reviewers.Values))
 		for _, reviewer := range createOptions.Reviewers.Values {
 			if matches := core.Filter(members, func(member workspace.Member) bool { return isMember(member, reviewer) }); len(matches) > 0 {

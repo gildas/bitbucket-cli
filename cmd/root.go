@@ -150,7 +150,7 @@ func initConfig() {
 		os.Exit(1)
 	} else {
 		log.Infof("Config File: %s", viper.ConfigFileUsed())
-		if err := profile.Profiles.Load(); err != nil {
+		if err := profile.Profiles.Load(RootCmd.Context()); err != nil {
 			log.Fatalf("Failed to load profiles: %s", err)
 			fmt.Fprintf(os.Stderr, "Failed to load profiles: %s\n", err)
 			os.Exit(1)

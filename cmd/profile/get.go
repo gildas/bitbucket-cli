@@ -1,6 +1,9 @@
 package profile
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -40,6 +43,15 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	profile, found := Profiles.Find(args[0])
 	if !found {
 		return errors.NotFound.With("profile", args[0])
+	}
+	if err := profile.Validate(); err != nil {
+		if cmd.Flag("stop-on-error").Value.String() == "true" {
+			return err
+		}
+		if cmd.Flag("warn-on-error").Value.String() == "true" {
+			log.Warnf("Profile %s is not valid: %v", profile.Name, err)
+			fmt.Fprintln(os.Stderr, "Profile", profile.Name, "is not valid:", err)
+		}
 	}
 	return Current.Print(cmd.Context(), cmd, profile)
 }

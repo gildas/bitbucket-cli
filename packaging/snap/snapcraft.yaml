@@ -6,11 +6,11 @@ description: |
       repositories, and more are now just a few keystrokes away.
 
       Note: This snapcraft is not affiliated with Atlassian.
-website: https://bitbucket.org/gildas_cherruel/bb
-source-code: https://bitbucket.org/gildas_cherruel/bb
-issues: https://bitbucket.org/gildas_cherruel/bb/issues
+website: https://github.com/gildas/bitbucket-cli
+source-code: https://github.com/gildas/bitbucket-cli
+issues: https://github.com/gildas/bitbucket-cli/issues
 license: MIT
-version: 0.14.0
+version: 0.15.0
 base: core22
 grade: stable
 confinement: strict
@@ -34,5 +34,5 @@ parts:
   bb:
     plugin:      go
     source-type: git
-    source:      https://bitbucket.org/gildas_cherruel/bb
+    source:      https://github.com/gildas/bitbucket-cli
     build-snaps: [go]

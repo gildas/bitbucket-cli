@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,11 +25,13 @@ type Profile struct {
 	Name             string                 `json:"name"                       mapstructure:"name"`
 	Description      string                 `json:"description,omitempty"      mapstructure:"description,omitempty"     yaml:",omitempty"`
 	Default          bool                   `json:"default"                    mapstructure:"default"                   yaml:",omitempty"`
+	APIRoot          *url.URL               `json:"apiRoot,omitempty"         mapstructure:"apiRoot,omitempty"          yaml:",omitempty"`
 	DefaultWorkspace string                 `json:"defaultWorkspace,omitempty" mapstructure:"defaultWorkspace"          yaml:",omitempty"`
 	DefaultProject   string                 `json:"defaultProject,omitempty"   mapstructure:"defaultProject"            yaml:",omitempty"`
 	ErrorProcessing  common.ErrorProcessing `json:"errorProcessing,omitempty"  mapstructure:"errorProcessing,omitempty" yaml:",omitempty"`
 	OutputFormat     string                 `json:"outputFormat,omitempty"     mapstructure:"outputFormat,omitempty"    yaml:",omitempty"`
 	Progress         bool                   `json:"progress,omitempty"         mapstructure:"progress,omitempty"        yaml:",omitempty"`
+	VaultKey         string                 `json:"vaultKey,omitempty"         mapstructure:"vaultKey,omitempty"        yaml:",omitempty"`
 	User             string                 `json:"user,omitempty"             mapstructure:"user"                      yaml:",omitempty"`
 	Password         string                 `json:"password,omitempty"         mapstructure:"password"                  yaml:",omitempty"`
 	ClientID         string                 `json:"clientID,omitempty"         mapstructure:"clientID"                  yaml:",omitempty"`
@@ -38,6 +41,8 @@ type Profile struct {
 	RefreshToken     string                 `json:"-"                          mapstructure:"refreshToken"              yaml:"-"`
 	TokenExpires     time.Time              `json:"-"                          mapstructure:"tokenExpires"              yaml:"-"`
 	TokenScopes      []string               `json:"-"                          mapstructure:"tokenScopes"               yaml:"-"`
+	CloneProtocol    string                 `json:"cloneProtocol,omitempty"    mapstructure:"cloneProtocol,omitempty"   yaml:",omitempty"`
+	CloneUser        string                 `json:"cloneUser,omitempty"        mapstructure:"cloneUser,omitempty"       yaml:",omitempty"`
 }
 
 // Current is the current profile
@@ -66,7 +71,7 @@ func GetProfileFromCommand(context context.Context, cmd *cobra.Command) (profile
 		}
 	} else if Current == nil {
 		if len(Profiles) == 0 {
-			err = Profiles.Load()
+			err = Profiles.Load(context)
 			if err != nil {
 				return nil, err
 			}
@@ -116,6 +121,27 @@ func (profile Profile) GetRow(headers []string) []string {
 	return row
 }
 
+// Redact redacts sensitive information from the profile
+//
+// implements logger.Redactable
+func (profile Profile) Redact() any {
+	redacted := profile
+	if len(redacted.ClientSecret) > 0 {
+		redacted.ClientSecret = logger.RedactWithHash(redacted.ClientSecret)
+	}
+	if len(redacted.Password) > 0 {
+		redacted.Password = logger.RedactWithHash(redacted.Password)
+	}
+	if len(redacted.AccessToken) > 0 {
+		redacted.AccessToken = logger.RedactWithHash(redacted.AccessToken)
+	}
+	if len(redacted.RefreshToken) > 0 {
+		redacted.RefreshToken = logger.RedactWithHash(redacted.RefreshToken)
+	}
+	redacted.TokenScopes = nil
+	return redacted
+}
+
 // Update updates this profile with the given one
 func (profile *Profile) Update(other Profile) error {
 	if len(other.Name) > 0 {
@@ -160,6 +186,12 @@ func (profile *Profile) Update(other Profile) error {
 	if len(other.DefaultProject) > 0 {
 		profile.DefaultProject = other.DefaultProject
 	}
+	if len(other.CloneProtocol) > 0 {
+		profile.CloneProtocol = other.CloneProtocol
+	}
+	if len(other.CloneUser) > 0 {
+		profile.CloneUser = other.CloneUser
+	}
 	return profile.Validate()
 }
 
@@ -170,19 +202,19 @@ func (profile *Profile) Validate() error {
 	if len(profile.Name) == 0 {
 		merr.Append(errors.ArgumentMissing.With("name"))
 	}
-	// We must have either an access token or a user/password or a clientID/clientSecret
+	// We must have either an access token, a user, or a clientID
+	// password and clientSecret are now retrieved from the vault
 	if len(profile.AccessToken) == 0 && len(profile.ClientID) == 0 && len(profile.User) == 0 {
-		merr.Append(errors.ArgumentMissing.With("accessToken, or user/password, or clientID/clientSecret"))
-	} else if len(profile.AccessToken) == 0 {
-		if len(profile.User) != 0 {
-			if len(profile.Password) == 0 {
-				merr.Append(errors.ArgumentMissing.With("password"))
-			}
-		} else if len(profile.ClientID) != 0 {
-			if len(profile.ClientSecret) == 0 {
-				merr.Append(errors.ArgumentMissing.With("clientSecret"))
-			}
-		}
+		merr.Append(errors.ArgumentMissing.With("accessToken, user, or clientID"))
+	}
+	if len(profile.VaultKey) == 0 {
+		profile.VaultKey = "bitbucket-cli"
+	}
+	if len(profile.CloneProtocol) == 0 {
+		profile.CloneProtocol = "git"
+	}
+	if profile.CloneProtocol != "git" && profile.CloneProtocol != "https" && profile.CloneProtocol != "ssh" {
+		merr.Append(errors.ArgumentInvalid.With("cloneProtocol", profile.CloneProtocol))
 	}
 	return merr.AsError()
 }

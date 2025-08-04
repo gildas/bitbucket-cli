@@ -1,7 +1,6 @@
 package reviewer
 
 import (
-	"fmt"
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -49,11 +48,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all reviewers")
-	reviewers, err := profile.GetAll[Reviewer](
-		cmd.Context(),
-		cmd,
-		fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspace, project),
-	)
+	reviewers, err := GetProjectDefaultReviewers(cmd.Context(), cmd, workspace, project)
 	if err != nil {
 		return err
 	}

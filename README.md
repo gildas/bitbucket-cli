@@ -1,22 +1,8 @@
 # Bitbucket Command Line Interface
 
-**Important Note**
-
-Because of [Important changes coming to Bitbucket Cloud’s free plan](https://www.atlassian.com/blog/bitbucket/important-changes-coming-to-bitbucket-clouds-free-plan), I cannot keep bitbucket-cli on bitbucket.org anymore, which is quite ironic....
-
-I am moving the repository to [here](https://github.com/gildas/bitbucket-cli) where I can upload the binaries for your consumption.
-
-And at some point in the near future, I will shutdown the [bitbucket repository](https://bitbucket.org/gildas_cherruel/bb).
-
-
-
-[bb](https://github.com/gildas/bitbucket-cli) is the missing command line interface for Bitbucket.
-
-The [Bitbucket Command Line Interface](https://github.com/gildas/bitbucket-cli) brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
+[bb](https://github.com/gildas/bitbucket-cli) is the missing command line interface for Bitbucket. It brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
 
 ## Installation
-
-**Note**: Please be patient as I move the binaries to Github. It should take a few days to get everything in place. Thank you for your understanding and patience 🙂.
 
 ### Linux
 
@@ -74,7 +60,7 @@ General help is also available by running `bb --help` or `bb help`.
 
 By default `bb` works in the current git repository. You can specify a Bitbucket repository with the `--repository` flag.
 
-See the [Completion](#completion) section for more information about completion. Many commands and flags are dynamically auto-completed.
+Many commands and flags are dynamically auto-completed. See the [Completion](#completion) section for more information about completion.
 
 Most `delete`, `upload`, and `download` commands support multiple arguments. You can pass a list of arguments or a file with one argument per line:
 
@@ -82,7 +68,7 @@ Most `delete`, `upload`, and `download` commands support multiple arguments. You
 bb repo delete myrepository1 myrepository2 myrepository3
 ```
 
-You can tell `bb` to stop on the first error, warn on errorsm or ignore errors when processing multiple arguments with the `--stop-on-error`, `--warn-on-error`, or `--ignore-errors` flags.
+You can tell `bb` to stop on the first error, warn on errors, or ignore errors when processing multiple arguments with the `--stop-on-error`, `--warn-on-error`, or `--ignore-errors` flags.
 
 All commands that would modify something on Bitbucket now allow you to preview the changes before applying them. You can use the `--dry-run` flag to see what would happen.
 
@@ -92,7 +78,9 @@ bb repo delete myrepository3 --dry-run
 
 ### Output
 
-`bb` outputs a table by default and get be set per profile. You can also use the `--output` flag to change the output format manually. The following formats are supported:
+`bb` outputs a table by default. You can change the output format with the `--output` flag,  by setting the `BB_OUTPUT_FORMAT` environment variable, or by modifying the profile configuration (See [Profiles](#profiles)).
+
+The following formats are supported:
 
 - `csv`: CSV
 - `json`: JSON
@@ -112,10 +100,37 @@ Or
 bb workspace list --output json
 ```
 
-You can also set the output format with the environment variable `BB_OUTPUT_FORMAT`:
+Changing the format with the environment variable `BB_OUTPUT_FORMAT` can be done like this:
 
 ```bash
 export BB_OUTPUT_FORMAT=json
+bb workspace list
+```
+
+The Table output format displays the data in a human-readable format. Here is an example of the output for the `bb pullrequest list` command:
+
+```bash
+$ bb pr list --state all
++----+---------------------------+--------------------------------+---------------------+-------------+----------+
+| ID |           TITLE           |          DESCRIPTION           |       SOURCE        | DESTINATION |  STATE   |
++----+---------------------------+--------------------------------+---------------------+-------------+----------+
+|  1 | Merge feature/links       | Feature links. Do not delete   | feature/links       | dev         | DECLINED |
+|    |                           | the feature branch after the   |                     |             |          |
+|    |                           | merge.                         |                     |             |          |
+|  2 | Merge feature/links       | Feature links. Do not delete   | feature/links       | dev         | MERGED   |
+|    |                           | the feature branch after the   |                     |             |          |
+|    |                           | merge.                         |                     |             |          |
+|  3 | Merge release/1.0.0       | Feature 1.0.0. Do not delete   | release/1.0.0       | master      | MERGED   |
+|    |                           | the feature branch after the   |                     |             |          |
+|    |                           | merge.                         |                     |             |          |
+|  4 | Merge feature/bb          | Feature bb. Do not delete the  | feature/bb          | dev         | DECLINED |
+|    |                           | feature branch after the merge |                     |             |          |
+|  5 | Merge feature/bb          | Feature bb. Do not delete the  | feature/bb          | dev         | MERGED   |
+|    |                           | feature branch after the merge |                     |             |          |
+|  6 | Merge feature/bb-doc      | Feature bb-doc. Do not delete  | feature/bb-doc      | dev         | MERGED   |
+|    |                           | the feature branch after the   |                     |             |          |
+|    |                           | merge.                         |                     |             |          |
++----+---------------------------+--------------------------------+---------------------+-------------+----------+
 ```
 
 ### Profiles
@@ -136,12 +151,20 @@ You can also pass the `--default-workspace` and/or `--default-project` flags to 
 
 You can also pass the `--progress` flag to display a progress bar when upload/downloading artifacts and attachments.
 
+By default, the password or client secret is stored in the vault of the operating system (Windows Credential Manager, macOS Keychain, or Linux Secret Service). You can pass the `--no-vault` flag to disable this feature and store the password or client secret in plain text in the configuration file. This is not recommended, but can be useful for testing purposes.
+
 Profiles support the following authentications:
 
 - [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-) with the `--client-id`, `--client-secret`, and `--callback-port` flags
 - [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-) with the `--client-id` and `--client-secret` flags
 - [App passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/) with the `--user` and `--password` flags.
 - [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags.
+
+When you use a username/password, the password is stored in the vault of the operating system (Windows Credential Manager, macOS Keychain, or Linux Secret Service). You can pass the `--no-vault` flag to disable this feature and store the password in plain text in the configuration file. This is not recommended, but can be useful for testing purposes. On Linux and macOS, you can also pass the `--vault-key` flag to set the key to use in the system keychain. By default, the key is `bitbucket-cli`. On Windows, this option is not available.
+
+You can also pass the `--clone-protocol` flag to set the default protocol to use when cloning repositories. The supported protocols are `https`, `git`, and `ssh`. This option can be overridden with the `--protocol` flag when using `repo clone`.
+
+In case you are not using a user/password, you can also pass a `--clone-user` flag to set the username to use when cloning repositories with the `https` protocol. If you use a user/password, you don't need to set this flag, usually, ans the username will be used for cloning repositories. This option can be overridden with the `--user` flag when using `repo clone`.
 
 You can get the list of your profiles with the `bb profile list` command:
 
@@ -360,6 +383,21 @@ bb repo list --workspace myworkspace
 
 If you do not provide a workspace, the command will attempt to list all repositories you have access to, which can take a very long time.
 
+You can narrow down the list of repositories with the `--role`, `--project`, `--project-key`, `--has-issues`, `--has-wiki`, `--is-private`, `--language`, and `--main-branch` flags:
+
+```bash
+bb repo list --workspace myworkspace \
+  --role        owner \
+  --project     myproject \
+  --has-issues  true \
+  --has-wiki    true \
+  --is-private  false \
+  --language    go \
+  --main-branch master
+```
+
+All filterers are optional and combined with an AND operator.
+
 You can also get the details of a repository with the `bb repo get` or `bb repo show` command. If the `--workspace` flag is not provided, the default workspace of the profile is used (if the profile does not have a default workspace, the command will fail):
 
 ```bash
@@ -371,6 +409,12 @@ You can clone a repository with the `bb repo clone` command:
 ```bash
 bb repo clone myworkspace/myrepository
 ```
+
+You can set the protocol to use when cloning a repository with the `--protocol` flag. The supported protocols are `https`, `git`, and `ssh`. If not provided, the protocol set in the profile is used (if the profile does not have a protocol set, the default is `git`).
+
+When using the `ssh` protocol, you can specify the SSH key to use with the `--ssh-key-file` flag. If not provided, the key set in the profile is used (if the profile does not have a key set, the default is `~/.ssh/id_rsa`).
+
+When using the `https` protocol while cloning a private repository, you can specify the username to use for authentication with the `--user` flag. If the username is not provided, the `cloneUser` from the profile is used. If the profile does not have a `cloneUser`, you cannot clone a private repository with the `https` protocol.
 
 or, with the `--workspace` flag:
 
@@ -388,6 +432,27 @@ By default, the repository is cloned in a folder with the same name as the repos
 
 ```bash
 bb repo clone --workspace myworkspace --destination myfolder myrepository
+```
+
+By default, the repository is cloned using the `git` protocol. You can change the protocol with the `--clone-protocol` flag. The supported protocols are `https`, `git`, and `ssh`. The default protocol can also be set in the profile with the `--clone-protocol` flag when creating or updating a profile.
+
+```bash
+bb repo clone --clone-protocol https myrepository
+```
+
+When using the ssh protocol, you can also specify the SSH key to use with the `--ssh-key` flag (by default the key configured is SSH for bitbucket.org is used, and if nothing is configured: `~/.ssh/id_rsa`):
+
+```bash
+bb repo clone --ssh-key /path/to/ssh/key myrepository
+```
+
+When using the `https` protocol while cloning a private repository, you can specify the username to use for authentication with the `--username` flag. If the username is not provided, the `cloneVaultUsername` from the profile is used. If the profile does not have a `cloneVaultUsername`, you cannot clone a private repository with the `https` protocol.
+
+On Linux and macOS, the system keychain will be used to retrieve the credentials. You can set the `cloneVaultKey` in the profile to use a specific key in the keychain. If not set, the default value is `bitbucket-cli-clone`. You can also set the `cloneVaultUsername` in the profile to use a specific username for authentication.  
+On Windows, the Windows Credential Manager will be used to retrieve the credentials. And the username should be `<cloneVaultKey>:<cloneVaultUsername>`.
+
+```bash
+bb repo clone --username myusername myrepository
 ```
 
 You can create a repository with the `bb repo create` command:
@@ -448,6 +513,18 @@ bb pullrequest create \
   --source "my-branch" \
   --destination "master"
 ```
+
+You can add reviewers to the pull request with the `--reviewer` flag:
+
+```bash
+bb pullrequest create \
+  --title "My pull request" \
+  --source "my-branch" \
+  --destination "master" \
+  --reviewer    username1 --reviewer {userUUID2}
+```
+
+If the first reviewer is `default`, the command will try to get the default reviewers from the project settings.
 
 You can get the details of a pull request with the `bb pullrequest get` or `bb pullrequest show` command:
 
