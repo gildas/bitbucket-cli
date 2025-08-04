@@ -69,7 +69,7 @@ General help is also available by running `bb --help` or `bb help`.
 
 By default `bb` works in the current git repository. You can specify a Bitbucket repository with the `--repository` flag.
 
-See the [Completion](#completion) section for more information about completion. Many commands and flags are dynamically auto-completed.
+Many commands and flags are dynamically auto-completed. See the [Completion](#completion) section for more information.
 
 Most `delete`, `upload`, and `download` commands support multiple arguments. You can pass a list of arguments or a file with one argument per line:
 
