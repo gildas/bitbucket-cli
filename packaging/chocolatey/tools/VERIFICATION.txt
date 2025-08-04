@@ -8,7 +8,7 @@ I, Gildas Cherruel, am the author of this package that lives on https://github.c
 The Package can ve verified by checking the following:
 
 1. Go to:
-  https://github.com/gildas/bitbucket-cli/releases/download/v0.14.0/bitbucket-cli-0.14.0-windows-amd64.7z
+  https://github.com/gildas/bitbucket-cli/releases/download/v0.15.0/bitbucket-cli-0.15.0-windows-amd64.7z
 
   to download the application binary.
 
