@@ -13,8 +13,6 @@ And at some point in the near future, I will shut down the [bitbucket repository
 
 ## Installation
 
-**Note**: Please be patient as I move the binaries to Github. It should take a few days to get everything in place. Thank you for your understanding and patience 🙂.
-
 ### Linux
 
 You can grab the latest Debian/Ubuntu package on the [Downloads](https://github.com/gildas/bitbucket-cli/releases) pages.
