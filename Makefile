@@ -223,7 +223,7 @@ __start__: stop $(BIN_DIR)/$(GOOS)/$(PROJECT) | $(TMP_DIR) $(LOG_DIR); $(info $(
 # publish recipes
 .PHONY: __publish_init__ __publish_binaries__ __publish_snap__
 __publish_init__:;
-__publish_binaries__: archive
+__publish_binaries__: __archive_all__ __archive_debian__ __archive_rpm__
 	$(info $(M) Uploading the binary packages...)
 	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.tar.gz), gh release upload v$(VERSION) $(archive) ;)
 	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.zip),    gh release upload v$(VERSION) $(archive) ;)
