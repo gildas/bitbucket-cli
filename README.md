@@ -10,7 +10,7 @@ Because of [Important changes coming to Bitbucket Cloud’s free plan](https://w
 
 I am moving the repository [to Github](https://github.com/gildas/bitbucket-cli) where I can upload the binaries for your consumption.
 
-And at some point in the near future, I will shutdown the [bitbucket repository](https://bitbucket.org/gildas_cherruel/bb).
+And at some point in the near future, I will shut down the [bitbucket repository](https://bitbucket.org/gildas_cherruel/bb).
 
 ## Installation
 
