@@ -77,7 +77,7 @@ Most `delete`, `upload`, and `download` commands support multiple arguments. You
 bb repo delete myrepository1 myrepository2 myrepository3
 ```
 
-You can tell `bb` to stop on the first error, warn on errorsm or ignore errors when processing multiple arguments with the `--stop-on-error`, `--warn-on-error`, or `--ignore-errors` flags.
+You can tell `bb` to stop on the first error, warn on errors, or ignore errors when processing multiple arguments with the `--stop-on-error`, `--warn-on-error`, or `--ignore-errors` flags.
 
 All commands that would modify something on Bitbucket now allow you to preview the changes before applying them. You can use the `--dry-run` flag to see what would happen.
 
