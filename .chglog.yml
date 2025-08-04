@@ -21,11 +21,16 @@ filters:
     - Merge pull request
     - Merge remote-tracking branch
     - Merge branch
-    - "Bumped to version"
-    - "Updated go packages"
+    - "^Bumped to version"
+    - Updated go packages
+    - Updated Go packages
+    - Updated GO packages
+    - "Updated [A-Za-z]+ packages*"
+    - Updated Changelog
     - Updated modules
-    - Updated packagin
+    - Updated packaging
     - Updated Documentation
+    - Updated checksums
     - go mod tidy
     - cosmetics
     - typo

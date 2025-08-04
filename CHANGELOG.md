@@ -1,4 +1,42 @@
 
+0.15.0
+=============
+2025-08-04
+
+* Issue #16: Documentation: Added output sample (6e54fa8e)
+* Issue #15: Fixed Documentation about output (ad79f303)
+* Issue #12: Adding API Root (a4ba3bf2)
+* Issue #6: Removed the vault key on Windows (edc74848)
+* Issue #6: Removed the vault key on Windows and cleaned up (a8687d65)
+* More Windows Makefile compatibility (08260514)
+* Issue #13: Use filepath to back-recurse folders (9381dac1)
+* Issue #8: Proper Windows shell detection (c050145a)
+* Issue #8: fork git for private repositories via https (8d5bf387)
+* Issue #8: new options (b13a3388)
+* Issue #6: Use the profile vault key when loading the profiles (55186967)
+* logging (57b43e5d)
+* Issue #8: The default vault key for cloning should be the vault key (e024b7c1)
+* Issue #8: Use the default user/vault-key if the clone user/vault-key is not present when cloning repositories (fa3035cd)
+* Removed the move warning in the documentation (82541e01)
+* Update documentation (87041104)
+* Profile should redact its sensitive data in logs (ff8e4511)
+* Issue #6: Store and Load secrets to the keyring (7da75cd0)
+* get/list profiles should display validated profiles (ee974dc0)
+* Issue #8: Added clone protocol, clone vault key and username for private repositories (1e9dbfed)
+* Issue #3 and Issue #10: Get the workspace from the repository and add default reviewers (b7d957a3)
+* Issue #8: added GetDefaultReviewers func (14968429)
+* Issue #3: use the default workspace if we fail to get the workspace from the flags or git (074f28bc)
+* Issue #3: Added missing remote origin url format (f024a40a)
+* Issue #8: Added --username flag for URL authentication (33301fdc)
+* Issue #9: set default folder to repo slug (467ddb38)
+* Make will now install in your $GOPATH/bin folder first (eaaae7a7)
+* Issue #5: Added --project, --project-key, --is-private, --has-issues, --has-wiki, --langugage, and --main-branch flags (b8ee0565)
+* Makefile: changed the bin structure when building (0ba21360)
+* Makefile: use gh to upload artifacts (df592a4e)
+* Moving code to github (9acb472e)
+* Moved the project to github (974f153a)
+* Added auto-generated changelog (8a1701c0)
+
 0.14.0
 =============
 2025-05-02
@@ -86,14 +124,19 @@
 * Issue #5: Added documentation (ef6c7dff)
 * The Chocolatey package for approved (77636eee)
 * Issue #5: fetch the profile from .git/config if any (5f2bcd41)
+* Package: updated chocolatey checksum (f69427e8)
+* Added a changelog (5d815278)
+* Makefile: Snapcraft packaging (f8fe5f9f)
+* Documentation: new commands (d5d2329f)
+*  (ace10dbf)
 
 0.9.0
 =============
-2024-01-24
+2024-01-15
 
-* Makefile: Snapcraft packaging (f8fe5f9f)
 * Added PullRequest Comments (9968db68)
 * Moved the inline anchor to the common objects (097c9400)
+* Documentation: removed obsolete information (85046467)
 * Makefile: install rule to install on the current machine (0cbd7812)
 * Makefile: Better OS and ARCH detection (06dfe97b)
 * Print func should get the output format from the command then the profile (8a8fe692)
@@ -109,6 +152,7 @@
 * Makefile: added Windows arm64 (09f3a5df)
 * Moved distribution packages together (42d39dc3)
 * Package: deleted unused chocolatey files (eb840a18)
+* Package: added chocolatey skeleton (88d362e3)
 * Moved distribution packages together (9da5627f)
 * Documentation: more on installation (fd835eb3)
 * Installation: removed Docker targets (3006a288)
@@ -123,13 +167,13 @@
 * Installation: Added snap (3cccdedc)
 * Use the latest Go 1.21 (f25f5278)
 * role flag should register its completion (c38d15cc)
+* Issue list can be filtered by state (43aae4ff)
+* Get repository's fullname (ade75395)
 
 0.7.0
 =============
 2023-12-29
 
-* Issue list can be filtered by state (43aae4ff)
-* Get repository's fullname (ade75395)
 * Profiles can have a default workspace and/or project (b9bff9ca)
 * Remote Flag's AllowedFunc should require the positional arguments (40f42042)
 * Documentation: repositories (27b739bc)
@@ -285,5 +329,3 @@
 * Cobra Skeleton (22fae567)
 * Initial Skeleton (b216ab1d)
 * Initial commit (f0cea3fc)
-
-

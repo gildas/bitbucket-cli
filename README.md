@@ -1,12 +1,8 @@
 # Bitbucket Command Line Interface
 
-[bb](https://github.com/gildas/bitbucket-cli) is the missing command line interface for Bitbucket.
-
-The [Bitbucket Command Line Interface](https://github.com/gildas/bitbucket-cli) brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
+[bb](https://github.com/gildas/bitbucket-cli) is the missing command line interface for Bitbucket. It brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
 
 ## Installation
-
-**Note**: Please be patient as I move the binaries to Github. It should take a few days to get everything in place. Thank you for your understanding and patience 🙂.
 
 ### Linux
 
@@ -64,7 +60,7 @@ General help is also available by running `bb --help` or `bb help`.
 
 By default `bb` works in the current git repository. You can specify a Bitbucket repository with the `--repository` flag.
 
-See the [Completion](#completion) section for more information about completion. Many commands and flags are dynamically auto-completed.
+Many commands and flags are dynamically auto-completed. See the [Completion](#completion) section for more information about completion.
 
 Most `delete`, `upload`, and `download` commands support multiple arguments. You can pass a list of arguments or a file with one argument per line:
 
@@ -72,7 +68,7 @@ Most `delete`, `upload`, and `download` commands support multiple arguments. You
 bb repo delete myrepository1 myrepository2 myrepository3
 ```
 
-You can tell `bb` to stop on the first error, warn on errorsm or ignore errors when processing multiple arguments with the `--stop-on-error`, `--warn-on-error`, or `--ignore-errors` flags.
+You can tell `bb` to stop on the first error, warn on errors, or ignore errors when processing multiple arguments with the `--stop-on-error`, `--warn-on-error`, or `--ignore-errors` flags.
 
 All commands that would modify something on Bitbucket now allow you to preview the changes before applying them. You can use the `--dry-run` flag to see what would happen.
 
