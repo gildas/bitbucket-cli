@@ -1,8 +1,7 @@
 # Bitbucket Command Line Interface
 
-[bb](https://github.com/gildas/bitbucket-cli) is the missing command line interface for Bitbucket.
-
-The [Bitbucket Command Line Interface](https://github.com/gildas/bitbucket-cli) brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
+[`bb`](https://github.com/gildas/bitbucket-cli) is the missing command line interface for Bitbucket.
+It brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
 
 **Important Note**
 
