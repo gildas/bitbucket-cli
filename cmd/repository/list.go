@@ -64,7 +64,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 
 	if wantFilter {
 		if listOptions.Role.Value == "all" {
-			return errors.Errorf("You must specify one role when using the --project flag")
+			return errors.Errorf("You must specify one role when using filter flags (--project, --project-key, --main-branch, --language, --has-issues, --has-wiki, --is-private, --workspace)")
 		}
 		query.Add("role", listOptions.Role.Value)
 		var filters []string
