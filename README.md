@@ -82,7 +82,9 @@ bb repo delete myrepository3 --dry-run
 
 ### Output
 
-`bb` outputs a table by default and get be set per profile. You can also use the `--output` flag to change the output format manually. The following formats are supported:
+`bb` outputs a table by default. You can change the output format with the `--output` flag,  by setting the `BB_OUTPUT_FORMAT` environment variable, or by modifying the profile configuration (See [Profiles](#profiles)).
+
+The following formats are supported:
 
 - `csv`: CSV
 - `json`: JSON
@@ -102,10 +104,11 @@ Or
 bb workspace list --output json
 ```
 
-You can also set the output format with the environment variable `BB_OUTPUT_FORMAT`:
+Changing the format with the environment variable `BB_OUTPUT_FORMAT` can be done like this:
 
 ```bash
 export BB_OUTPUT_FORMAT=json
+bb workspace list
 ```
 
 ### Profiles
