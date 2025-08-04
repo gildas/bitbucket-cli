@@ -8,7 +8,7 @@ The [Bitbucket Command Line Interface](https://github.com/gildas/bitbucket-cli) 
 
 Because of [Important changes coming to Bitbucket Cloud’s free plan](https://www.atlassian.com/blog/bitbucket/important-changes-coming-to-bitbucket-clouds-free-plan), I cannot keep bitbucket-cli on bitbucket.org anymore, which is quite ironic....
 
-I am moving the repository to [here](https://github.com/gildas/bitbucket-cli) where I can upload the binaries for your consumption.
+I am moving the repository [to Github](https://github.com/gildas/bitbucket-cli) where I can upload the binaries for your consumption.
 
 And at some point in the near future, I will shutdown the [bitbucket repository](https://bitbucket.org/gildas_cherruel/bb).
 
