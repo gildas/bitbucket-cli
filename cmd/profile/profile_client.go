@@ -335,21 +335,26 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 		return nil, err
 	}
 
+	apiRoot := profile.APIRoot
+	if apiRoot == nil {
+		apiRoot = &url.URL{Scheme: "https", Host: "api.bitbucket.org"}
+	}
+
 	if strings.HasPrefix(uripath, "/") {
-		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0%s", uripath)
+		options.URL = apiRoot.JoinPath("2.0", uripath)
 	} else if !strings.HasPrefix(uripath, "http") {
 		repositoryName, err := profile.getRepositoryFullname(context, cmd)
 		if err != nil {
 			return nil, err
 		}
 		log.Infof("Using repository %s", repositoryName)
-		uripath = fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s", repositoryName, uripath)
+		options.URL = apiRoot.JoinPath("2.0", "repositories", repositoryName, uripath)
+	} else {
+		if options.URL, err = url.Parse(uripath); err != nil {
+			return nil, err
+		}
 	}
 
-	options.URL, err = url.Parse(uripath)
-	if err != nil {
-		return nil, err
-	}
 	if options.Timeout == 0 {
 		options.Timeout = 30 * time.Second
 	}
@@ -362,6 +367,7 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 	if options.ProgressWriter != nil {
 		log.Warnf("[B] We have a ProgressWriter for uploading content")
 	}
+	log.Infof("Sending %s request to %s", options.Method, options.URL)
 	result, err = request.Send(options, response)
 	if err != nil {
 		if result != nil {
