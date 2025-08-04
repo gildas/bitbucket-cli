@@ -111,6 +111,32 @@ export BB_OUTPUT_FORMAT=json
 bb workspace list
 ```
 
+The Table output format displays the data in a human-readable format. Here is an example of the output for the `bb pullrequest list` command:
+
+```bash
+$ bb pr list --state all
++----+---------------------------+--------------------------------+---------------------+-------------+----------+
+| ID |           TITLE           |          DESCRIPTION           |       SOURCE        | DESTINATION |  STATE   |
++----+---------------------------+--------------------------------+---------------------+-------------+----------+
+|  1 | Merge feature/links       | Feature links. Do not delete   | feature/links       | dev         | DECLINED |
+|    |                           | the feature branch after the   |                     |             |          |
+|    |                           | merge.                         |                     |             |          |
+|  2 | Merge feature/links       | Feature links. Do not delete   | feature/links       | dev         | MERGED   |
+|    |                           | the feature branch after the   |                     |             |          |
+|    |                           | merge.                         |                     |             |          |
+|  3 | Merge release/1.0.0       | Feature 1.0.0. Do not delete   | release/1.0.0       | master      | MERGED   |
+|    |                           | the feature branch after the   |                     |             |          |
+|    |                           | merge.                         |                     |             |          |
+|  4 | Merge feature/bb          | Feature bb. Do not delete the  | feature/bb          | dev         | DECLINED |
+|    |                           | feature branch after the merge |                     |             |          |
+|  5 | Merge feature/bb          | Feature bb. Do not delete the  | feature/bb          | dev         | MERGED   |
+|    |                           | feature branch after the merge |                     |             |          |
+|  6 | Merge feature/bb-doc      | Feature bb-doc. Do not delete  | feature/bb-doc      | dev         | MERGED   |
+|    |                           | the feature branch after the   |                     |             |          |
+|    |                           | merge.                         |                     |             |          |
++----+---------------------------+--------------------------------+---------------------+-------------+----------+
+```
+
 ### Profiles
 
 `bb` uses profiles to store your Bitbucket credentials. You can create a profile with the `bb profile create` command:
@@ -393,7 +419,6 @@ You can set the protocol to use when cloning a repository with the `--protocol` 
 When using the `ssh` protocol, you can specify the SSH key to use with the `--ssh-key-file` flag. If not provided, the key set in the profile is used (if the profile does not have a key set, the default is `~/.ssh/id_rsa`).
 
 When using the `https` protocol while cloning a private repository, you can specify the username to use for authentication with the `--user` flag. If the username is not provided, the `cloneUser` from the profile is used. If the profile does not have a `cloneUser`, you cannot clone a private repository with the `https` protocol.
-
 
 or, with the `--workspace` flag:
 
