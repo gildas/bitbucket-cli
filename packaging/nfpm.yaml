@@ -1,6 +1,6 @@
 name:     {{.Env.PACKAGE}}
-platform: {{index (.Env.PLATFORM | strings.Split "-") 0 }}
-arch:     {{index (.Env.PLATFORM | strings.Split "-") 1 }}
+platform: {{index (.Env.PLATFORM | strings.Split "/") 0 }}
+arch:     {{index (.Env.PLATFORM | strings.Split "/") 1 }}
 version:  {{.Env.VERSION}}
 release: {{.Env.REVISION}}
 section: default
