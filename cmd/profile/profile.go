@@ -261,89 +261,128 @@ func (profile Profile) Print(context context.Context, cmd *cobra.Command, payloa
 	}
 	switch outputFormat {
 	case "json":
-		log.Debugf("Printing payload as JSON")
-		data, err := json.MarshalIndent(payload, "", "  ")
-		if err != nil {
-			return errors.JSONMarshalError.Wrap(err)
-		}
-		fmt.Println(string(data))
+		return profile.PrintJSON(context, cmd, payload)
 	case "yaml":
-		log.Debugf("Printing payload as YAML")
-		data, err := yaml.Marshal(payload)
-		if err != nil {
-			return errors.JSONMarshalError.Wrap(err)
-		}
-		fmt.Println(string(data))
+		return profile.PrintYAML(context, cmd, payload)
 	case "csv":
-		log.Debugf("Printing payload as csv")
-		writer := csv.NewWriter(os.Stdout)
-		defer writer.Flush()
-
-		switch actual := payload.(type) {
-		case common.Tableable:
-			headers := actual.GetHeader(true)
-			_ = writer.Write(headers)
-			_ = writer.Write(actual.GetRow(headers))
-		case common.Tableables:
-			log.Debugf("Payload is a slice of %d elements", actual.Size())
-			if actual.Size() > 0 {
-				headers := actual.GetHeader()
-				_ = writer.Write(headers)
-				for i := 0; i < actual.Size(); i++ {
-					_ = writer.Write(actual.GetRowAt(i, headers))
-				}
-			}
-		default:
-			return errors.ArgumentInvalid.With("payload", "not a tableable")
-		}
+		return profile.PrintCSV(context, cmd, payload)
 	case "tsv":
-		log.Debugf("Printing payload as tsv")
-		writer := csv.NewWriter(os.Stdout)
-		writer.Comma = '\t'
-		defer writer.Flush()
-
-		switch actual := payload.(type) {
-		case common.Tableable:
-			headers := actual.GetHeader(true)
-			_ = writer.Write(headers)
-			_ = writer.Write(actual.GetRow(headers))
-		case common.Tableables:
-			log.Debugf("Payload is a slice of %d elements", actual.Size())
-			if actual.Size() > 0 {
-				headers := actual.GetHeader()
-				_ = writer.Write(headers)
-				for i := 0; i < actual.Size(); i++ {
-					_ = writer.Write(actual.GetRowAt(i, headers))
-				}
-			}
-		default:
-			return errors.ArgumentInvalid.With("payload", "not a tableable")
-		}
+		return profile.PrintTSV(context, cmd, payload)
 	case "table":
 		fallthrough
 	default:
-		log.Debugf("Printing payload as table")
-		table := tablewriter.NewWriter(os.Stdout)
-
-		switch actual := payload.(type) {
-		case common.Tableable:
-			headers := actual.GetHeader(true)
-			table.SetHeader(headers)
-			table.Append(actual.GetRow(headers))
-		case common.Tableables:
-			log.Debugf("Payload is a slice of %d elements", actual.Size())
-			if actual.Size() > 0 {
-				headers := actual.GetHeader()
-				table.SetHeader(headers)
-				for i := 0; i < actual.Size(); i++ {
-					table.Append(actual.GetRowAt(i, headers))
-				}
-			}
-		default:
-			return errors.ArgumentInvalid.With("payload", "not a tableable")
-		}
-		table.Render()
+		return profile.PrintTable(context, cmd, payload)
 	}
+}
+
+// PrintJSON prints the given payload to the console as JSON
+func (profile Profile) PrintJSON(context context.Context, cmd *cobra.Command, payload any) error {
+	log := logger.Must(logger.FromContext(context))
+
+	log.Debugf("Printing payload as JSON")
+	data, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		return errors.JSONMarshalError.Wrap(err)
+	}
+	fmt.Println(string(data))
+	return nil
+}
+
+// PrintYAML prints the given payload to the console as YAML
+func (profile Profile) PrintYAML(context context.Context, cmd *cobra.Command, payload any) error {
+	log := logger.Must(logger.FromContext(context))
+
+	log.Debugf("Printing payload as YAML")
+	data, err := yaml.Marshal(payload)
+	if err != nil {
+		return errors.JSONMarshalError.Wrap(err)
+	}
+	fmt.Println(string(data))
+	return nil
+}
+
+// PrintCSV prints the given payload to the console as CSV
+func (profile Profile) PrintCSV(context context.Context, cmd *cobra.Command, payload any) error {
+	log := logger.Must(logger.FromContext(context))
+
+	log.Debugf("Printing payload as CSV")
+	writer := csv.NewWriter(os.Stdout)
+	defer writer.Flush()
+
+	switch actual := payload.(type) {
+	case common.Tableable:
+		headers := actual.GetHeader(cmd)
+		_ = writer.Write(headers)
+		_ = writer.Write(actual.GetRow(headers))
+	case common.Tableables:
+		log.Debugf("Payload is a slice of %d elements", actual.Size())
+		if actual.Size() > 0 {
+			headers := actual.GetHeader(cmd)
+			_ = writer.Write(headers)
+			for i := 0; i < actual.Size(); i++ {
+				_ = writer.Write(actual.GetRowAt(i, headers))
+			}
+		}
+	default:
+		return errors.ArgumentInvalid.With("payload", "not a tableable")
+	}
+	return nil
+}
+
+// PrintTSV prints the given payload to the console as TSV
+func (profile Profile) PrintTSV(context context.Context, cmd *cobra.Command, payload any) error {
+	log := logger.Must(logger.FromContext(context))
+
+	log.Debugf("Printing payload as TSV")
+	writer := csv.NewWriter(os.Stdout)
+	writer.Comma = '\t'
+	defer writer.Flush()
+
+	switch actual := payload.(type) {
+	case common.Tableable:
+		headers := actual.GetHeader(cmd)
+		_ = writer.Write(headers)
+		_ = writer.Write(actual.GetRow(headers))
+	case common.Tableables:
+		log.Debugf("Payload is a slice of %d elements", actual.Size())
+		if actual.Size() > 0 {
+			headers := actual.GetHeader(cmd)
+			_ = writer.Write(headers)
+			for i := 0; i < actual.Size(); i++ {
+				_ = writer.Write(actual.GetRowAt(i, headers))
+			}
+		}
+	default:
+		return errors.ArgumentInvalid.With("payload", "not a tableable")
+	}
+	return nil
+}
+
+// PrintTable prints the given payload to the console as a table
+func (profile Profile) PrintTable(context context.Context, cmd *cobra.Command, payload any) error {
+	log := logger.Must(logger.FromContext(context))
+
+	log.Debugf("Printing payload as table")
+	table := tablewriter.NewWriter(os.Stdout)
+
+	switch actual := payload.(type) {
+	case common.Tableable:
+		headers := actual.GetHeader(cmd)
+		table.SetHeader(headers)
+		table.Append(actual.GetRow(headers))
+	case common.Tableables:
+		log.Debugf("Payload is a slice of %d elements", actual.Size())
+		if actual.Size() > 0 {
+			headers := actual.GetHeader(cmd)
+			table.SetHeader(headers)
+			for i := 0; i < actual.Size(); i++ {
+				table.Append(actual.GetRowAt(i, headers))
+			}
+		}
+	default:
+		return errors.ArgumentInvalid.With("payload", "not a tableable")
+	}
+	table.Render()
 	return nil
 }
 
