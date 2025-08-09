@@ -22,11 +22,8 @@ var deleteCmd = &cobra.Command{
 }
 
 var deleteOptions struct {
-	IssueID      *flags.EnumFlag
-	Repository   string
-	StopOnError  bool
-	WarnOnError  bool
-	IgnoreErrors bool
+	IssueID    *flags.EnumFlag
+	Repository string
 }
 
 func init() {
@@ -35,11 +32,7 @@ func init() {
 	deleteOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
 	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete an issue comment from. Defaults to the current repository")
 	deleteCmd.Flags().Var(deleteOptions.IssueID, "issue", "Issue to delete comments from")
-	deleteCmd.Flags().BoolVar(&deleteOptions.StopOnError, "stop-on-error", false, "Stop on error")
-	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
-	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
 	_ = deleteCmd.MarkFlagRequired("issue")
-	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.IssueID.CompletionFunc("issue"))
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

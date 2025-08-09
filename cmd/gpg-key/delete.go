@@ -22,20 +22,13 @@ var deleteCmd = &cobra.Command{
 }
 
 var deleteOptions struct {
-	Owner        string
-	StopOnError  bool
-	WarnOnError  bool
-	IgnoreErrors bool
+	Owner string
 }
 
 func init() {
 	Command.AddCommand(deleteCmd)
 
 	deleteCmd.Flags().StringVar(&deleteOptions.Owner, "user", "", "Owner of the keys")
-	deleteCmd.Flags().BoolVar(&deleteOptions.StopOnError, "stop-on-error", false, "Stop on error")
-	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
-	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
-	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

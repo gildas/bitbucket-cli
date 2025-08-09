@@ -25,9 +25,6 @@ var deleteCmd = &cobra.Command{
 var deleteOptions struct {
 	PullRequestID *flags.EnumFlag
 	Repository    string
-	StopOnError   bool
-	WarnOnError   bool
-	IgnoreErrors  bool
 }
 
 func init() {
@@ -36,9 +33,6 @@ func init() {
 	deleteOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
 	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete a pullrequest comment from. Defaults to the current repository")
 	deleteCmd.Flags().Var(deleteOptions.PullRequestID, "pullrequest", "Pullrequest to delete comments from")
-	deleteCmd.Flags().BoolVar(&deleteOptions.StopOnError, "stop-on-error", false, "Stop on error")
-	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
-	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
 	_ = deleteCmd.MarkFlagRequired("pullrequest")
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
