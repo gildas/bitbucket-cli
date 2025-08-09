@@ -38,7 +38,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	pullrequests, err := profile.GetAll[PullRequest](
 		log.ToContext(cmd.Context()),
 		cmd,
-		"pullrequests/?state="+strings.ToUpper(listOptions.State.String()),
+		"pullrequests?state="+strings.ToUpper(listOptions.State.String()),
 	)
 	if err != nil {
 		return err
