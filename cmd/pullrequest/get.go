@@ -8,6 +8,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -23,12 +24,16 @@ var getCmd = &cobra.Command{
 
 var getOptions struct {
 	Repository string
+	Columns    *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
+	getOptions.Columns = flags.NewEnumSliceFlag(columns...)
 	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pullrequest from. Defaults to the current repository")
+	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
+	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

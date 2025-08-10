@@ -21,13 +21,17 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Workspace *flags.EnumFlag
+	Columns   *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
 	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list projects from")
+	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Workspace.CompletionFunc("workspace"))
 }
 

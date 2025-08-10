@@ -32,10 +32,22 @@ var Command = &cobra.Command{
 	},
 }
 
-// GetHeader gets the header for a table
+var columns = []string{
+	"name",
+	"size",
+	"downloads",
+	"owner",
+}
+
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (artifact Artifact) GetHeader(short bool) []string {
+func (artifact Artifact) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"Name", "Size", "Downloads", "Owner"}
 }
 
@@ -43,12 +55,21 @@ func (artifact Artifact) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (artifact Artifact) GetRow(headers []string) []string {
-	return []string{
-		artifact.Name,
-		fmt.Sprintf("%d", artifact.Size),
-		fmt.Sprintf("%d", artifact.Downloads),
-		artifact.User.Name,
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "name":
+			row = append(row, artifact.Name)
+		case "size":
+			row = append(row, fmt.Sprintf("%d", artifact.Size))
+		case "downloads":
+			row = append(row, fmt.Sprintf("%d", artifact.Downloads))
+		case "owner":
+			row = append(row, artifact.User.Name)
+		}
 	}
+	return row
 }
 
 // GetArtifactNames gets the names of the artifacts

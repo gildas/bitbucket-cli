@@ -1,19 +1,14 @@
 package comment
 
+import "github.com/spf13/cobra"
+
 type Comments []Comment
 
-// GetHeader gets the headers for the list command
+// GetHeaders gets the headers for the list command
 //
 // implements common.Tableables
-func (comments Comments) GetHeader() []string {
-	short := true
-	for _, comment := range comments {
-		if !comment.UpdatedOn.IsZero() {
-			short = false
-			break
-		}
-	}
-	return Comment{}.GetHeader(short)
+func (comments Comments) GetHeaders(cmd *cobra.Command) []string {
+	return Comment{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for the list command

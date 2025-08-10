@@ -1,12 +1,14 @@
 package activity
 
+import "github.com/spf13/cobra"
+
 type Activities []Activity
 
-// GetHeader gets the headers for the list command
+// GetHeaders gets the headers for the list command
 //
 // implements common.Tableables
-func (activities Activities) GetHeader() []string {
-	return Activity{}.GetHeader(false)
+func (activities Activities) GetHeaders(cmd *cobra.Command) []string {
+	return Activity{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for the list command

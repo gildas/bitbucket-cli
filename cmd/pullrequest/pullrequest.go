@@ -56,15 +56,37 @@ var Command = &cobra.Command{
 	},
 }
 
+var columns = []string{
+	"id",
+	"title",
+	"description",
+	"source",
+	"destination",
+	"state",
+	"author",
+	"closed_by",
+	"commit",
+	"reason",
+	"comments",
+	"tasks",
+	"created_on",
+	"updated_on",
+}
+
 func init() {
 	Command.AddCommand(comment.Command)
 	Command.AddCommand(activity.Command)
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (pullrequest PullRequest) GetHeader(short bool) []string {
+func (pullrequest PullRequest) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"ID", "Title", "Description", "source", "destination", "state"}
 }
 
@@ -72,14 +94,49 @@ func (pullrequest PullRequest) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (pullrequest PullRequest) GetRow(headers []string) []string {
-	return []string{
-		fmt.Sprintf("%d", pullrequest.ID),
-		pullrequest.Title,
-		pullrequest.Description,
-		pullrequest.Source.Branch.Name,
-		pullrequest.Destination.Branch.Name,
-		pullrequest.State,
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "id":
+			row = append(row, fmt.Sprintf("%d", pullrequest.ID))
+		case "title":
+			row = append(row, pullrequest.Title)
+		case "description":
+			row = append(row, pullrequest.Description)
+		case "source":
+			row = append(row, pullrequest.Source.Branch.Name)
+		case "destination":
+			row = append(row, pullrequest.Destination.Branch.Name)
+		case "state":
+			row = append(row, pullrequest.State)
+		case "author":
+			row = append(row, pullrequest.Author.Name)
+		case "closed by":
+			row = append(row, pullrequest.ClosedBy.Name)
+		case "commit":
+			if pullrequest.MergeCommit != nil {
+				row = append(row, pullrequest.MergeCommit.Hash[:7])
+			} else {
+				row = append(row, " ")
+			}
+		case "reason":
+			row = append(row, pullrequest.Reason)
+		case "comments":
+			row = append(row, fmt.Sprintf("%d", pullrequest.CommentCount))
+		case "tasks":
+			row = append(row, fmt.Sprintf("%d", pullrequest.TaskCount))
+		case "created on", "created_on", "created-on":
+			row = append(row, pullrequest.CreatedOn.Format("2006-01-02 15:04:05"))
+		case "updated on", "updated_on", "updated-on":
+			if !pullrequest.UpdatedOn.IsZero() {
+				row = append(row, pullrequest.UpdatedOn.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		}
 	}
+	return row
 }
 
 // Validate validates a PullRequest

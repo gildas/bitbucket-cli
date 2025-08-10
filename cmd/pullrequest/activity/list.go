@@ -22,14 +22,18 @@ var listCmd = &cobra.Command{
 var listOptions struct {
 	Repository    string
 	PullRequestID *flags.EnumFlag
+	Columns       *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequest activities from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.PullRequestID, "pullrequest", "pullrequest to list activities from")
+	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.MarkFlagRequired("pullrequest")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.PullRequestID.CompletionFunc("pullrequest"))
 }

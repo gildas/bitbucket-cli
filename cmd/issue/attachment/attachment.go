@@ -30,10 +30,21 @@ var Command = &cobra.Command{
 	},
 }
 
-// GetHeader gets the header for a table
+var columns = []string{
+	"name",
+	"url",
+	"type",
+}
+
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (attachment Attachment) GetHeader(short bool) []string {
+func (attachment Attachment) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"Name", "URL"}
 }
 
@@ -41,10 +52,19 @@ func (attachment Attachment) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (attachment Attachment) GetRow(headers []string) []string {
-	return []string{
-		attachment.Name,
-		attachment.Link.String(),
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "name":
+			row = append(row, attachment.Name)
+		case "link", "url":
+			row = append(row, attachment.Link.String())
+		case "type":
+			row = append(row, attachment.Type)
+		}
 	}
+	return row
 }
 
 // Validate validates a Comment

@@ -21,14 +21,18 @@ var listCmd = &cobra.Command{
 var listOptions struct {
 	Repository string
 	IssueID    *flags.EnumFlag
+	Columns    *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issue attachments from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.IssueID, "issue", "Issue to list attachments from")
+	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.MarkFlagRequired("issue")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.IssueID.CompletionFunc("issue"))
 }

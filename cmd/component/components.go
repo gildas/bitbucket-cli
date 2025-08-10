@@ -1,12 +1,14 @@
 package component
 
+import "github.com/spf13/cobra"
+
 type Components []Component
 
-// GetHeader gets the headers for the list command
+// GetHeaders gets the headers for the list command
 //
 // implements common.Tableables
-func (components Components) GetHeader() []string {
-	return Component{}.GetHeader(false)
+func (components Components) GetHeaders(cmd *cobra.Command) []string {
+	return Component{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for the list command

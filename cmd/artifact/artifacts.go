@@ -1,12 +1,14 @@
 package artifact
 
+import "github.com/spf13/cobra"
+
 type Artifacts []Artifact
 
-// GetHeader gets the headers for the list command
+// GetHeaders gets the headers for the list command
 //
 // implements common.Tableables
-func (artifacts Artifacts) GetHeader() []string {
-	return Artifact{}.GetHeader(false)
+func (artifacts Artifacts) GetHeaders(cmd *cobra.Command) []string {
+	return Artifact{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for the list command

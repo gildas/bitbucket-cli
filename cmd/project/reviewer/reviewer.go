@@ -3,6 +3,7 @@ package reviewer
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
@@ -30,10 +31,21 @@ var Command = &cobra.Command{
 	},
 }
 
-// GetHeader gets the header for a table
+var columns = []string{
+	"type",
+	"reviewer_type",
+	"user",
+}
+
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (reviewer Reviewer) GetHeader(short bool) []string {
+func (reviewer Reviewer) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"Type", "Reviewer Type", "User"}
 }
 
@@ -41,7 +53,19 @@ func (reviewer Reviewer) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (reviewer Reviewer) GetRow(headers []string) []string {
-	return []string{reviewer.Type, reviewer.ReviewerType, reviewer.User.Name}
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "type":
+			row = append(row, reviewer.Type)
+		case "reviewer type", "reviewer_type":
+			row = append(row, reviewer.ReviewerType)
+		case "user":
+			row = append(row, reviewer.User.Name)
+		}
+	}
+	return row
 }
 
 // Validate validates a Reviewer

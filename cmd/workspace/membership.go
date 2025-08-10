@@ -1,8 +1,11 @@
 package workspace
 
 import (
+	"strings"
+
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/spf13/cobra"
 )
 
 type Membership struct {
@@ -13,10 +16,10 @@ type Membership struct {
 	Links      common.Links `json:"links"      mapstructure:"links"`
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (membership Membership) GetHeader(short bool) []string {
+func (membership Membership) GetHeaders(cmd *cobra.Command) []string {
 	return []string{"ID", "Name", "Workspace", "Permission"}
 }
 
@@ -24,10 +27,19 @@ func (membership Membership) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (membership Membership) GetRow(headers []string) []string {
-	return []string{
-		membership.User.ID.String(),
-		membership.User.Name,
-		membership.Workspace.Name,
-		membership.Permission,
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "id":
+			row = append(row, membership.User.ID.String())
+		case "name":
+			row = append(row, membership.User.Name)
+		case "workspace":
+			row = append(row, membership.Workspace.Name)
+		case "permission":
+			row = append(row, membership.Permission)
+		}
 	}
+	return row
 }

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/gildas/go-core"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -15,8 +16,16 @@ var listCmd = &cobra.Command{
 	RunE:  listProcess,
 }
 
+var listOptions struct {
+	Columns *flags.EnumSliceFlag
+}
+
 func init() {
 	Command.AddCommand(listCmd)
+
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
+	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

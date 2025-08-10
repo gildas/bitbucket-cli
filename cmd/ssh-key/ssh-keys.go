@@ -1,12 +1,14 @@
 package sshkey
 
+import "github.com/spf13/cobra"
+
 type SSHKeys []SSHKey
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableables
-func (keys SSHKeys) GetHeader() []string {
-	return SSHKey{}.GetHeader(false)
+func (keys SSHKeys) GetHeaders(cmd *cobra.Command) []string {
+	return SSHKey{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for a table

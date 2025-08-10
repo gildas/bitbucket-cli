@@ -23,14 +23,18 @@ var getCmd = &cobra.Command{
 
 var getOptions struct {
 	Workspace *flags.EnumFlag
+	Columns   *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
 	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	getOptions.Columns = flags.NewEnumSliceFlag(columns...)
 	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get projects from")
+	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Workspace.CompletionFunc("workspace"))
+	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

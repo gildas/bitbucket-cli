@@ -1,12 +1,14 @@
 package workspace
 
+import "github.com/spf13/cobra"
+
 type Workspaces []Workspace
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableables
-func (workspaces Workspaces) GetHeader() []string {
-	return Workspace{}.GetHeader(false)
+func (workspaces Workspaces) GetHeaders(cmd *cobra.Command) []string {
+	return Workspace{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for a table

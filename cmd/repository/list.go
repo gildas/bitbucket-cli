@@ -32,6 +32,7 @@ var listOptions struct {
 	HasIssues  bool
 	HasWiki    bool
 	IsPrivate  bool
+	Columns    *flags.EnumSliceFlag
 }
 
 func init() {
@@ -39,6 +40,7 @@ func init() {
 
 	listOptions.Role = flags.NewEnumFlag("all", "+owner", "admin", "contributor", "member")
 	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
 	listCmd.Flags().Var(listOptions.Role, "role", "Role of the user in the repository (all, owner, admin, contributor, member), Default: owner")
 	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list repositories from")
 	listCmd.Flags().StringVar(&listOptions.Project, "project", "", "Project to list repositories from (optional)")
@@ -48,6 +50,8 @@ func init() {
 	listCmd.Flags().BoolVar(&listOptions.IsPrivate, "is-private", false, "Filter repositories that are private (optional)")
 	listCmd.Flags().StringVar(&listOptions.Language, "language", "", "Filter repositories by language (optional)")
 	listCmd.Flags().StringVar(&listOptions.MainBranch, "main-branch", "", "Filter repositories by main branch name (optional)")
+	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Workspace.CompletionFunc("workspace"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Role.CompletionFunc("role"))
 }

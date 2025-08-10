@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -69,6 +70,28 @@ var Command = &cobra.Command{
 	},
 }
 
+var columns = []string{
+	"id",
+	"name",
+	"full_name",
+	"slug",
+	"owner",
+	"workspace",
+	"project",
+	"main_branch",
+	"has_issues",
+	"has_wiki",
+	"is_private",
+	"fork_policy",
+	"size",
+	"language",
+	"default_merge_strategy",
+	"branching_model",
+	"parent",
+	"created_on",
+	"updated_on",
+}
+
 var RepositoryCache = common.NewCache[Repository]()
 
 // GetID gets the ID of the repository
@@ -85,10 +108,15 @@ func (repository Repository) GetName() string {
 	return repository.Name
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (repository Repository) GetHeader(short bool) []string {
+func (repository Repository) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"ID", "Name", "Full Name"}
 }
 
@@ -96,11 +124,59 @@ func (repository Repository) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (repository Repository) GetRow(headers []string) []string {
-	return []string{
-		repository.ID.String(),
-		repository.Name,
-		repository.FullName,
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "id":
+			row = append(row, repository.ID.String())
+		case "name":
+			row = append(row, repository.Name)
+		case "full name":
+			row = append(row, repository.FullName)
+		case "slug":
+			row = append(row, repository.Slug)
+		case "owner":
+			row = append(row, repository.Owner.Name)
+		case "workspace":
+			row = append(row, repository.Workspace.Name)
+		case "project":
+			row = append(row, repository.Project.Name)
+		case "main branch":
+			row = append(row, repository.MainBranch)
+		case "issues", "has issues":
+			row = append(row, strconv.FormatBool(repository.HasIssues))
+		case "wiki", "has wiki":
+			row = append(row, strconv.FormatBool(repository.HasWiki))
+		case "is private":
+			row = append(row, strconv.FormatBool(repository.IsPrivate))
+		case "fork policy":
+			row = append(row, repository.ForkPolicy)
+		case "size":
+			row = append(row, strconv.FormatInt(repository.Size, 10))
+		case "language":
+			row = append(row, repository.Language)
+		case "default merge strategy":
+			row = append(row, repository.DefaultMergeStrategy)
+		case "branching model":
+			row = append(row, repository.BranchingModel)
+		case "parent":
+			if repository.Parent != nil {
+				row = append(row, repository.Parent.FullName)
+			} else {
+				row = append(row, " ")
+			}
+		case "created on", "created-on", "created_on", "created":
+			row = append(row, repository.CreatedOn.Format("2006-01-02 15:04:05"))
+		case "updated on", "updated-on", "updated_on", "updated":
+			if !repository.UpdatedOn.IsZero() {
+				row = append(row, repository.UpdatedOn.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		}
 	}
+	return row
 }
 
 // GetRepository gets a repository by its slug

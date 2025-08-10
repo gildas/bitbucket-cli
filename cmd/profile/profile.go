@@ -60,6 +60,20 @@ var Command = &cobra.Command{
 	},
 }
 
+var columns = []string{
+	"name",
+	"description",
+	"default",
+	"user",
+	"clientid",
+	"accesstoken",
+	"tokenexpires",
+	"apiRoot",
+	"defaultworkspace",
+	"defaultproject",
+	"callbackPort",
+}
+
 // GetProfileFromCommand gets the profile from the command line
 //
 // If the profile is not given, it will use the current profile
@@ -84,18 +98,14 @@ func GetProfileFromCommand(context context.Context, cmd *cobra.Command) (profile
 	return
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (profile Profile) GetHeader(short bool) []string {
-	if short {
-		headers := []string{"Name", "Description", "Default"}
-		if len(profile.User) > 0 {
-			headers = append(headers, "User")
-		} else if len(profile.ClientID) > 0 {
-			headers = append(headers, "ClientID")
+func (profile Profile) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
-		return headers
 	}
 	return []string{"Name", "Description", "Default", "User", "ClientID", "AccessToken"}
 }
@@ -104,19 +114,41 @@ func (profile Profile) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (profile Profile) GetRow(headers []string) []string {
-	row := []string{
-		profile.Name,
-		profile.Description,
-		fmt.Sprintf("%v", profile.Default),
-	}
-	if core.Contains(headers, "User") {
-		row = append(row, profile.User)
-	}
-	if core.Contains(headers, "ClientID") {
-		row = append(row, profile.ClientID)
-	}
-	if core.Contains(headers, "AccessToken") {
-		row = append(row, profile.AccessToken)
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "apiroot":
+			row = append(row, profile.APIRoot.String())
+		case "name":
+			row = append(row, profile.Name)
+		case "description":
+			row = append(row, profile.Description)
+		case "default":
+			row = append(row, fmt.Sprintf("%v", profile.Default))
+		case "defaultworkspace":
+			row = append(row, profile.DefaultWorkspace)
+		case "defaultproject":
+			row = append(row, profile.DefaultProject)
+		case "callbackport":
+			row = append(row, fmt.Sprintf("%d", profile.CallbackPort))
+		case "user":
+			row = append(row, profile.User)
+		case "clientid":
+			row = append(row, profile.ClientID)
+		case "accesstoken":
+			if len(profile.AccessToken) > 0 {
+				row = append(row, profile.AccessToken)
+			} else {
+				row = append(row, " ")
+			}
+		case "tokenexpires":
+			if !profile.TokenExpires.IsZero() {
+				row = append(row, profile.TokenExpires.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		}
 	}
 	return row
 }
@@ -311,13 +343,13 @@ func (profile Profile) PrintCSV(context context.Context, cmd *cobra.Command, pay
 
 	switch actual := payload.(type) {
 	case common.Tableable:
-		headers := actual.GetHeader(cmd)
+		headers := actual.GetHeaders(cmd)
 		_ = writer.Write(headers)
 		_ = writer.Write(actual.GetRow(headers))
 	case common.Tableables:
 		log.Debugf("Payload is a slice of %d elements", actual.Size())
 		if actual.Size() > 0 {
-			headers := actual.GetHeader(cmd)
+			headers := actual.GetHeaders(cmd)
 			_ = writer.Write(headers)
 			for i := 0; i < actual.Size(); i++ {
 				_ = writer.Write(actual.GetRowAt(i, headers))
@@ -340,13 +372,13 @@ func (profile Profile) PrintTSV(context context.Context, cmd *cobra.Command, pay
 
 	switch actual := payload.(type) {
 	case common.Tableable:
-		headers := actual.GetHeader(cmd)
+		headers := actual.GetHeaders(cmd)
 		_ = writer.Write(headers)
 		_ = writer.Write(actual.GetRow(headers))
 	case common.Tableables:
 		log.Debugf("Payload is a slice of %d elements", actual.Size())
 		if actual.Size() > 0 {
-			headers := actual.GetHeader(cmd)
+			headers := actual.GetHeaders(cmd)
 			_ = writer.Write(headers)
 			for i := 0; i < actual.Size(); i++ {
 				_ = writer.Write(actual.GetRowAt(i, headers))
@@ -367,13 +399,13 @@ func (profile Profile) PrintTable(context context.Context, cmd *cobra.Command, p
 
 	switch actual := payload.(type) {
 	case common.Tableable:
-		headers := actual.GetHeader(cmd)
+		headers := actual.GetHeaders(cmd)
 		table.SetHeader(headers)
 		table.Append(actual.GetRow(headers))
 	case common.Tableables:
 		log.Debugf("Payload is a slice of %d elements", actual.Size())
 		if actual.Size() > 0 {
-			headers := actual.GetHeader(cmd)
+			headers := actual.GetHeaders(cmd)
 			table.SetHeader(headers)
 			for i := 0; i < actual.Size(); i++ {
 				table.Append(actual.GetRowAt(i, headers))

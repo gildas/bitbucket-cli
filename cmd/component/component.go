@@ -3,9 +3,11 @@ package component
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -29,10 +31,21 @@ var Command = &cobra.Command{
 	},
 }
 
-// GetHeader gets the header for a table
+var columns = []string{
+	"id",
+	"name",
+	"type",
+}
+
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (issue Component) GetHeader(short bool) []string {
+func (issue Component) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"ID", "Name"}
 }
 
@@ -40,10 +53,19 @@ func (issue Component) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (component Component) GetRow(headers []string) []string {
-	return []string{
-		fmt.Sprintf("%d", component.ID),
-		component.Name,
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "id":
+			row = append(row, fmt.Sprintf("%d", component.ID))
+		case "name":
+			row = append(row, component.Name)
+		case "type":
+			row = append(row, component.Type)
+		}
 	}
+	return row
 }
 
 // String gets a string representation

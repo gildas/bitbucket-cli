@@ -49,6 +49,17 @@ var Command = &cobra.Command{
 	},
 }
 
+var columns = []string{
+	"key",
+	"name",
+	"description",
+	"owner",
+	"workspace",
+	"created_on",
+	"updated_on",
+	"private",
+}
+
 func init() {
 	Command.AddCommand(reviewer.Command)
 }
@@ -60,10 +71,15 @@ func NewReference(key string) *ProjectReference {
 	}
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (project Project) GetHeader(short bool) []string {
+func (project Project) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"Key", "Name", "Description"}
 }
 
@@ -71,7 +87,41 @@ func (project Project) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (project Project) GetRow(headers []string) []string {
-	return []string{project.Key, project.Name, project.Description}
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "key":
+			row = append(row, project.Key)
+		case "name":
+			row = append(row, project.Name)
+		case "description":
+			row = append(row, project.Description)
+		case "owner":
+			if project.Owner.Name == "" {
+				row = append(row, " ")
+			} else {
+				row = append(row, project.Owner.Name)
+			}
+		case "workspace":
+			if project.Workspace.Name == "" {
+				row = append(row, " ")
+			} else {
+				row = append(row, project.Workspace.Name)
+			}
+		case "created on", "created-on", "created_on", "created":
+			row = append(row, project.CreatedOn.Format("2006-01-02 15:04:05"))
+		case "updated on", "updated-on", "updated_on", "updated":
+			if !project.UpdatedOn.IsZero() {
+				row = append(row, project.UpdatedOn.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		case "private":
+			row = append(row, fmt.Sprintf("%t", project.IsPrivate))
+		}
+	}
+	return row
 }
 
 // Validate validates a Project
