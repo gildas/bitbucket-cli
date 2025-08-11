@@ -62,6 +62,18 @@ var columns = []string{
 	"pullrequest",
 }
 
+var sortBy = []string{
+	"id",
+	"created_on",
+	"+updated_on",
+	"file",
+	"user",
+	"content",
+	"deleted",
+	"pending",
+	"pullrequest",
+}
+
 // GetHeaders gets the header for a table
 //
 // implements common.Tableable

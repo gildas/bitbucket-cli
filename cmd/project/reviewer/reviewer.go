@@ -37,6 +37,12 @@ var columns = []string{
 	"user",
 }
 
+var sortBy = []string{
+	"type",
+	"reviewer_type",
+	"+user",
+}
+
 // GetHeaders gets the header for a table
 //
 // implements common.Tableable

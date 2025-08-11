@@ -34,10 +34,16 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"id",
-	"name",
-	"slug",
+var columns = common.Columns[Workspace]{
+	{Name: "id", DefaultSorter: false, Compare: func(a, b Workspace) bool {
+		return strings.Compare(strings.ToLower(a.ID.String()), strings.ToLower(b.ID.String())) == -1
+	}},
+	{Name: "name", DefaultSorter: true, Compare: func(a, b Workspace) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "slug", DefaultSorter: false, Compare: func(a, b Workspace) bool {
+		return strings.Compare(strings.ToLower(a.Slug), strings.ToLower(b.Slug)) == -1
+	}},
 }
 
 var WorkspaceCache = common.NewCache[Workspace]()

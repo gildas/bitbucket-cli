@@ -92,6 +92,28 @@ var columns = []string{
 	"updated_on",
 }
 
+var sortBy = []string{
+	"id",
+	"+name",
+	"full_name",
+	"slug",
+	"owner",
+	"workspace",
+	"project",
+	"main_branch",
+	"has_issues",
+	"has_wiki",
+	"is_private",
+	"fork_policy",
+	"size",
+	"language",
+	"default_merge_strategy",
+	"branching_model",
+	"parent",
+	"created_on",
+	"updated_on",
+}
+
 var RepositoryCache = common.NewCache[Repository]()
 
 // GetID gets the ID of the repository

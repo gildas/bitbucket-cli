@@ -22,6 +22,7 @@ var listOptions struct {
 	Workspace *flags.EnumFlag
 	Project   *flags.EnumFlag
 	Columns   *flags.EnumSliceFlag
+	SortBy    *flags.EnumFlag
 }
 
 func init() {
@@ -30,12 +31,15 @@ func init() {
 	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
 	listOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
+	listOptions.SortBy = flags.NewEnumFlag(sortBy...)
 	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list reviewers from")
 	listCmd.Flags().Var(listOptions.Project, "project", "Project Key to list reviewers from")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
-	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
+	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Workspace.CompletionFunc("workspace"))
 	_ = getCmd.RegisterFlagCompletionFunc(listOptions.Project.CompletionFunc("project"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

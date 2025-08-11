@@ -58,6 +58,15 @@ var columns = []string{
 	"repository",
 }
 
+var sortBy = []string{
+	"+hash",
+	"longHash",
+	"author",
+	"message",
+	"date",
+	"repository",
+}
+
 // GetHeaders gets the header for a table
 //
 // implements common.Tableable

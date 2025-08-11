@@ -20,15 +20,19 @@ var listCmd = &cobra.Command{
 var listOptions struct {
 	Owner   string
 	Columns *flags.EnumSliceFlag
+	SortBy  *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
+	listOptions.SortBy = flags.NewEnumFlag(sortBy...)
 	listCmd.Flags().StringVar(&listOptions.Owner, "user", "", "Owner of the keys")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
+	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) error {

@@ -25,7 +25,7 @@ var getOptions struct {
 
 func init() {
 	Command.AddCommand(getCmd)
-	getOptions.Columns = flags.NewEnumSliceFlag(columns...)
+	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 
 	getCmd.Flags().BoolVar(&getOptions.Current, "current", false, "Get the current profile")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")

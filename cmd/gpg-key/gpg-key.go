@@ -49,6 +49,15 @@ var columns = []string{
 	"type",
 }
 
+var sortBy = []string{
+	"fingerprint",
+	"+name",
+	"owner",
+	"added_on",
+	"created_on",
+	"type",
+}
+
 // GetHeaders gets the header for a table
 //
 // implements common.Tableable

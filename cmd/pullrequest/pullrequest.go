@@ -73,6 +73,23 @@ var columns = []string{
 	"updated_on",
 }
 
+var sortBy = []string{
+	"+id",
+	"title",
+	"description",
+	"source",
+	"destination",
+	"state",
+	"author",
+	"closed_by",
+	"commit",
+	"reason",
+	"comments",
+	"tasks",
+	"created_on",
+	"updated_on",
+}
+
 func init() {
 	Command.AddCommand(comment.Command)
 	Command.AddCommand(activity.Command)

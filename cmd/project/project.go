@@ -60,6 +60,17 @@ var columns = []string{
 	"private",
 }
 
+var sortBy = []string{
+	"key",
+	"+name",
+	"description",
+	"owner",
+	"workspace",
+	"created_on",
+	"updated_on",
+	"private",
+}
+
 func init() {
 	Command.AddCommand(reviewer.Command)
 }

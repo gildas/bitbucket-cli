@@ -39,6 +39,13 @@ var columns = []string{
 	"owner",
 }
 
+var sortBy = []string{
+	"+name",
+	"size",
+	"downloads",
+	"owner",
+}
+
 // GetHeaders gets the header for a table
 //
 // implements common.Tableable

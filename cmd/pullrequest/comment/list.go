@@ -23,6 +23,7 @@ var listOptions struct {
 	Repository    string
 	PullRequestID *flags.EnumFlag
 	Columns       *flags.EnumSliceFlag
+	SortBy        *flags.EnumFlag
 }
 
 func init() {
@@ -30,12 +31,15 @@ func init() {
 
 	listOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
+	listOptions.SortBy = flags.NewEnumFlag(sortBy...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequest comments from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.PullRequestID, "pullrequest", "pullrequest to list comments from")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
-	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
+	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.MarkFlagRequired("pullrequest")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.PullRequestID.CompletionFunc("pullrequest"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

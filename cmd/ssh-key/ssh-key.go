@@ -52,6 +52,17 @@ var columns = []string{
 	"last_used",
 }
 
+var sortBy = []string{
+	"key",
+	"+name",
+	"owner",
+	"fingerprint",
+	"comment",
+	"created_on",
+	"expires_on",
+	"last_used",
+}
+
 // GetHeaders gets the header for a table
 //
 // implements common.Tableable

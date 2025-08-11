@@ -44,6 +44,13 @@ var columns = []string{
 	"merge_strategies",
 }
 
+var sortBy = []string{
+	"+name",
+	"target",
+	"default_merge_strategy",
+	"merge_strategies",
+}
+
 // NewReference creates a new BranchReference
 func NewReference(name string) *BranchReference {
 	return &BranchReference{

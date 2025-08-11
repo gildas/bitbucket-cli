@@ -69,6 +69,22 @@ var columns = []string{
 	"milestone",
 }
 
+var sortBy = []string{
+	"+id",
+	"title",
+	"state",
+	"priority",
+	"repository",
+	"reporter",
+	"assignee",
+	"created_on",
+	"updated_on",
+	"edited_on",
+	"votes",
+	"watchers",
+	"milestone",
+}
+
 func init() {
 	Command.AddCommand(comment.Command)
 	Command.AddCommand(attachment.Command)

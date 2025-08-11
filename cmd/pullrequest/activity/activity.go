@@ -98,6 +98,21 @@ var columns = []string{
 	"updated_on",
 }
 
+var sortBy = []string{
+	"+date",
+	"approved",
+	"description",
+	"state",
+	"author",
+	"closed_by",
+	"reason",
+	"user",
+	"destination",
+	"source",
+	"created_on",
+	"updated_on",
+}
+
 // GetHeaders gets the header for a table
 //
 // implements common.Tableable
