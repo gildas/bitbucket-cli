@@ -31,7 +31,7 @@ func init() {
 
 	deleteOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
 	deleteCmd.Flags().Var(deleteOptions.Workspace, "workspace", "Workspace to delete projects from")
-	_ = deleteCmd.RegisterFlagCompletionFunc(createOptions.Workspace.CompletionFunc("workspace"))
+	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.Workspace.CompletionFunc("workspace"))
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
