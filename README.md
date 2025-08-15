@@ -76,6 +76,20 @@ All commands that would modify something on Bitbucket now allow you to preview t
 bb repo delete myrepository3 --dry-run
 ```
 
+`get` and `list` commands support the `--columns` flag to specify which columns to display in the output. You can pass a comma-separated list of columns, repeat the flag, or use `all` to display all columns. If you do not provide this flag, the default columns are displayed.
+
+```bash
+bb repo list --columns all
+bb repo list --columns name,slug,project
+bb repo list --columns name --columns slug
+```
+
+`list` commands also support the `--sort` flag to sort the output by a specific column. You can pass a comma-separated list of columns, repeat the flag, or use `all` to sort by all columns. If you do not provide this flag, the default sorting is used.
+
+```bash
+bb repo list --sort name
+```
+
 ### Output
 
 `bb` outputs a table by default. You can change the output format with the `--output` flag,  by setting the `BB_OUTPUT_FORMAT` environment variable, or by modifying the profile configuration (See [Profiles](#profiles)).
