@@ -49,22 +49,25 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"hash",
-	"longHash",
-	"author",
-	"message",
-	"date",
-	"repository",
-}
-
-var sortBy = []string{
-	"+hash",
-	"longHash",
-	"author",
-	"message",
-	"date",
-	"repository",
+var columns = common.Columns[Commit]{
+	{Name: "hash", DefaultSorter: true, Compare: func(a, b Commit) bool {
+		return strings.Compare(strings.ToLower(a.Hash), strings.ToLower(b.Hash)) == -1
+	}},
+	{Name: "longhash", DefaultSorter: false, Compare: func(a, b Commit) bool {
+		return strings.Compare(strings.ToLower(a.Message), strings.ToLower(b.Message)) == -1
+	}},
+	{Name: "author", DefaultSorter: false, Compare: func(a, b Commit) bool {
+		return strings.Compare(strings.ToLower(a.Author.User.Name), strings.ToLower(b.Author.User.Name)) == -1
+	}},
+	{Name: "message", DefaultSorter: false, Compare: func(a, b Commit) bool {
+		return strings.Compare(strings.ToLower(a.Message), strings.ToLower(b.Message)) == -1
+	}},
+	{Name: "date", DefaultSorter: false, Compare: func(a, b Commit) bool {
+		return a.Date.Before(b.Date)
+	}},
+	{Name: "repository", DefaultSorter: false, Compare: func(a, b Commit) bool {
+		return strings.Compare(strings.ToLower(a.Repository.Name), strings.ToLower(b.Repository.Name)) == -1
+	}},
 }
 
 // GetHeaders gets the header for a table

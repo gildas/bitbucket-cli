@@ -37,18 +37,22 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"name",
-	"target",
-	"default_merge_strategy",
-	"merge_strategies",
-}
-
-var sortBy = []string{
-	"+name",
-	"target",
-	"default_merge_strategy",
-	"merge_strategies",
+var columns = common.Columns[Branch]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b Branch) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "type", DefaultSorter: false, Compare: func(a, b Branch) bool {
+		return strings.Compare(strings.ToLower(a.Type), strings.ToLower(b.Type)) == -1
+	}},
+	{Name: "target", DefaultSorter: false, Compare: func(a, b Branch) bool {
+		return strings.Compare(strings.ToLower(a.Target.Hash), strings.ToLower(b.Target.Hash)) == -1
+	}},
+	{Name: "default_merge_strategy", DefaultSorter: false, Compare: func(a, b Branch) bool {
+		return strings.Compare(strings.ToLower(a.DefaultMergeStrategy), strings.ToLower(b.DefaultMergeStrategy)) == -1
+	}},
+	{Name: "merge_strategies", DefaultSorter: false, Compare: func(a, b Branch) bool {
+		return strings.Compare(strings.ToLower(strings.Join(a.MergeStrategies, ",")), strings.ToLower(strings.Join(b.MergeStrategies, ","))) == -1
+	}},
 }
 
 // NewReference creates a new BranchReference

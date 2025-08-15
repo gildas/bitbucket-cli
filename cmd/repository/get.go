@@ -32,7 +32,7 @@ func init() {
 	Command.AddCommand(getCmd)
 
 	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
-	getOptions.Columns = flags.NewEnumSliceFlag(columns...)
+	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get repositories from")
 	getCmd.Flags().BoolVar(&getOptions.ShowForks, "forks", false, "Show the forks of the repository")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")

@@ -53,36 +53,49 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"id",
-	"title",
-	"state",
-	"priority",
-	"repository",
-	"reporter",
-	"assignee",
-	"created_on",
-	"updated_on",
-	"edited_on",
-	"votes",
-	"watchers",
-	"milestone",
-}
-
-var sortBy = []string{
-	"+id",
-	"title",
-	"state",
-	"priority",
-	"repository",
-	"reporter",
-	"assignee",
-	"created_on",
-	"updated_on",
-	"edited_on",
-	"votes",
-	"watchers",
-	"milestone",
+var columns = common.Columns[Issue]{
+	{Name: "id", DefaultSorter: true, Compare: func(a, b Issue) bool {
+		return a.ID < b.ID
+	}},
+	{Name: "title", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.Title), strings.ToLower(b.Title)) == -1
+	}},
+	{Name: "state", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.State), strings.ToLower(b.State)) == -1
+	}},
+	{Name: "priority", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.Priority), strings.ToLower(b.Priority)) == -1
+	}},
+	{Name: "repository", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.Repository.Name), strings.ToLower(b.Repository.Name)) == -1
+	}},
+	{Name: "reporter", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.Reporter.Name), strings.ToLower(b.Reporter.Name)) == -1
+	}},
+	{Name: "assignee", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.Assignee.Name), strings.ToLower(b.Assignee.Name)) == -1
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "updated_on", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return a.UpdatedOn.Before(b.UpdatedOn)
+	}},
+	{Name: "edited_on", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return a.EditedOn.Before(b.EditedOn)
+	}},
+	{Name: "votes", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return a.Votes < b.Votes
+	}},
+	{Name: "watchers", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return a.Watchers < b.Watchers
+	}},
+	{Name: "milestone", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		if a.Milestone != nil && b.Milestone != nil {
+			return strings.Compare(strings.ToLower(a.Milestone.Name), strings.ToLower(b.Milestone.Name)) == -1
+		}
+		return a.Milestone != nil
+	}},
 }
 
 func init() {

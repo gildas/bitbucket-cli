@@ -2,7 +2,6 @@ package attachment
 
 import (
 	"fmt"
-	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
@@ -29,8 +28,8 @@ func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
-	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
-	listOptions.SortBy = flags.NewEnumFlag(sortBy...)
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
+	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issue attachments from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.IssueID, "issue", "Issue to list attachments from")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
@@ -57,8 +56,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No issue found")
 		return nil
 	}
-	core.Sort(attachments, func(a, b Attachment) bool {
-		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
-	})
+	core.Sort(attachments, columns.SortBy(listOptions.SortBy.Value))
 	return profile.Current.Print(cmd.Context(), cmd, Attachments(attachments))
 }

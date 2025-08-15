@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
@@ -30,16 +31,16 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"name",
-	"url",
-	"type",
-}
-
-var sortBy = []string{
-	"+name",
-	"url",
-	"type",
+var columns = common.Columns[Attachment]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b Attachment) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "type", DefaultSorter: false, Compare: func(a, b Attachment) bool {
+		return strings.Compare(strings.ToLower(a.Type), strings.ToLower(b.Type)) == -1
+	}},
+	{Name: "url", DefaultSorter: false, Compare: func(a, b Attachment) bool {
+		return strings.Compare(strings.ToLower(a.Link.String()), strings.ToLower(b.Link.String())) == -1
+	}},
 }
 
 // GetHeaders gets the header for a table

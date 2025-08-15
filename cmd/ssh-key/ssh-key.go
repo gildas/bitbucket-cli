@@ -41,26 +41,34 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"key",
-	"name",
-	"owner",
-	"fingerprint",
-	"comment",
-	"created_on",
-	"expires_on",
-	"last_used",
-}
-
-var sortBy = []string{
-	"key",
-	"+name",
-	"owner",
-	"fingerprint",
-	"comment",
-	"created_on",
-	"expires_on",
-	"last_used",
+var columns = common.Columns[SSHKey]{
+	{Name: "id", DefaultSorter: true, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.ID.String()), strings.ToLower(b.ID.String())) == -1
+	}},
+	{Name: "type", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.Type), strings.ToLower(b.Type)) == -1
+	}},
+	{Name: "key", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.Key), strings.ToLower(b.Key)) == -1
+	}},
+	{Name: "fingerprint", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.Fingerprint), strings.ToLower(b.Fingerprint)) == -1
+	}},
+	{Name: "owner", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.Owner.Name), strings.ToLower(b.Owner.Name)) == -1
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "expires_on", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return a.ExpiresOn.Before(b.ExpiresOn)
+	}},
+	{Name: "last_used", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return a.LastUsed.Before(b.LastUsed)
+	}},
+	{Name: "comment", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.Comment), strings.ToLower(b.Comment)) == -1
+	}},
 }
 
 // GetHeaders gets the header for a table

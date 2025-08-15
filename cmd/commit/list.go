@@ -24,8 +24,8 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
-	listOptions.SortBy = flags.NewEnumFlag(sortBy...)
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
+	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list commits from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
@@ -45,6 +45,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No branch found")
 		return
 	}
-	core.Sort(commits, func(a, b Commit) bool { return a.Date.Before(b.Date) })
+	core.Sort(commits, columns.SortBy(listOptions.SortBy.Value))
 	return profile.Current.Print(cmd.Context(), cmd, Commits(commits))
 }

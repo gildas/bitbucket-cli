@@ -40,22 +40,25 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"fingerprint",
-	"name",
-	"owner",
-	"added_on",
-	"created_on",
-	"type",
-}
-
-var sortBy = []string{
-	"fingerprint",
-	"+name",
-	"owner",
-	"added_on",
-	"created_on",
-	"type",
+var columns = common.Columns[GPGKey]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b GPGKey) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "type", DefaultSorter: false, Compare: func(a, b GPGKey) bool {
+		return strings.Compare(strings.ToLower(a.Type), strings.ToLower(b.Type)) == -1
+	}},
+	{Name: "fingerprint", DefaultSorter: false, Compare: func(a, b GPGKey) bool {
+		return strings.Compare(strings.ToLower(a.Fingerprint), strings.ToLower(b.Fingerprint)) == -1
+	}},
+	{Name: "owner", DefaultSorter: false, Compare: func(a, b GPGKey) bool {
+		return strings.Compare(strings.ToLower(a.Owner.Name), strings.ToLower(b.Owner.Name)) == -1
+	}},
+	{Name: "added_on", DefaultSorter: false, Compare: func(a, b GPGKey) bool {
+		return a.AddedOn.Before(b.AddedOn)
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b GPGKey) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
 }
 
 // GetHeaders gets the header for a table

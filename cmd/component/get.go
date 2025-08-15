@@ -26,7 +26,7 @@ var getOptions struct {
 
 func init() {
 	Command.AddCommand(getCmd)
-	getOptions.Columns = flags.NewEnumSliceFlag(columns...)
+	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 
 	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get a component from. Defaults to the current repository")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")

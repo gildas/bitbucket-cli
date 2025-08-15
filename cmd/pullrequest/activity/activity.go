@@ -83,34 +83,86 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"date",
-	"approved",
-	"description",
-	"state",
-	"author",
-	"closed_by",
-	"reason",
-	"user",
-	"destination",
-	"source",
-	"created_on",
-	"updated_on",
-}
-
-var sortBy = []string{
-	"+date",
-	"approved",
-	"description",
-	"state",
-	"author",
-	"closed_by",
-	"reason",
-	"user",
-	"destination",
-	"source",
-	"created_on",
-	"updated_on",
+var columns = common.Columns[Activity]{
+	{Name: "pull_request", DefaultSorter: true, Compare: func(a, b Activity) bool {
+		return a.PullRequest.ID < b.PullRequest.ID
+	}},
+	{Name: "date", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Approval != nil && b.Approval != nil {
+			return a.Approval.Date.Before(b.Approval.Date)
+		} else if a.Update != nil && b.Update != nil {
+			return a.Update.Date.Before(b.Update.Date)
+		}
+		return false
+	}},
+	{Name: "approved", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Approval != nil && b.Approval != nil {
+			return a.Approval.User.Name < b.Approval.User.Name
+		}
+		return false
+	}},
+	{Name: "description", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.Description), strings.ToLower(b.Update.Description)) == -1
+		}
+		return false
+	}},
+	{Name: "state", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.State), strings.ToLower(b.Update.State)) == -1
+		}
+		return false
+	}},
+	{Name: "author", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.Author.Name), strings.ToLower(b.Update.Author.Name)) == -1
+		}
+		return false
+	}},
+	{Name: "closed_by", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.ClosedBy.Name), strings.ToLower(b.Update.ClosedBy.Name)) == -1
+		}
+		return false
+	}},
+	{Name: "reason", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.Reason), strings.ToLower(b.Update.Reason)) == -1
+		}
+		return false
+	}},
+	{Name: "user", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Approval != nil && b.Approval != nil {
+			return strings.Compare(strings.ToLower(a.Approval.User.Name), strings.ToLower(b.Approval.User.Name)) == -1
+		} else if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.Author.Name), strings.ToLower(b.Update.Author.Name)) == -1
+		}
+		return false
+	}},
+	{Name: "destination", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil && a.Update.Destination.Repository != nil && b.Update.Destination.Repository != nil {
+			return strings.Compare(strings.ToLower(a.Update.Destination.Repository.Name), strings.ToLower(b.Update.Destination.Repository.Name)) == -1
+		}
+		return false
+	}},
+	{Name: "source", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil && a.Update.Source.Repository != nil && b.Update.Source.Repository != nil {
+			return strings.Compare(strings.ToLower(a.Update.Source.Repository.Name), strings.ToLower(b.Update.Source.Repository.Name)) == -1
+		}
+		return false
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return a.Update.CreatedOn.Before(b.Update.CreatedOn)
+		}
+		return false
+	}},
+	{Name: "updated_on", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil && !a.Update.UpdatedOn.IsZero() && !b.Update.UpdatedOn.IsZero() {
+			return a.Update.UpdatedOn.Before(b.Update.UpdatedOn)
+		}
+		return false
+	}},
 }
 
 // GetHeaders gets the header for a table

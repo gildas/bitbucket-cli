@@ -27,7 +27,7 @@ var getOptions struct {
 
 func init() {
 	Command.AddCommand(getCmd)
-	getOptions.Columns = flags.NewEnumSliceFlag(columns...)
+	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 
 	getCmd.Flags().StringVar(&getOptions.Owner, "user", "", "Owner of the key")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")

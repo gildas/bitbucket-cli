@@ -70,48 +70,68 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"id",
-	"name",
-	"full_name",
-	"slug",
-	"owner",
-	"workspace",
-	"project",
-	"main_branch",
-	"has_issues",
-	"has_wiki",
-	"is_private",
-	"fork_policy",
-	"size",
-	"language",
-	"default_merge_strategy",
-	"branching_model",
-	"parent",
-	"created_on",
-	"updated_on",
-}
-
-var sortBy = []string{
-	"id",
-	"+name",
-	"full_name",
-	"slug",
-	"owner",
-	"workspace",
-	"project",
-	"main_branch",
-	"has_issues",
-	"has_wiki",
-	"is_private",
-	"fork_policy",
-	"size",
-	"language",
-	"default_merge_strategy",
-	"branching_model",
-	"parent",
-	"created_on",
-	"updated_on",
+var columns = common.Columns[Repository]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "full_name", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.FullName), strings.ToLower(b.FullName)) == -1
+	}},
+	{Name: "slug", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Slug), strings.ToLower(b.Slug)) == -1
+	}},
+	{Name: "owner", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Owner.Name), strings.ToLower(b.Owner.Name)) == -1
+	}},
+	{Name: "workspace", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Workspace.Name), strings.ToLower(b.Workspace.Name)) == -1
+	}},
+	{Name: "project", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Project.Name), strings.ToLower(b.Project.Name)) == -1
+	}},
+	{Name: "main_branch", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.MainBranch), strings.ToLower(b.MainBranch)) == -1
+	}},
+	{Name: "has_issues", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.HasIssues == b.HasIssues
+	}},
+	{Name: "has_wiki", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.HasWiki == b.HasWiki
+	}},
+	{Name: "is_private", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.IsPrivate == b.IsPrivate
+	}},
+	{Name: "fork_policy", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.ForkPolicy), strings.ToLower(b.ForkPolicy)) == -1
+	}},
+	{Name: "size", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.Size < b.Size
+	}},
+	{Name: "language", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Language), strings.ToLower(b.Language)) == -1
+	}},
+	{Name: "default_merge_strategy", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.DefaultMergeStrategy), strings.ToLower(b.DefaultMergeStrategy)) == -1
+	}},
+	{Name: "branching_model", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.BranchingModel), strings.ToLower(b.BranchingModel)) == -1
+	}},
+	{Name: "parent", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		if a.Parent == nil && b.Parent == nil {
+			return false
+		} else if a.Parent == nil {
+			return true
+		} else if b.Parent == nil {
+			return false
+		}
+		return strings.Compare(strings.ToLower(a.Parent.FullName), strings.ToLower(b.Parent.FullName)) == -1
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "updated_on", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.UpdatedOn.Before(b.UpdatedOn)
+	}},
 }
 
 var RepositoryCache = common.NewCache[Repository]()

@@ -2,7 +2,6 @@ package project
 
 import (
 	"fmt"
-	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
@@ -29,8 +28,8 @@ func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
-	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
-	listOptions.SortBy = flags.NewEnumFlag(sortBy...)
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
+	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list projects from")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
@@ -65,8 +64,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No project found")
 		return nil
 	}
-	core.Sort(projects, func(a, b Project) bool {
-		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
-	})
+	core.Sort(projects, columns.SortBy(listOptions.SortBy.Value))
 	return currentProfile.Print(cmd.Context(), cmd, Projects(projects))
 }

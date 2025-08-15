@@ -1,8 +1,6 @@
 package gpgkey
 
 import (
-	"strings"
-
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
@@ -26,8 +24,8 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns...)
-	listOptions.SortBy = flags.NewEnumFlag(sortBy...)
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
+	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().StringVar(&listOptions.Owner, "user", "", "Owner of the keys")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
@@ -46,6 +44,6 @@ func listProcess(cmd *cobra.Command, args []string) error {
 	if len(keys) == 0 {
 		log.Infof("No key found")
 	}
-	core.Sort(keys, func(a, b GPGKey) bool { return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1 })
+	core.Sort(keys, columns.SortBy(listOptions.SortBy.Value))
 	return profile.Current.Print(cmd.Context(), cmd, GPGKeys(keys))
 }

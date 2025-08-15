@@ -32,18 +32,19 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"name",
-	"size",
-	"downloads",
-	"owner",
-}
-
-var sortBy = []string{
-	"+name",
-	"size",
-	"downloads",
-	"owner",
+var columns = common.Columns[Artifact]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b Artifact) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "size", DefaultSorter: false, Compare: func(a, b Artifact) bool {
+		return a.Size < b.Size
+	}},
+	{Name: "downloads", DefaultSorter: false, Compare: func(a, b Artifact) bool {
+		return a.Downloads < b.Downloads
+	}},
+	{Name: "owner", DefaultSorter: false, Compare: func(a, b Artifact) bool {
+		return strings.Compare(strings.ToLower(a.User.Username), strings.ToLower(b.User.Username)) == -1
+	}},
 }
 
 // GetHeaders gets the header for a table

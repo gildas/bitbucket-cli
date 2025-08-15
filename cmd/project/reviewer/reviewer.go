@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-core"
@@ -31,16 +32,16 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"type",
-	"reviewer_type",
-	"user",
-}
-
-var sortBy = []string{
-	"type",
-	"reviewer_type",
-	"+user",
+var columns = common.Columns[Reviewer]{
+	{Name: "user", DefaultSorter: true, Compare: func(a, b Reviewer) bool {
+		return strings.Compare(strings.ToLower(a.User.Name), strings.ToLower(b.User.Name)) == -1
+	}},
+	{Name: "type", DefaultSorter: false, Compare: func(a, b Reviewer) bool {
+		return strings.Compare(strings.ToLower(a.Type), strings.ToLower(b.Type)) == -1
+	}},
+	{Name: "reviewer_type", DefaultSorter: false, Compare: func(a, b Reviewer) bool {
+		return strings.Compare(strings.ToLower(a.ReviewerType), strings.ToLower(b.ReviewerType)) == -1
+	}},
 }
 
 // GetHeaders gets the header for a table

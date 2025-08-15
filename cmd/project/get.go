@@ -30,7 +30,7 @@ func init() {
 	Command.AddCommand(getCmd)
 
 	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
-	getOptions.Columns = flags.NewEnumSliceFlag(columns...)
+	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get projects from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Workspace.CompletionFunc("workspace"))

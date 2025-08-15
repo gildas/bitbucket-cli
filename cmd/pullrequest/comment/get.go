@@ -31,7 +31,7 @@ func init() {
 	Command.AddCommand(getCmd)
 
 	getOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
-	getOptions.Columns = flags.NewEnumSliceFlag(columns...)
+	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get a pullrequest comment from. Defaults to the current repository")
 	getCmd.Flags().Var(getOptions.PullRequestID, "pullrequest", "Pullrequest to get comments from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")

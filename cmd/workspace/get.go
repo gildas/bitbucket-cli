@@ -30,7 +30,7 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.Columns = flags.NewEnumSliceFlag(columns...)
+	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().StringVar(&getOptions.Member, "member", "", "Get a workspace member")
 	getCmd.Flags().BoolVar(&getOptions.WithMembers, "members", false, "List the workspace members")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")

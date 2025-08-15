@@ -31,16 +31,16 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"id",
-	"name",
-	"type",
-}
-
-var sortBy = []string{
-	"id",
-	"+name",
-	"type",
+var columns = common.Columns[Component]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b Component) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "type", DefaultSorter: false, Compare: func(a, b Component) bool {
+		return strings.Compare(strings.ToLower(a.Type), strings.ToLower(b.Type)) == -1
+	}},
+	{Name: "id", DefaultSorter: false, Compare: func(a, b Component) bool {
+		return a.ID < b.ID
+	}},
 }
 
 // GetHeaders gets the header for a table

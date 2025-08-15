@@ -56,38 +56,67 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"id",
-	"title",
-	"description",
-	"source",
-	"destination",
-	"state",
-	"author",
-	"closed_by",
-	"commit",
-	"reason",
-	"comments",
-	"tasks",
-	"created_on",
-	"updated_on",
-}
-
-var sortBy = []string{
-	"+id",
-	"title",
-	"description",
-	"source",
-	"destination",
-	"state",
-	"author",
-	"closed_by",
-	"commit",
-	"reason",
-	"comments",
-	"tasks",
-	"created_on",
-	"updated_on",
+var columns = common.Columns[PullRequest]{
+	{Name: "id", DefaultSorter: true, Compare: func(a, b PullRequest) bool {
+		return a.ID < b.ID
+	}},
+	{Name: "title", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Title), strings.ToLower(b.Title)) == -1
+	}},
+	{Name: "description", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Description), strings.ToLower(b.Description)) == -1
+	}},
+	{Name: "source", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Source.Branch.Name), strings.ToLower(b.Source.Branch.Name)) == -1
+	}},
+	{Name: "destination", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Destination.Branch.Name), strings.ToLower(b.Destination.Branch.Name)) == -1
+	}},
+	{Name: "state", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.State), strings.ToLower(b.State)) == -1
+	}},
+	{Name: "author", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Author.Name), strings.ToLower(b.Author.Name)) == -1
+	}},
+	{Name: "closed_by", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.ClosedBy.Name), strings.ToLower(b.ClosedBy.Name)) == -1
+	}},
+	{Name: "commit", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		if a.MergeCommit != nil && b.MergeCommit != nil {
+			return strings.Compare(strings.ToLower(a.MergeCommit.Hash), strings.ToLower(b.MergeCommit.Hash)) == -1
+		}
+		if a.MergeCommit != nil {
+			return true
+		}
+		if b.MergeCommit != nil {
+			return false
+		}
+		return false
+	}},
+	{Name: "reason", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Reason), strings.ToLower(b.Reason)) == -1
+	}},
+	{Name: "comments", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return a.CommentCount < b.CommentCount
+	}},
+	{Name: "tasks", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return a.TaskCount < b.TaskCount
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "updated_on", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		if a.UpdatedOn.IsZero() && b.UpdatedOn.IsZero() {
+			return false
+		}
+		if a.UpdatedOn.IsZero() {
+			return true
+		}
+		if b.UpdatedOn.IsZero() {
+			return false
+		}
+		return a.UpdatedOn.Before(b.UpdatedOn)
+	}},
 }
 
 func init() {

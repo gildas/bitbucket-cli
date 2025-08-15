@@ -50,28 +50,40 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"id",
-	"created_on",
-	"updated_on",
-	"file",
-	"user",
-	"content",
-	"deleted",
-	"pending",
-	"pullrequest",
-}
-
-var sortBy = []string{
-	"id",
-	"created_on",
-	"+updated_on",
-	"file",
-	"user",
-	"content",
-	"deleted",
-	"pending",
-	"pullrequest",
+var columns = common.Columns[Comment]{
+	{Name: "id", DefaultSorter: true, Compare: func(a, b Comment) bool {
+		return a.ID < b.ID
+	}},
+	{Name: "content", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return strings.Compare(strings.ToLower(a.Content.Raw), strings.ToLower(b.Content.Raw)) == -1
+	}},
+	{Name: "user", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return strings.Compare(strings.ToLower(a.User.Name), strings.ToLower(b.User.Name)) == -1
+	}},
+	{Name: "file", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		if a.Anchor != nil && b.Anchor != nil {
+			return strings.Compare(strings.ToLower(a.Anchor.String()), strings.ToLower(b.Anchor.String())) == -1
+		}
+		return a.Anchor != nil
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "updated_on", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return a.UpdatedOn.Before(b.UpdatedOn)
+	}},
+	{Name: "deleted", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return a.IsDeleted == b.IsDeleted
+	}},
+	{Name: "pending", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return a.IsPending == b.IsPending
+	}},
+	{Name: "pullrequest", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		if a.PullRequest != nil && b.PullRequest != nil {
+			return a.PullRequest.ID < b.PullRequest.ID
+		}
+		return a.PullRequest != nil
+	}},
 }
 
 // GetHeaders gets the header for a table

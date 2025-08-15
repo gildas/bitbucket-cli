@@ -32,7 +32,7 @@ func init() {
 
 	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
 	getOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
-	getOptions.Columns = flags.NewEnumSliceFlag(columns...)
+	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get reviewers from")
 	getCmd.Flags().Var(getOptions.Project, "project", "Project Key to get reviewers from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")

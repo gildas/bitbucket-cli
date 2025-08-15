@@ -68,7 +68,7 @@ var columns = common.Columns[*Profile]{
 		return strings.Compare(strings.ToLower(a.Description), strings.ToLower(b.Description)) == -1
 	}},
 	{Name: "default", DefaultSorter: false, Compare: func(a, b *Profile) bool {
-		return strings.Compare(strings.ToLower(a.Default), strings.ToLower(b.Default)) == -1
+		return a.Default == b.Default
 	}},
 	{Name: "user", DefaultSorter: false, Compare: func(a, b *Profile) bool {
 		return strings.Compare(strings.ToLower(a.User), strings.ToLower(b.User)) == -1
@@ -80,10 +80,10 @@ var columns = common.Columns[*Profile]{
 		return strings.Compare(strings.ToLower(a.AccessToken), strings.ToLower(b.AccessToken)) == -1
 	}},
 	{Name: "tokenexpires", DefaultSorter: false, Compare: func(a, b *Profile) bool {
-		return strings.Compare(strings.ToLower(a.TokenExpires), strings.ToLower(b.TokenExpires)) == -1
+		return a.TokenExpires.Before(b.TokenExpires)
 	}},
 	{Name: "apiRoot", DefaultSorter: false, Compare: func(a, b *Profile) bool {
-		return strings.Compare(strings.ToLower(a.APIRoot), strings.ToLower(b.APIRoot)) == -1
+		return a.APIRoot != nil && b.APIRoot != nil && strings.Compare(strings.ToLower(a.APIRoot.String()), strings.ToLower(b.APIRoot.String())) == -1
 	}},
 	{Name: "defaultworkspace", DefaultSorter: false, Compare: func(a, b *Profile) bool {
 		return strings.Compare(strings.ToLower(a.DefaultWorkspace), strings.ToLower(b.DefaultWorkspace)) == -1
@@ -92,7 +92,7 @@ var columns = common.Columns[*Profile]{
 		return strings.Compare(strings.ToLower(a.DefaultProject), strings.ToLower(b.DefaultProject)) == -1
 	}},
 	{Name: "callbackport", DefaultSorter: false, Compare: func(a, b *Profile) bool {
-		return strings.Compare(strings.ToLower(a.CallbackPort), strings.ToLower(b.CallbackPort)) == -1
+		return a.CallbackPort < b.CallbackPort
 	}},
 }
 

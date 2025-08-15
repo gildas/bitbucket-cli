@@ -49,26 +49,31 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"key",
-	"name",
-	"description",
-	"owner",
-	"workspace",
-	"created_on",
-	"updated_on",
-	"private",
-}
-
-var sortBy = []string{
-	"key",
-	"+name",
-	"description",
-	"owner",
-	"workspace",
-	"created_on",
-	"updated_on",
-	"private",
+var columns = common.Columns[Project]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b Project) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "key", DefaultSorter: false, Compare: func(a, b Project) bool {
+		return strings.Compare(strings.ToLower(a.Key), strings.ToLower(b.Key)) == -1
+	}},
+	{Name: "description", DefaultSorter: false, Compare: func(a, b Project) bool {
+		return strings.Compare(strings.ToLower(a.Description), strings.ToLower(b.Description)) == -1
+	}},
+	{Name: "owner", DefaultSorter: false, Compare: func(a, b Project) bool {
+		return strings.Compare(strings.ToLower(a.Owner.Name), strings.ToLower(b.Owner.Name)) == -1
+	}},
+	{Name: "workspace", DefaultSorter: false, Compare: func(a, b Project) bool {
+		return strings.Compare(strings.ToLower(a.Workspace.Name), strings.ToLower(b.Workspace.Name)) == -1
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b Project) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "updated_on", DefaultSorter: false, Compare: func(a, b Project) bool {
+		return a.UpdatedOn.Before(b.UpdatedOn)
+	}},
+	{Name: "private", DefaultSorter: false, Compare: func(a, b Project) bool {
+		return a.IsPrivate == b.IsPrivate
+	}},
 }
 
 func init() {
