@@ -252,6 +252,8 @@ __archive_all__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_arm64.tar.gz \
 	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.zip \
 	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.zip \
+	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z \
+	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z \
 	;
 __archive_chocolatey__: \
 	packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z \
@@ -282,15 +284,15 @@ $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.zip: $(BIN_DIR)/windows/amd64/$(P
 	$Q $(ZIP) -9 -q --junk-paths $@ $<
 $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.zip: $(BIN_DIR)/windows/arm64/$(PROJECT).exe
 	$Q $(ZIP) -9 -q --junk-paths $@ $<
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows/amd64/$(PROJECT).exe
+	$Q $(7ZIP) a -r $@ $<
+$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows/arm64/$(PROJECT).exe
+	$Q $(7ZIP) a -r $@ $<
 
 packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z
 	$Q $(COPY) $< $@
 packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z
 	$Q $(COPY) $< $@
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows/amd64/$(PROJECT).exe
-	$Q $(7ZIP) a -r $@ $<
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows/arm64/$(PROJECT).exe
-	$Q $(7ZIP) a -r $@ $<
 
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux/amd64/$(PROJECT)
 	$Q PLATFORM=linux/amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
