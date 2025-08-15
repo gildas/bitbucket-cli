@@ -1,12 +1,14 @@
 package repository
 
+import "github.com/spf13/cobra"
+
 type Repositories []Repository
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableables
-func (repositories Repositories) GetHeader() []string {
-	return Repository{}.GetHeader(false)
+func (repositories Repositories) GetHeaders(cmd *cobra.Command) []string {
+	return Repository{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for a table

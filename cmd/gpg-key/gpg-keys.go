@@ -1,12 +1,14 @@
 package gpgkey
 
+import "github.com/spf13/cobra"
+
 type GPGKeys []GPGKey
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableables
-func (keys GPGKeys) GetHeader() []string {
-	return GPGKey{}.GetHeader(false)
+func (keys GPGKeys) GetHeaders(cmd *cobra.Command) []string {
+	return GPGKey{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for a table

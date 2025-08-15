@@ -1,12 +1,14 @@
 package issue
 
+import "github.com/spf13/cobra"
+
 type Issues []Issue
 
-// GetHeader gets the headers for the list command
+// GetHeaders gets the headers for the list command
 //
 // implements common.Tableables
-func (issues Issues) GetHeader() []string {
-	return Issue{}.GetHeader(false)
+func (issues Issues) GetHeaders(cmd *cobra.Command) []string {
+	return Issue{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for the list command

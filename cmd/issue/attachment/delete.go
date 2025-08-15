@@ -22,11 +22,8 @@ var deleteCmd = &cobra.Command{
 }
 
 var deleteOptions struct {
-	IssueID      *flags.EnumFlag
-	Repository   string
-	StopOnError  bool
-	WarnOnError  bool
-	IgnoreErrors bool
+	IssueID    *flags.EnumFlag
+	Repository string
 }
 
 func init() {
@@ -35,10 +32,6 @@ func init() {
 	deleteOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
 	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete an issue attachment from. Defaults to the current repository")
 	deleteCmd.Flags().Var(deleteOptions.IssueID, "issue", "Issue to delete attachments from")
-	deleteCmd.Flags().BoolVar(&deleteOptions.StopOnError, "stop-on-error", false, "Stop on error")
-	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
-	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
-	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 	_ = deleteCmd.MarkFlagRequired("issue")
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.IssueID.CompletionFunc("issue"))
 }

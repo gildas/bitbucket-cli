@@ -41,10 +41,45 @@ var Command = &cobra.Command{
 	},
 }
 
-// GetHeader gets the header for a table
+var columns = common.Columns[SSHKey]{
+	{Name: "id", DefaultSorter: true, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.ID.String()), strings.ToLower(b.ID.String())) == -1
+	}},
+	{Name: "type", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.Type), strings.ToLower(b.Type)) == -1
+	}},
+	{Name: "key", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.Key), strings.ToLower(b.Key)) == -1
+	}},
+	{Name: "fingerprint", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.Fingerprint), strings.ToLower(b.Fingerprint)) == -1
+	}},
+	{Name: "owner", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.Owner.Name), strings.ToLower(b.Owner.Name)) == -1
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "expires_on", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return a.ExpiresOn.Before(b.ExpiresOn)
+	}},
+	{Name: "last_used", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return a.LastUsed.Before(b.LastUsed)
+	}},
+	{Name: "comment", DefaultSorter: false, Compare: func(a, b SSHKey) bool {
+		return strings.Compare(strings.ToLower(a.Comment), strings.ToLower(b.Comment)) == -1
+	}},
+}
+
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (key SSHKey) GetHeader(short bool) []string {
+func (key SSHKey) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"Key ID", "Name", "Owner", "Fingerprint", "Comment"}
 }
 
@@ -52,7 +87,37 @@ func (key SSHKey) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (key SSHKey) GetRow(headers []string) []string {
-	return []string{key.ID.String(), key.Label, key.Owner.Name, key.Fingerprint, key.Comment}
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "key id":
+			row = append(row, key.ID.String())
+		case "name":
+			row = append(row, key.Label)
+		case "owner":
+			row = append(row, key.Owner.Name)
+		case "fingerprint":
+			row = append(row, key.Fingerprint)
+		case "comment":
+			row = append(row, key.Comment)
+		case "created on":
+			row = append(row, key.CreatedOn.Format("2006-01-02 15:04:05"))
+		case "expires on":
+			if !key.ExpiresOn.IsZero() {
+				row = append(row, key.ExpiresOn.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		case "last used":
+			if !key.LastUsed.IsZero() {
+				row = append(row, key.LastUsed.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		}
+	}
+	return row
 }
 
 // GetSSHKeys gets the SSHKeys

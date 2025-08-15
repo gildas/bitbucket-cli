@@ -1,12 +1,14 @@
 package project
 
+import "github.com/spf13/cobra"
+
 type Projects []Project
 
-// GetHeader gets the headers for the list command
+// GetHeaders gets the headers for the list command
 //
 // implements common.Tableables
-func (projects Projects) GetHeader() []string {
-	return Project{}.GetHeader(false)
+func (projects Projects) GetHeaders(cmd *cobra.Command) []string {
+	return Project{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for the list command

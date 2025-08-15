@@ -56,15 +56,83 @@ var Command = &cobra.Command{
 	},
 }
 
+var columns = common.Columns[PullRequest]{
+	{Name: "id", DefaultSorter: true, Compare: func(a, b PullRequest) bool {
+		return a.ID < b.ID
+	}},
+	{Name: "title", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Title), strings.ToLower(b.Title)) == -1
+	}},
+	{Name: "description", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Description), strings.ToLower(b.Description)) == -1
+	}},
+	{Name: "source", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Source.Branch.Name), strings.ToLower(b.Source.Branch.Name)) == -1
+	}},
+	{Name: "destination", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Destination.Branch.Name), strings.ToLower(b.Destination.Branch.Name)) == -1
+	}},
+	{Name: "state", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.State), strings.ToLower(b.State)) == -1
+	}},
+	{Name: "author", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Author.Name), strings.ToLower(b.Author.Name)) == -1
+	}},
+	{Name: "closed_by", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.ClosedBy.Name), strings.ToLower(b.ClosedBy.Name)) == -1
+	}},
+	{Name: "commit", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		if a.MergeCommit != nil && b.MergeCommit != nil {
+			return strings.Compare(strings.ToLower(a.MergeCommit.Hash), strings.ToLower(b.MergeCommit.Hash)) == -1
+		}
+		if a.MergeCommit != nil {
+			return true
+		}
+		if b.MergeCommit != nil {
+			return false
+		}
+		return false
+	}},
+	{Name: "reason", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return strings.Compare(strings.ToLower(a.Reason), strings.ToLower(b.Reason)) == -1
+	}},
+	{Name: "comments", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return a.CommentCount < b.CommentCount
+	}},
+	{Name: "tasks", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return a.TaskCount < b.TaskCount
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "updated_on", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		if a.UpdatedOn.IsZero() && b.UpdatedOn.IsZero() {
+			return false
+		}
+		if a.UpdatedOn.IsZero() {
+			return true
+		}
+		if b.UpdatedOn.IsZero() {
+			return false
+		}
+		return a.UpdatedOn.Before(b.UpdatedOn)
+	}},
+}
+
 func init() {
 	Command.AddCommand(comment.Command)
 	Command.AddCommand(activity.Command)
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (pullrequest PullRequest) GetHeader(short bool) []string {
+func (pullrequest PullRequest) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"ID", "Title", "Description", "source", "destination", "state"}
 }
 
@@ -72,14 +140,49 @@ func (pullrequest PullRequest) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (pullrequest PullRequest) GetRow(headers []string) []string {
-	return []string{
-		fmt.Sprintf("%d", pullrequest.ID),
-		pullrequest.Title,
-		pullrequest.Description,
-		pullrequest.Source.Branch.Name,
-		pullrequest.Destination.Branch.Name,
-		pullrequest.State,
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "id":
+			row = append(row, fmt.Sprintf("%d", pullrequest.ID))
+		case "title":
+			row = append(row, pullrequest.Title)
+		case "description":
+			row = append(row, pullrequest.Description)
+		case "source":
+			row = append(row, pullrequest.Source.Branch.Name)
+		case "destination":
+			row = append(row, pullrequest.Destination.Branch.Name)
+		case "state":
+			row = append(row, pullrequest.State)
+		case "author":
+			row = append(row, pullrequest.Author.Name)
+		case "closed by":
+			row = append(row, pullrequest.ClosedBy.Name)
+		case "commit":
+			if pullrequest.MergeCommit != nil {
+				row = append(row, pullrequest.MergeCommit.Hash[:7])
+			} else {
+				row = append(row, " ")
+			}
+		case "reason":
+			row = append(row, pullrequest.Reason)
+		case "comments":
+			row = append(row, fmt.Sprintf("%d", pullrequest.CommentCount))
+		case "tasks":
+			row = append(row, fmt.Sprintf("%d", pullrequest.TaskCount))
+		case "created on", "created_on", "created-on":
+			row = append(row, pullrequest.CreatedOn.Format("2006-01-02 15:04:05"))
+		case "updated on", "updated_on", "updated-on":
+			if !pullrequest.UpdatedOn.IsZero() {
+				row = append(row, pullrequest.UpdatedOn.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		}
 	}
+	return row
 }
 
 // Validate validates a PullRequest

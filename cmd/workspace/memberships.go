@@ -1,12 +1,14 @@
 package workspace
 
+import "github.com/spf13/cobra"
+
 type Memberships []Membership
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableables
-func (memberships Memberships) GetHeader() []string {
-	return Membership{}.GetHeader(false)
+func (memberships Memberships) GetHeaders(cmd *cobra.Command) []string {
+	return Membership{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for a table

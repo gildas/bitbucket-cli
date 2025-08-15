@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
@@ -30,10 +31,27 @@ var Command = &cobra.Command{
 	},
 }
 
-// GetHeader gets the header for a table
+var columns = common.Columns[Attachment]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b Attachment) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "type", DefaultSorter: false, Compare: func(a, b Attachment) bool {
+		return strings.Compare(strings.ToLower(a.Type), strings.ToLower(b.Type)) == -1
+	}},
+	{Name: "url", DefaultSorter: false, Compare: func(a, b Attachment) bool {
+		return strings.Compare(strings.ToLower(a.Link.String()), strings.ToLower(b.Link.String())) == -1
+	}},
+}
+
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (attachment Attachment) GetHeader(short bool) []string {
+func (attachment Attachment) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"Name", "URL"}
 }
 
@@ -41,10 +59,19 @@ func (attachment Attachment) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (attachment Attachment) GetRow(headers []string) []string {
-	return []string{
-		attachment.Name,
-		attachment.Link.String(),
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "name":
+			row = append(row, attachment.Name)
+		case "link", "url":
+			row = append(row, attachment.Link.String())
+		case "type":
+			row = append(row, attachment.Type)
+		}
 	}
+	return row
 }
 
 // Validate validates a Comment

@@ -22,16 +22,24 @@ var listCmd = &cobra.Command{
 var listOptions struct {
 	Repository    string
 	PullRequestID *flags.EnumFlag
+	Columns       *flags.EnumSliceFlag
+	SortBy        *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
+	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequest activities from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.PullRequestID, "pullrequest", "pullrequest to list activities from")
+	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
+	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.MarkFlagRequired("pullrequest")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.PullRequestID.CompletionFunc("pullrequest"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -54,18 +62,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No activities found")
 		return nil
 	}
-	core.Sort(activities, func(a, b Activity) bool {
-		if a.PullRequest.ID < b.PullRequest.ID {
-			return true
-		}
-		if a.Update != nil && b.Update != nil {
-			return a.Update.Date.Before(b.Update.Date)
-		}
-		if a.Approval != nil && b.Approval != nil {
-			return a.Approval.Date.Before(b.Approval.Date)
-		}
-		return false
-	})
+	core.Sort(activities, columns.SortBy(listOptions.SortBy.Value))
 	return profile.Current.Print(
 		cmd.Context(),
 		cmd,

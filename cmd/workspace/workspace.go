@@ -3,6 +3,7 @@ package workspace
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -33,6 +34,18 @@ var Command = &cobra.Command{
 	},
 }
 
+var columns = common.Columns[Workspace]{
+	{Name: "id", DefaultSorter: false, Compare: func(a, b Workspace) bool {
+		return strings.Compare(strings.ToLower(a.ID.String()), strings.ToLower(b.ID.String())) == -1
+	}},
+	{Name: "name", DefaultSorter: true, Compare: func(a, b Workspace) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "slug", DefaultSorter: false, Compare: func(a, b Workspace) bool {
+		return strings.Compare(strings.ToLower(a.Slug), strings.ToLower(b.Slug)) == -1
+	}},
+}
+
 var WorkspaceCache = common.NewCache[Workspace]()
 
 // GetID gets the ID of the workspace
@@ -49,10 +62,15 @@ func (workspace Workspace) GetName() string {
 	return workspace.Name
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (workspace Workspace) GetHeader(short bool) []string {
+func (workspace Workspace) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"ID", "Name", "Slug"}
 }
 
@@ -60,11 +78,19 @@ func (workspace Workspace) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (workspace Workspace) GetRow(headers []string) []string {
-	return []string{
-		workspace.ID.String(),
-		workspace.Name,
-		workspace.Slug,
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "id":
+			row = append(row, workspace.ID.String())
+		case "name":
+			row = append(row, workspace.Name)
+		case "slug":
+			row = append(row, workspace.Slug)
+		}
 	}
+	return row
 }
 
 // GetWorkspace gets the workspace by its slug

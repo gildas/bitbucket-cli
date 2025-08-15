@@ -3,11 +3,13 @@ package commit
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/spf13/cobra"
 )
@@ -47,10 +49,36 @@ var Command = &cobra.Command{
 	},
 }
 
-// GetHeader gets the header for a table
+var columns = common.Columns[Commit]{
+	{Name: "hash", DefaultSorter: true, Compare: func(a, b Commit) bool {
+		return strings.Compare(strings.ToLower(a.Hash), strings.ToLower(b.Hash)) == -1
+	}},
+	{Name: "longhash", DefaultSorter: false, Compare: func(a, b Commit) bool {
+		return strings.Compare(strings.ToLower(a.Message), strings.ToLower(b.Message)) == -1
+	}},
+	{Name: "author", DefaultSorter: false, Compare: func(a, b Commit) bool {
+		return strings.Compare(strings.ToLower(a.Author.User.Name), strings.ToLower(b.Author.User.Name)) == -1
+	}},
+	{Name: "message", DefaultSorter: false, Compare: func(a, b Commit) bool {
+		return strings.Compare(strings.ToLower(a.Message), strings.ToLower(b.Message)) == -1
+	}},
+	{Name: "date", DefaultSorter: false, Compare: func(a, b Commit) bool {
+		return a.Date.Before(b.Date)
+	}},
+	{Name: "repository", DefaultSorter: false, Compare: func(a, b Commit) bool {
+		return strings.Compare(strings.ToLower(a.Repository.Name), strings.ToLower(b.Repository.Name)) == -1
+	}},
+}
+
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (commit Commit) GetHeader(short bool) []string {
+func (commit Commit) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"Hash", "Author", "Message"}
 }
 
@@ -58,11 +86,25 @@ func (commit Commit) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (commit Commit) GetRow(headers []string) []string {
-	return []string{
-		commit.Hash[:7],
-		commit.Author.User.Name,
-		commit.Message,
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "hash":
+			row = append(row, commit.Hash[:7])
+		case "longhash", "fullhash":
+			row = append(row, commit.Hash)
+		case "author":
+			row = append(row, commit.Author.User.Name)
+		case "message":
+			row = append(row, commit.Message)
+		case "date":
+			row = append(row, commit.Date.Format("2006-01-02 15:04:05"))
+		case "repository":
+			row = append(row, commit.Repository.Name)
+		}
 	}
+	return row
 }
 
 // Validate validates a Commit

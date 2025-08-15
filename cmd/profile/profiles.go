@@ -60,11 +60,11 @@ func (profiles profiles) Names() []string {
 	return names
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableables
-func (profiles profiles) GetHeader() []string {
-	return Profile{}.GetHeader(false)
+func (profiles profiles) GetHeaders(cmd *cobra.Command) []string {
+	return Profile{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for a table

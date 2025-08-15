@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -69,6 +70,70 @@ var Command = &cobra.Command{
 	},
 }
 
+var columns = common.Columns[Repository]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "full_name", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.FullName), strings.ToLower(b.FullName)) == -1
+	}},
+	{Name: "slug", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Slug), strings.ToLower(b.Slug)) == -1
+	}},
+	{Name: "owner", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Owner.Name), strings.ToLower(b.Owner.Name)) == -1
+	}},
+	{Name: "workspace", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Workspace.Name), strings.ToLower(b.Workspace.Name)) == -1
+	}},
+	{Name: "project", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Project.Name), strings.ToLower(b.Project.Name)) == -1
+	}},
+	{Name: "main_branch", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.MainBranch), strings.ToLower(b.MainBranch)) == -1
+	}},
+	{Name: "has_issues", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.HasIssues == b.HasIssues
+	}},
+	{Name: "has_wiki", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.HasWiki == b.HasWiki
+	}},
+	{Name: "is_private", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.IsPrivate == b.IsPrivate
+	}},
+	{Name: "fork_policy", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.ForkPolicy), strings.ToLower(b.ForkPolicy)) == -1
+	}},
+	{Name: "size", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.Size < b.Size
+	}},
+	{Name: "language", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.Language), strings.ToLower(b.Language)) == -1
+	}},
+	{Name: "default_merge_strategy", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.DefaultMergeStrategy), strings.ToLower(b.DefaultMergeStrategy)) == -1
+	}},
+	{Name: "branching_model", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return strings.Compare(strings.ToLower(a.BranchingModel), strings.ToLower(b.BranchingModel)) == -1
+	}},
+	{Name: "parent", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		if a.Parent == nil && b.Parent == nil {
+			return false
+		} else if a.Parent == nil {
+			return true
+		} else if b.Parent == nil {
+			return false
+		}
+		return strings.Compare(strings.ToLower(a.Parent.FullName), strings.ToLower(b.Parent.FullName)) == -1
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "updated_on", DefaultSorter: false, Compare: func(a, b Repository) bool {
+		return a.UpdatedOn.Before(b.UpdatedOn)
+	}},
+}
+
 var RepositoryCache = common.NewCache[Repository]()
 
 // GetID gets the ID of the repository
@@ -85,10 +150,15 @@ func (repository Repository) GetName() string {
 	return repository.Name
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (repository Repository) GetHeader(short bool) []string {
+func (repository Repository) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"ID", "Name", "Full Name"}
 }
 
@@ -96,11 +166,59 @@ func (repository Repository) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (repository Repository) GetRow(headers []string) []string {
-	return []string{
-		repository.ID.String(),
-		repository.Name,
-		repository.FullName,
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "id":
+			row = append(row, repository.ID.String())
+		case "name":
+			row = append(row, repository.Name)
+		case "full name":
+			row = append(row, repository.FullName)
+		case "slug":
+			row = append(row, repository.Slug)
+		case "owner":
+			row = append(row, repository.Owner.Name)
+		case "workspace":
+			row = append(row, repository.Workspace.Name)
+		case "project":
+			row = append(row, repository.Project.Name)
+		case "main branch":
+			row = append(row, repository.MainBranch)
+		case "issues", "has issues":
+			row = append(row, strconv.FormatBool(repository.HasIssues))
+		case "wiki", "has wiki":
+			row = append(row, strconv.FormatBool(repository.HasWiki))
+		case "is private":
+			row = append(row, strconv.FormatBool(repository.IsPrivate))
+		case "fork policy":
+			row = append(row, repository.ForkPolicy)
+		case "size":
+			row = append(row, strconv.FormatInt(repository.Size, 10))
+		case "language":
+			row = append(row, repository.Language)
+		case "default merge strategy":
+			row = append(row, repository.DefaultMergeStrategy)
+		case "branching model":
+			row = append(row, repository.BranchingModel)
+		case "parent":
+			if repository.Parent != nil {
+				row = append(row, repository.Parent.FullName)
+			} else {
+				row = append(row, " ")
+			}
+		case "created on", "created-on", "created_on", "created":
+			row = append(row, repository.CreatedOn.Format("2006-01-02 15:04:05"))
+		case "updated on", "updated-on", "updated_on", "updated":
+			if !repository.UpdatedOn.IsZero() {
+				row = append(row, repository.UpdatedOn.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		}
 	}
+	return row
 }
 
 // GetRepository gets a repository by its slug

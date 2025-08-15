@@ -40,19 +40,38 @@ var Command = &cobra.Command{
 	},
 }
 
-// GetHeader gets the header for a table
+var columns = common.Columns[Comment]{
+	{Name: "id", DefaultSorter: true, Compare: func(a, b Comment) bool {
+		return a.ID < b.ID
+	}},
+	{Name: "user", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return strings.Compare(strings.ToLower(a.User.Name), strings.ToLower(b.User.Name)) == -1
+	}},
+	{Name: "file", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		if a.Anchor != nil && b.Anchor != nil {
+			return strings.Compare(strings.ToLower(a.Anchor.String()), strings.ToLower(b.Anchor.String())) == -1
+		}
+		return a.Anchor != nil
+	}},
+	{Name: "content", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return strings.Compare(strings.ToLower(a.Content.Raw), strings.ToLower(b.Content.Raw)) == -1
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "updated_on", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return a.UpdatedOn.Before(b.UpdatedOn)
+	}},
+}
+
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (comment Comment) GetHeader(short bool) []string {
-	if short {
-		headers := []string{"ID", "Created On"}
-		if !comment.UpdatedOn.IsZero() {
-			headers = append(headers, "Updated On")
+func (comment Comment) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
-		if comment.Anchor != nil {
-			headers = append(headers, "File")
-		}
-		return append(headers, "User", "Content")
 	}
 	return []string{"ID", "Created On", "Updated On", "File", "User", "Content"}
 }
@@ -61,30 +80,31 @@ func (comment Comment) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (comment Comment) GetRow(headers []string) []string {
-	rows := []string{
-		fmt.Sprintf("%d", comment.ID),
-		comment.CreatedOn.Format("2006-01-02 15:04:05"),
-	}
-	if core.Contains(headers, "Updated On") {
-		updatedOn := ""
-		if !comment.UpdatedOn.IsZero() {
-			updatedOn = comment.UpdatedOn.Format("2006-01-02 15:04:05")
-		}
-		rows = append(rows, updatedOn)
-	}
+	var row []string
 
-	if core.Contains(headers, "File") {
-		file := ""
-		if comment.Anchor != nil {
-			file = comment.Anchor.String()
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "id":
+			row = append(row, fmt.Sprintf("%d", comment.ID))
+		case "created on", "created_on", "created-on", "created":
+			row = append(row, comment.CreatedOn.Format("2006-01-02 15:04:05"))
+		case "updated on", "updated_on", "updated-on", "updated":
+			if !comment.UpdatedOn.IsZero() {
+				row = append(row, comment.UpdatedOn.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, "N/A")
+			}
+		case "file":
+			if comment.Anchor != nil {
+				row = append(row, comment.Anchor.String())
+			}
+		case "user":
+			row = append(row, comment.User.Name)
+		case "content":
+			row = append(row, comment.Content.Raw)
 		}
-		rows = append(rows, file)
 	}
-
-	return append(rows,
-		comment.User.Name,
-		comment.Content.Raw,
-	)
+	return row
 }
 
 // Validate validates a Comment

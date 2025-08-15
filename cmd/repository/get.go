@@ -25,15 +25,19 @@ var getCmd = &cobra.Command{
 var getOptions struct {
 	Workspace *flags.EnumFlag
 	ShowForks bool
+	Columns   *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
 	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get repositories from")
 	getCmd.Flags().BoolVar(&getOptions.ShowForks, "forks", false, "Show the forks of the repository")
+	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Workspace.CompletionFunc("workspace"))
+	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

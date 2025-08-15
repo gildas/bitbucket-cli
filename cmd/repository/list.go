@@ -32,6 +32,8 @@ var listOptions struct {
 	HasIssues  bool
 	HasWiki    bool
 	IsPrivate  bool
+	Columns    *flags.EnumSliceFlag
+	SortBy     *flags.EnumFlag
 }
 
 func init() {
@@ -39,6 +41,8 @@ func init() {
 
 	listOptions.Role = flags.NewEnumFlag("all", "+owner", "admin", "contributor", "member")
 	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
+	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.Role, "role", "Role of the user in the repository (all, owner, admin, contributor, member), Default: owner")
 	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list repositories from")
 	listCmd.Flags().StringVar(&listOptions.Project, "project", "", "Project to list repositories from (optional)")
@@ -48,8 +52,12 @@ func init() {
 	listCmd.Flags().BoolVar(&listOptions.IsPrivate, "is-private", false, "Filter repositories that are private (optional)")
 	listCmd.Flags().StringVar(&listOptions.Language, "language", "", "Filter repositories by language (optional)")
 	listCmd.Flags().StringVar(&listOptions.MainBranch, "main-branch", "", "Filter repositories by main branch name (optional)")
+	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
+	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Workspace.CompletionFunc("workspace"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Role.CompletionFunc("role"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -115,8 +123,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No repository found")
 		return nil
 	}
-	core.Sort(repositories, func(a, b Repository) bool {
-		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
-	})
+	core.Sort(repositories, columns.SortBy(listOptions.SortBy.Value))
 	return profile.Current.Print(cmd.Context(), cmd, Repositories(repositories))
 }

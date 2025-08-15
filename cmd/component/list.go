@@ -1,10 +1,9 @@
 package component
 
 import (
-	"strings"
-
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -18,12 +17,20 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Repository string
+	Columns    *flags.EnumSliceFlag
+	SortBy     *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
+	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list components from. Defaults to the current repository")
+	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
+	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -38,8 +45,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No component found")
 		return nil
 	}
-	core.Sort(components, func(a, b Component) bool {
-		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
-	})
+	core.Sort(components, columns.SortBy(listOptions.SortBy.Value))
 	return profile.Current.Print(cmd.Context(), cmd, Components(components))
 }

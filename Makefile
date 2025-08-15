@@ -63,6 +63,7 @@ TAR     ?= tar
 ZIP     ?= zip
 MOVE    ?= mv
 COPY    ?= cp -f
+AWK     ?= awk
 
 # Flags
 #MAKEFLAGS += --silent
@@ -117,7 +118,7 @@ help: Makefile; ## Display this help
 	@$P "$(PROJECT) version $(VERSION) build " $(BUILD) " in $(BRANCH) branch"
 	@$P "Make recipes you can run: "
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) |\
-		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+		$(AWK) 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 all: test build; ## Test and Build the application
 
@@ -125,7 +126,7 @@ gendoc: __gendoc_init__ $(BIN_DIR)/$(PROJECT).pdf; @ ## Generate the PDF documen
 
 publish: __publish_init__ __publish_binaries__ __publish_snap__; @ ## Publish the binaries to the Repository
 
-archive: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ __archive_snap__ ; @ ## Archive the binaries
+archive: __archive_init__ __archive_all__ __archive_debian__ __archive_rpm__ __archive_chocolatey__ __archive_snap__ ; @ ## Archive the binaries
 
 build: __build_init__ __build_all__; @ ## Build the application for all platforms
 
@@ -225,13 +226,13 @@ __start__: stop $(BIN_DIR)/$(GOOS)/$(PROJECT) | $(TMP_DIR) $(LOG_DIR); $(info $(
 __publish_init__:;
 __publish_binaries__: __archive_all__ __archive_debian__ __archive_rpm__
 	$(info $(M) Uploading the binary packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.tar.gz), gh release upload v$(VERSION) $(archive) ;)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.zip),    gh release upload v$(VERSION) $(archive) ;)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.7z),     gh release upload v$(VERSION) $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*$(VERSION)*.tar.gz), gh release upload v$(VERSION) $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*$(VERSION)*.zip),    gh release upload v$(VERSION) $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*$(VERSION)*.7z),     gh release upload v$(VERSION) $(archive) ;)
 	$(info $(M) Uploading the Debian packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.deb),    gh release upload v$(VERSION) $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*$(VERSION)*.deb),    gh release upload v$(VERSION) $(archive) ;)
 	$(info $(M) Uploading the RPM packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*.rpm),    gh release upload v$(VERSION) $(archive) ;)
+	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*$(VERSION)*.rpm),    gh release upload v$(VERSION) $(archive) ;)
 
 __publish_snap__: \
 	$(TMP_DIR)/__publish_snap__ \
@@ -314,40 +315,40 @@ __fetch_modules__: ; $(info $(M) Fetching Modules...)
 	$Q $(GO) mod download
 
 $(BIN_DIR)/darwin: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/darwin/amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/darwin/amd64: $(BIN_DIR)/darwin ; $(MKDIR)
 $(BIN_DIR)/darwin/amd64/$(PROJECT): export GOOS=darwin
 $(BIN_DIR)/darwin/amd64/$(PROJECT): export GOARCH=amd64
 $(BIN_DIR)/darwin/amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin/amd64; $(info $(M) building application for darwin Intel)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/darwin/arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/darwin/arm64: $(BIN_DIR)/darwin ; $(MKDIR)
 $(BIN_DIR)/darwin/arm64/$(PROJECT): export GOOS=darwin
 $(BIN_DIR)/darwin/arm64/$(PROJECT): export GOARCH=arm64
 $(BIN_DIR)/darwin/arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/darwin/arm64; $(info $(M) building application for darwin M1)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 $(BIN_DIR)/linux: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/linux/amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/linux/amd64: $(BIN_DIR)/linux ; $(MKDIR)
 $(BIN_DIR)/linux/amd64/$(PROJECT): export GOOS=linux
 $(BIN_DIR)/linux/amd64/$(PROJECT): export GOARCH=amd64
 $(BIN_DIR)/linux/amd64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/amd64; $(info $(M) building application for linux amd64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/linux/arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/linux/arm64: $(BIN_DIR)/linux ; $(MKDIR)
 $(BIN_DIR)/linux/arm64/$(PROJECT): export GOOS=linux
 $(BIN_DIR)/linux/arm64/$(PROJECT): export GOARCH=arm64
 $(BIN_DIR)/linux/arm64/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/linux/arm64; $(info $(M) building application for linux arm64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 $(BIN_DIR)/windows: $(BIN_DIR) ; $(MKDIR)
-$(BIN_DIR)/windows/amd64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/windows/amd64: $(BIN_DIR)/windows ; $(MKDIR)
 $(BIN_DIR)/windows/amd64/$(PROJECT): $(BIN_DIR)/windows/amd64/$(PROJECT).exe;
 $(BIN_DIR)/windows/amd64/$(PROJECT).exe: export GOOS=windows
 $(BIN_DIR)/windows/amd64/$(PROJECT).exe: export GOARCH=amd64
 $(BIN_DIR)/windows/amd64/$(PROJECT).exe: $(GOFILES) $(ASSETS) | $(BIN_DIR)/windows/amd64; $(info $(M) building application for windows amd64)
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
-$(BIN_DIR)/windows/arm64: $(BIN_DIR) ; $(MKDIR)
+$(BIN_DIR)/windows/arm64: $(BIN_DIR)/windows ; $(MKDIR)
 $(BIN_DIR)/windows/arm64/$(PROJECT): $(BIN_DIR)/windows/arm64/$(PROJECT).exe;
 $(BIN_DIR)/windows/arm64/$(PROJECT).exe: export GOOS=windows
 $(BIN_DIR)/windows/arm64/$(PROJECT).exe: export GOARCH=arm64

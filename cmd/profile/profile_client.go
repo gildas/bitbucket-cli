@@ -341,14 +341,22 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 	}
 
 	if strings.HasPrefix(uripath, "/") {
-		options.URL = apiRoot.JoinPath("2.0", uripath)
+		components := strings.Split(uripath, "?")
+		options.URL = apiRoot.JoinPath("2.0", components[0])
+		if len(components) > 1 {
+			options.URL.RawQuery = components[1]
+		}
 	} else if !strings.HasPrefix(uripath, "http") {
 		repositoryName, err := profile.getRepositoryFullname(context, cmd)
 		if err != nil {
 			return nil, err
 		}
 		log.Infof("Using repository %s", repositoryName)
-		options.URL = apiRoot.JoinPath("2.0", "repositories", repositoryName, uripath)
+		components := strings.Split(uripath, "?")
+		options.URL = apiRoot.JoinPath("2.0", "repositories", repositoryName, components[0])
+		if len(components) > 1 {
+			options.URL.RawQuery = components[1]
+		}
 	} else {
 		if options.URL, err = url.Parse(uripath); err != nil {
 			return nil, err

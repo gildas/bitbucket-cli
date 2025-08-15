@@ -53,15 +53,65 @@ var Command = &cobra.Command{
 	},
 }
 
+var columns = common.Columns[Issue]{
+	{Name: "id", DefaultSorter: true, Compare: func(a, b Issue) bool {
+		return a.ID < b.ID
+	}},
+	{Name: "title", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.Title), strings.ToLower(b.Title)) == -1
+	}},
+	{Name: "state", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.State), strings.ToLower(b.State)) == -1
+	}},
+	{Name: "priority", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.Priority), strings.ToLower(b.Priority)) == -1
+	}},
+	{Name: "repository", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.Repository.Name), strings.ToLower(b.Repository.Name)) == -1
+	}},
+	{Name: "reporter", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.Reporter.Name), strings.ToLower(b.Reporter.Name)) == -1
+	}},
+	{Name: "assignee", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return strings.Compare(strings.ToLower(a.Assignee.Name), strings.ToLower(b.Assignee.Name)) == -1
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "updated_on", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return a.UpdatedOn.Before(b.UpdatedOn)
+	}},
+	{Name: "edited_on", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return a.EditedOn.Before(b.EditedOn)
+	}},
+	{Name: "votes", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return a.Votes < b.Votes
+	}},
+	{Name: "watchers", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		return a.Watchers < b.Watchers
+	}},
+	{Name: "milestone", DefaultSorter: false, Compare: func(a, b Issue) bool {
+		if a.Milestone != nil && b.Milestone != nil {
+			return strings.Compare(strings.ToLower(a.Milestone.Name), strings.ToLower(b.Milestone.Name)) == -1
+		}
+		return a.Milestone != nil
+	}},
+}
+
 func init() {
 	Command.AddCommand(comment.Command)
 	Command.AddCommand(attachment.Command)
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (issue Issue) GetHeader(short bool) []string {
+func (issue Issue) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"ID", "Title", "State", "Priority", "Repository", "Reporter", "Assignee"}
 }
 
@@ -69,15 +119,53 @@ func (issue Issue) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (issue Issue) GetRow(headers []string) []string {
-	return []string{
-		fmt.Sprintf("%d", issue.ID),
-		issue.Title,
-		issue.State,
-		issue.Priority,
-		issue.Repository.Name,
-		issue.Reporter.Name,
-		issue.Assignee.Name,
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "id":
+			row = append(row, fmt.Sprintf("%d", issue.ID))
+		case "kind":
+			row = append(row, issue.Kind)
+		case "title":
+			row = append(row, issue.Title)
+		case "state":
+			row = append(row, issue.State)
+		case "priority":
+			row = append(row, issue.Priority)
+		case "repository":
+			row = append(row, issue.Repository.Name)
+		case "reporter":
+			row = append(row, issue.Reporter.Name)
+		case "assignee":
+			row = append(row, issue.Assignee.Name)
+		case "created on", "created_on", "created-on":
+			row = append(row, issue.CreatedOn.Format("2006-01-02 15:04:05"))
+		case "updated on", "updated_on", "updated-on":
+			if !issue.UpdatedOn.IsZero() {
+				row = append(row, issue.UpdatedOn.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		case "edited on", "edited_on", "edited-on":
+			if !issue.EditedOn.IsZero() {
+				row = append(row, issue.EditedOn.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		case "votes":
+			row = append(row, fmt.Sprintf("%d", issue.Votes))
+		case "watchers":
+			row = append(row, fmt.Sprintf("%d", issue.Watchers))
+		case "milestone":
+			if issue.Milestone != nil {
+				row = append(row, issue.Milestone.Name)
+			} else {
+				row = append(row, " ")
+			}
+		}
 	}
+	return row
 }
 
 // Validate validates a Issue

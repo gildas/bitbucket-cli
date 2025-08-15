@@ -1,12 +1,14 @@
 package pullrequest
 
+import "github.com/spf13/cobra"
+
 type PullRequests []PullRequest
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableables
-func (pullrequests PullRequests) GetHeader() []string {
-	return PullRequest{}.GetHeader(false)
+func (pullrequests PullRequests) GetHeaders(cmd *cobra.Command) []string {
+	return PullRequest{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for a table

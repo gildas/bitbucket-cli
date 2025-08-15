@@ -44,6 +44,16 @@ var Command = &cobra.Command{
 	},
 }
 
+var columns = []string{
+	"id",
+	"username",
+	"name",
+	"nickname",
+	"account",
+	"created_on",
+	"account_status",
+}
+
 // GetID gets the ID of the user
 //
 // implements core.Identifiable
@@ -58,10 +68,15 @@ func (user User) GetName() string {
 	return user.Username
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (user User) GetHeader(short bool) []string {
+func (user User) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return columns
+		}
+	}
 	return []string{"ID", "Username", "Name"}
 }
 
@@ -69,11 +84,35 @@ func (user User) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (user User) GetRow(headers []string) []string {
-	return []string{
-		user.ID.String(),
-		user.Username,
-		user.Name,
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "id":
+			row = append(row, user.ID.String())
+		case "username":
+			row = append(row, user.Username)
+		case "name":
+			row = append(row, user.Name)
+		case "nickname":
+			row = append(row, user.Nickname)
+		case "account":
+			row = append(row, user.AccountID)
+		case "created on":
+			if user.CreatedOn.IsZero() {
+				row = append(row, " ")
+			} else {
+				row = append(row, user.CreatedOn.Format("2006-01-02 15:04:05"))
+			}
+		case "account status":
+			if user.AccountStatus == "" {
+				row = append(row, " ")
+			} else {
+				row = append(row, user.AccountStatus)
+			}
+		}
 	}
+	return row
 }
 
 // String gets the string representation of the user

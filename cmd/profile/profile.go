@@ -60,6 +60,42 @@ var Command = &cobra.Command{
 	},
 }
 
+var columns = common.Columns[*Profile]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "description", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.Description), strings.ToLower(b.Description)) == -1
+	}},
+	{Name: "default", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return a.Default == b.Default
+	}},
+	{Name: "user", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.User), strings.ToLower(b.User)) == -1
+	}},
+	{Name: "clientid", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.ClientID), strings.ToLower(b.ClientID)) == -1
+	}},
+	{Name: "accesstoken", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.AccessToken), strings.ToLower(b.AccessToken)) == -1
+	}},
+	{Name: "tokenexpires", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return a.TokenExpires.Before(b.TokenExpires)
+	}},
+	{Name: "apiRoot", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return a.APIRoot != nil && b.APIRoot != nil && strings.Compare(strings.ToLower(a.APIRoot.String()), strings.ToLower(b.APIRoot.String())) == -1
+	}},
+	{Name: "defaultworkspace", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.DefaultWorkspace), strings.ToLower(b.DefaultWorkspace)) == -1
+	}},
+	{Name: "defaultproject", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.DefaultProject), strings.ToLower(b.DefaultProject)) == -1
+	}},
+	{Name: "callbackport", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return a.CallbackPort < b.CallbackPort
+	}},
+}
+
 // GetProfileFromCommand gets the profile from the command line
 //
 // If the profile is not given, it will use the current profile
@@ -84,18 +120,14 @@ func GetProfileFromCommand(context context.Context, cmd *cobra.Command) (profile
 	return
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (profile Profile) GetHeader(short bool) []string {
-	if short {
-		headers := []string{"Name", "Description", "Default"}
-		if len(profile.User) > 0 {
-			headers = append(headers, "User")
-		} else if len(profile.ClientID) > 0 {
-			headers = append(headers, "ClientID")
+func (profile Profile) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
-		return headers
 	}
 	return []string{"Name", "Description", "Default", "User", "ClientID", "AccessToken"}
 }
@@ -104,19 +136,41 @@ func (profile Profile) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (profile Profile) GetRow(headers []string) []string {
-	row := []string{
-		profile.Name,
-		profile.Description,
-		fmt.Sprintf("%v", profile.Default),
-	}
-	if core.Contains(headers, "User") {
-		row = append(row, profile.User)
-	}
-	if core.Contains(headers, "ClientID") {
-		row = append(row, profile.ClientID)
-	}
-	if core.Contains(headers, "AccessToken") {
-		row = append(row, profile.AccessToken)
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "apiroot":
+			row = append(row, profile.APIRoot.String())
+		case "name":
+			row = append(row, profile.Name)
+		case "description":
+			row = append(row, profile.Description)
+		case "default":
+			row = append(row, fmt.Sprintf("%v", profile.Default))
+		case "defaultworkspace":
+			row = append(row, profile.DefaultWorkspace)
+		case "defaultproject":
+			row = append(row, profile.DefaultProject)
+		case "callbackport":
+			row = append(row, fmt.Sprintf("%d", profile.CallbackPort))
+		case "user":
+			row = append(row, profile.User)
+		case "clientid":
+			row = append(row, profile.ClientID)
+		case "accesstoken":
+			if len(profile.AccessToken) > 0 {
+				row = append(row, profile.AccessToken)
+			} else {
+				row = append(row, " ")
+			}
+		case "tokenexpires":
+			if !profile.TokenExpires.IsZero() {
+				row = append(row, profile.TokenExpires.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		}
 	}
 	return row
 }
@@ -261,89 +315,128 @@ func (profile Profile) Print(context context.Context, cmd *cobra.Command, payloa
 	}
 	switch outputFormat {
 	case "json":
-		log.Debugf("Printing payload as JSON")
-		data, err := json.MarshalIndent(payload, "", "  ")
-		if err != nil {
-			return errors.JSONMarshalError.Wrap(err)
-		}
-		fmt.Println(string(data))
+		return profile.PrintJSON(context, cmd, payload)
 	case "yaml":
-		log.Debugf("Printing payload as YAML")
-		data, err := yaml.Marshal(payload)
-		if err != nil {
-			return errors.JSONMarshalError.Wrap(err)
-		}
-		fmt.Println(string(data))
+		return profile.PrintYAML(context, cmd, payload)
 	case "csv":
-		log.Debugf("Printing payload as csv")
-		writer := csv.NewWriter(os.Stdout)
-		defer writer.Flush()
-
-		switch actual := payload.(type) {
-		case common.Tableable:
-			headers := actual.GetHeader(true)
-			_ = writer.Write(headers)
-			_ = writer.Write(actual.GetRow(headers))
-		case common.Tableables:
-			log.Debugf("Payload is a slice of %d elements", actual.Size())
-			if actual.Size() > 0 {
-				headers := actual.GetHeader()
-				_ = writer.Write(headers)
-				for i := 0; i < actual.Size(); i++ {
-					_ = writer.Write(actual.GetRowAt(i, headers))
-				}
-			}
-		default:
-			return errors.ArgumentInvalid.With("payload", "not a tableable")
-		}
+		return profile.PrintCSV(context, cmd, payload)
 	case "tsv":
-		log.Debugf("Printing payload as tsv")
-		writer := csv.NewWriter(os.Stdout)
-		writer.Comma = '\t'
-		defer writer.Flush()
-
-		switch actual := payload.(type) {
-		case common.Tableable:
-			headers := actual.GetHeader(true)
-			_ = writer.Write(headers)
-			_ = writer.Write(actual.GetRow(headers))
-		case common.Tableables:
-			log.Debugf("Payload is a slice of %d elements", actual.Size())
-			if actual.Size() > 0 {
-				headers := actual.GetHeader()
-				_ = writer.Write(headers)
-				for i := 0; i < actual.Size(); i++ {
-					_ = writer.Write(actual.GetRowAt(i, headers))
-				}
-			}
-		default:
-			return errors.ArgumentInvalid.With("payload", "not a tableable")
-		}
+		return profile.PrintTSV(context, cmd, payload)
 	case "table":
 		fallthrough
 	default:
-		log.Debugf("Printing payload as table")
-		table := tablewriter.NewWriter(os.Stdout)
-
-		switch actual := payload.(type) {
-		case common.Tableable:
-			headers := actual.GetHeader(true)
-			table.SetHeader(headers)
-			table.Append(actual.GetRow(headers))
-		case common.Tableables:
-			log.Debugf("Payload is a slice of %d elements", actual.Size())
-			if actual.Size() > 0 {
-				headers := actual.GetHeader()
-				table.SetHeader(headers)
-				for i := 0; i < actual.Size(); i++ {
-					table.Append(actual.GetRowAt(i, headers))
-				}
-			}
-		default:
-			return errors.ArgumentInvalid.With("payload", "not a tableable")
-		}
-		table.Render()
+		return profile.PrintTable(context, cmd, payload)
 	}
+}
+
+// PrintJSON prints the given payload to the console as JSON
+func (profile Profile) PrintJSON(context context.Context, cmd *cobra.Command, payload any) error {
+	log := logger.Must(logger.FromContext(context))
+
+	log.Debugf("Printing payload as JSON")
+	data, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		return errors.JSONMarshalError.Wrap(err)
+	}
+	fmt.Println(string(data))
+	return nil
+}
+
+// PrintYAML prints the given payload to the console as YAML
+func (profile Profile) PrintYAML(context context.Context, cmd *cobra.Command, payload any) error {
+	log := logger.Must(logger.FromContext(context))
+
+	log.Debugf("Printing payload as YAML")
+	data, err := yaml.Marshal(payload)
+	if err != nil {
+		return errors.JSONMarshalError.Wrap(err)
+	}
+	fmt.Println(string(data))
+	return nil
+}
+
+// PrintCSV prints the given payload to the console as CSV
+func (profile Profile) PrintCSV(context context.Context, cmd *cobra.Command, payload any) error {
+	log := logger.Must(logger.FromContext(context))
+
+	log.Debugf("Printing payload as CSV")
+	writer := csv.NewWriter(os.Stdout)
+	defer writer.Flush()
+
+	switch actual := payload.(type) {
+	case common.Tableable:
+		headers := actual.GetHeaders(cmd)
+		_ = writer.Write(headers)
+		_ = writer.Write(actual.GetRow(headers))
+	case common.Tableables:
+		log.Debugf("Payload is a slice of %d elements", actual.Size())
+		if actual.Size() > 0 {
+			headers := actual.GetHeaders(cmd)
+			_ = writer.Write(headers)
+			for i := 0; i < actual.Size(); i++ {
+				_ = writer.Write(actual.GetRowAt(i, headers))
+			}
+		}
+	default:
+		return errors.ArgumentInvalid.With("payload", "not a tableable")
+	}
+	return nil
+}
+
+// PrintTSV prints the given payload to the console as TSV
+func (profile Profile) PrintTSV(context context.Context, cmd *cobra.Command, payload any) error {
+	log := logger.Must(logger.FromContext(context))
+
+	log.Debugf("Printing payload as TSV")
+	writer := csv.NewWriter(os.Stdout)
+	writer.Comma = '\t'
+	defer writer.Flush()
+
+	switch actual := payload.(type) {
+	case common.Tableable:
+		headers := actual.GetHeaders(cmd)
+		_ = writer.Write(headers)
+		_ = writer.Write(actual.GetRow(headers))
+	case common.Tableables:
+		log.Debugf("Payload is a slice of %d elements", actual.Size())
+		if actual.Size() > 0 {
+			headers := actual.GetHeaders(cmd)
+			_ = writer.Write(headers)
+			for i := 0; i < actual.Size(); i++ {
+				_ = writer.Write(actual.GetRowAt(i, headers))
+			}
+		}
+	default:
+		return errors.ArgumentInvalid.With("payload", "not a tableable")
+	}
+	return nil
+}
+
+// PrintTable prints the given payload to the console as a table
+func (profile Profile) PrintTable(context context.Context, cmd *cobra.Command, payload any) error {
+	log := logger.Must(logger.FromContext(context))
+
+	log.Debugf("Printing payload as table")
+	table := tablewriter.NewWriter(os.Stdout)
+
+	switch actual := payload.(type) {
+	case common.Tableable:
+		headers := actual.GetHeaders(cmd)
+		table.SetHeader(headers)
+		table.Append(actual.GetRow(headers))
+	case common.Tableables:
+		log.Debugf("Payload is a slice of %d elements", actual.Size())
+		if actual.Size() > 0 {
+			headers := actual.GetHeaders(cmd)
+			table.SetHeader(headers)
+			for i := 0; i < actual.Size(); i++ {
+				table.Append(actual.GetRowAt(i, headers))
+			}
+		}
+	default:
+		return errors.ArgumentInvalid.With("payload", "not a tableable")
+	}
+	table.Render()
 	return nil
 }
 

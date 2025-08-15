@@ -39,6 +39,9 @@ type RootOptions struct {
 	DryRun         bool           `mapstructure:"-"`
 	Verbose        bool           `mapstructure:"-"`
 	Debug          bool           `mapstructure:"-"`
+	StopOnError    bool           `mapstructure:"-"`
+	WarnOnError    bool           `mapstructure:"-"`
+	IgnoreErrors   bool           `mapstructure:"-"`
 }
 
 // CmdOptions contains the options for the application
@@ -76,6 +79,10 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.Debug, "debug", false, "logs are written at DEBUG level, overrides DEBUG environment variable")
 	RootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
 	RootCmd.PersistentFlags().VarP(&CmdOptions.OutputFormat, "output", "o", "Output format (json, yaml, table). Overrides the default output format of the profile")
+	RootCmd.PersistentFlags().BoolVar(&CmdOptions.StopOnError, "stop-on-error", false, "Stop on error")
+	RootCmd.PersistentFlags().BoolVar(&CmdOptions.WarnOnError, "warn-on-error", false, "Warn on error")
+	RootCmd.PersistentFlags().BoolVar(&CmdOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
+	RootCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 	_ = RootCmd.MarkFlagFilename("config")
 	_ = RootCmd.MarkFlagFilename("log")
 	_ = RootCmd.RegisterFlagCompletionFunc("profile", profile.ValidProfileNames)

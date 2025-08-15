@@ -40,10 +40,36 @@ var Command = &cobra.Command{
 	},
 }
 
-// GetHeader gets the header for a table
+var columns = common.Columns[GPGKey]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b GPGKey) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "type", DefaultSorter: false, Compare: func(a, b GPGKey) bool {
+		return strings.Compare(strings.ToLower(a.Type), strings.ToLower(b.Type)) == -1
+	}},
+	{Name: "fingerprint", DefaultSorter: false, Compare: func(a, b GPGKey) bool {
+		return strings.Compare(strings.ToLower(a.Fingerprint), strings.ToLower(b.Fingerprint)) == -1
+	}},
+	{Name: "owner", DefaultSorter: false, Compare: func(a, b GPGKey) bool {
+		return strings.Compare(strings.ToLower(a.Owner.Name), strings.ToLower(b.Owner.Name)) == -1
+	}},
+	{Name: "added_on", DefaultSorter: false, Compare: func(a, b GPGKey) bool {
+		return a.AddedOn.Before(b.AddedOn)
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b GPGKey) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+}
+
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (key GPGKey) GetHeader(short bool) []string {
+func (key GPGKey) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"Fingerprint", "Name", "Owner"}
 }
 
@@ -51,7 +77,33 @@ func (key GPGKey) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (key GPGKey) GetRow(headers []string) []string {
-	return []string{key.Fingerprint, key.Name, key.Owner.Name}
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "added_on", "added on":
+			row = append(row, key.AddedOn.Format("2006-01-02 15:04:05"))
+		case "created_on", "created on":
+			row = append(row, key.CreatedOn.Format("2006-01-02 15:04:05"))
+		case "key_id":
+			row = append(row, key.KeyID)
+		case "parent", "parent_fingerprint":
+			row = append(row, key.Parent)
+		case "fingerprint":
+			row = append(row, key.Fingerprint)
+		case "name":
+			row = append(row, key.Name)
+		case "owner":
+			if key.Owner.Name == "" {
+				row = append(row, " ")
+			} else {
+				row = append(row, key.Owner.Name)
+			}
+		case "type":
+			row = append(row, key.Type)
+		}
+	}
+	return row
 }
 
 // GetGPGKeys gets the GPGKeys

@@ -1,8 +1,6 @@
 package reviewer
 
 import (
-	"strings"
-
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -21,6 +19,8 @@ var listCmd = &cobra.Command{
 var listOptions struct {
 	Workspace *flags.EnumFlag
 	Project   *flags.EnumFlag
+	Columns   *flags.EnumSliceFlag
+	SortBy    *flags.EnumFlag
 }
 
 func init() {
@@ -28,10 +28,16 @@ func init() {
 
 	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
 	listOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
+	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list reviewers from")
 	listCmd.Flags().Var(listOptions.Project, "project", "Project Key to list reviewers from")
+	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
+	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Workspace.CompletionFunc("workspace"))
 	_ = getCmd.RegisterFlagCompletionFunc(listOptions.Project.CompletionFunc("project"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -56,8 +62,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No reviewer found")
 		return nil
 	}
-	core.Sort(reviewers, func(a, b Reviewer) bool {
-		return strings.Compare(strings.ToLower(a.User.Username), strings.ToLower(b.User.Username)) == -1
-	})
+	core.Sort(reviewers, columns.SortBy(listOptions.SortBy.Value))
 	return profile.Current.Print(cmd.Context(), cmd, Reviewers(reviewers))
 }

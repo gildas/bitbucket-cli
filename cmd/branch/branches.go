@@ -11,11 +11,11 @@ import (
 
 type Branches []Branch
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableables
-func (branches Branches) GetHeader() []string {
-	return Branch{}.GetHeader(false)
+func (branches Branches) GetHeaders(cmd *cobra.Command) []string {
+	return Branch{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for a table

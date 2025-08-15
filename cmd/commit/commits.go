@@ -1,12 +1,14 @@
 package commit
 
+import "github.com/spf13/cobra"
+
 type Commits []Commit
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableables
-func (commits Commits) GetHeader() []string {
-	return Commit{}.GetHeader(false)
+func (commits Commits) GetHeaders(cmd *cobra.Command) []string {
+	return Commit{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for a table

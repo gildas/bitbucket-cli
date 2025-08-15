@@ -21,15 +21,23 @@ var listCmd = &cobra.Command{
 var listOptions struct {
 	Repository string
 	States     *flags.EnumSliceFlag
+	Columns    *flags.EnumSliceFlag
+	SortBy     *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.States = flags.NewEnumSliceFlagWithAllAllowed("closed", "duplicate", "invalid", "on hold", "+new", "+open", "resolved", "submitted", "wontfix")
+	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
+	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issues from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.States, "state", "State of the issues to list. Can be repeated. One of: all, closed, duplicate, invalid, on hold, new, open, resolved, submitted, wontfix. Default: open, new")
+	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
+	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.States.CompletionFunc("state"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
+	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -57,6 +65,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("No issue found")
 		return nil
 	}
-	core.Sort(issues, func(a, b Issue) bool { return a.ID < b.ID })
+	core.Sort(issues, columns.SortBy(listOptions.SortBy.Value))
 	return profile.Current.Print(cmd.Context(), cmd, Issues(issues))
 }

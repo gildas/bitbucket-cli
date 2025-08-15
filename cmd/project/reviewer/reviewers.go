@@ -1,12 +1,14 @@
 package reviewer
 
+import "github.com/spf13/cobra"
+
 type Reviewers []Reviewer
 
-// GetHeader gets the headers for the list command
+// GetHeaders gets the headers for the list command
 //
 // implements common.Tableables
-func (reviewers Reviewers) GetHeader() []string {
-	return Reviewer{}.GetHeader(false)
+func (reviewers Reviewers) GetHeaders(cmd *cobra.Command) []string {
+	return Reviewer{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for the list command

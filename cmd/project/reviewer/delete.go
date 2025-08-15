@@ -23,11 +23,8 @@ var deleteCmd = &cobra.Command{
 }
 
 var deleteOptions struct {
-	Workspace    *flags.EnumFlag
-	Project      *flags.EnumFlag
-	StopOnError  bool
-	WarnOnError  bool
-	IgnoreErrors bool
+	Workspace *flags.EnumFlag
+	Project   *flags.EnumFlag
 }
 
 func init() {
@@ -37,10 +34,6 @@ func init() {
 	deleteOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
 	deleteCmd.Flags().Var(deleteOptions.Workspace, "workspace", "Workspace to delete reviewers from")
 	deleteCmd.Flags().Var(deleteOptions.Project, "project", "Project Key to delete reviewers from")
-	deleteCmd.Flags().BoolVar(&deleteOptions.StopOnError, "stop-on-error", false, "Stop on error")
-	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
-	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
-	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.Workspace.CompletionFunc("workspace"))
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.Project.CompletionFunc("project"))
 }

@@ -2,9 +2,11 @@ package branch
 
 import (
 	"fmt"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/spf13/cobra"
 )
@@ -35,6 +37,24 @@ var Command = &cobra.Command{
 	},
 }
 
+var columns = common.Columns[Branch]{
+	{Name: "name", DefaultSorter: true, Compare: func(a, b Branch) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "type", DefaultSorter: false, Compare: func(a, b Branch) bool {
+		return strings.Compare(strings.ToLower(a.Type), strings.ToLower(b.Type)) == -1
+	}},
+	{Name: "target", DefaultSorter: false, Compare: func(a, b Branch) bool {
+		return strings.Compare(strings.ToLower(a.Target.Hash), strings.ToLower(b.Target.Hash)) == -1
+	}},
+	{Name: "default_merge_strategy", DefaultSorter: false, Compare: func(a, b Branch) bool {
+		return strings.Compare(strings.ToLower(a.DefaultMergeStrategy), strings.ToLower(b.DefaultMergeStrategy)) == -1
+	}},
+	{Name: "merge_strategies", DefaultSorter: false, Compare: func(a, b Branch) bool {
+		return strings.Compare(strings.ToLower(strings.Join(a.MergeStrategies, ",")), strings.ToLower(strings.Join(b.MergeStrategies, ","))) == -1
+	}},
+}
+
 // NewReference creates a new BranchReference
 func NewReference(name string) *BranchReference {
 	return &BranchReference{
@@ -43,10 +63,15 @@ func NewReference(name string) *BranchReference {
 	}
 }
 
-// GetHeader gets the header for a table
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (branch Branch) GetHeader(short bool) []string {
+func (branch Branch) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"Name"}
 }
 
@@ -54,7 +79,21 @@ func (branch Branch) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (branch Branch) GetRow(headers []string) []string {
-	return []string{branch.Name}
+	var row []string
+
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "name":
+			row = append(row, branch.Name)
+		case "target":
+			row = append(row, branch.Target.Hash)
+		case "default_merge_strategy", "default merge strategy":
+			row = append(row, branch.DefaultMergeStrategy)
+		case "merge_strategies", "merge strategies":
+			row = append(row, strings.Join(branch.MergeStrategies, ", "))
+		}
+	}
+	return row
 }
 
 // Validate validates a Branch

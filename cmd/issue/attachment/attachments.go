@@ -1,12 +1,14 @@
 package attachment
 
+import "github.com/spf13/cobra"
+
 type Attachments []Attachment
 
-// GetHeader gets the headers for the list command
+// GetHeaders gets the headers for the list command
 //
 // implements common.Tableables
-func (comments Attachments) GetHeader() []string {
-	return Attachment{}.GetHeader(false)
+func (comments Attachments) GetHeaders(cmd *cobra.Command) []string {
+	return Attachment{}.GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for the list command

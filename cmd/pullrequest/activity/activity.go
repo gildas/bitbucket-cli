@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
@@ -11,6 +12,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/comment"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/spf13/cobra"
 )
@@ -81,10 +83,97 @@ var Command = &cobra.Command{
 	},
 }
 
-// GetHeader gets the header for a table
+var columns = common.Columns[Activity]{
+	{Name: "pull_request", DefaultSorter: true, Compare: func(a, b Activity) bool {
+		return a.PullRequest.ID < b.PullRequest.ID
+	}},
+	{Name: "date", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Approval != nil && b.Approval != nil {
+			return a.Approval.Date.Before(b.Approval.Date)
+		} else if a.Update != nil && b.Update != nil {
+			return a.Update.Date.Before(b.Update.Date)
+		}
+		return false
+	}},
+	{Name: "approved", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Approval != nil && b.Approval != nil {
+			return a.Approval.User.Name < b.Approval.User.Name
+		}
+		return false
+	}},
+	{Name: "description", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.Description), strings.ToLower(b.Update.Description)) == -1
+		}
+		return false
+	}},
+	{Name: "state", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.State), strings.ToLower(b.Update.State)) == -1
+		}
+		return false
+	}},
+	{Name: "author", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.Author.Name), strings.ToLower(b.Update.Author.Name)) == -1
+		}
+		return false
+	}},
+	{Name: "closed_by", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.ClosedBy.Name), strings.ToLower(b.Update.ClosedBy.Name)) == -1
+		}
+		return false
+	}},
+	{Name: "reason", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.Reason), strings.ToLower(b.Update.Reason)) == -1
+		}
+		return false
+	}},
+	{Name: "user", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Approval != nil && b.Approval != nil {
+			return strings.Compare(strings.ToLower(a.Approval.User.Name), strings.ToLower(b.Approval.User.Name)) == -1
+		} else if a.Update != nil && b.Update != nil {
+			return strings.Compare(strings.ToLower(a.Update.Author.Name), strings.ToLower(b.Update.Author.Name)) == -1
+		}
+		return false
+	}},
+	{Name: "destination", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil && a.Update.Destination.Repository != nil && b.Update.Destination.Repository != nil {
+			return strings.Compare(strings.ToLower(a.Update.Destination.Repository.Name), strings.ToLower(b.Update.Destination.Repository.Name)) == -1
+		}
+		return false
+	}},
+	{Name: "source", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil && a.Update.Source.Repository != nil && b.Update.Source.Repository != nil {
+			return strings.Compare(strings.ToLower(a.Update.Source.Repository.Name), strings.ToLower(b.Update.Source.Repository.Name)) == -1
+		}
+		return false
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil {
+			return a.Update.CreatedOn.Before(b.Update.CreatedOn)
+		}
+		return false
+	}},
+	{Name: "updated_on", DefaultSorter: false, Compare: func(a, b Activity) bool {
+		if a.Update != nil && b.Update != nil && !a.Update.UpdatedOn.IsZero() && !b.Update.UpdatedOn.IsZero() {
+			return a.Update.UpdatedOn.Before(b.Update.UpdatedOn)
+		}
+		return false
+	}},
+}
+
+// GetHeaders gets the header for a table
 //
 // implements common.Tableable
-func (activity Activity) GetHeader(short bool) []string {
+func (activity Activity) GetHeaders(cmd *cobra.Command) []string {
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
 	return []string{"Date", "Approved", "State", "User"}
 }
 
@@ -92,8 +181,7 @@ func (activity Activity) GetHeader(short bool) []string {
 //
 // implements common.Tableable
 func (activity Activity) GetRow(headers []string) []string {
-	rows := []string{}
-
+	var row []string
 	var activityDate time.Time
 	var approval bool
 	var state string
@@ -111,12 +199,67 @@ func (activity Activity) GetRow(headers []string) []string {
 		approval = false
 	}
 
-	return append(rows,
-		activityDate.Format("2006-01-02 15:04:05"),
-		strconv.FormatBool(approval),
-		state,
-		user.Name,
-	)
+	for _, header := range headers {
+		switch strings.ToLower(header) {
+		case "date":
+			row = append(row, activityDate.Format("2006-01-02 15:04:05"))
+		case "approved":
+			row = append(row, strconv.FormatBool(approval))
+		case "description":
+			if activity.Update != nil {
+				row = append(row, activity.Update.Description)
+			} else {
+				row = append(row, " ")
+			}
+		case "state":
+			row = append(row, state)
+		case "author":
+			if activity.Update != nil {
+				row = append(row, activity.Update.Author.Name)
+			} else {
+				row = append(row, " ")
+			}
+		case "closed by":
+			if activity.Update != nil {
+				row = append(row, activity.Update.ClosedBy.Name)
+			} else {
+				row = append(row, " ")
+			}
+		case "reason":
+			if activity.Update != nil {
+				row = append(row, activity.Update.Reason)
+			} else {
+				row = append(row, " ")
+			}
+		case "user":
+			row = append(row, user.Name)
+		case "destination":
+			if activity.Update != nil && activity.Update.Destination.Repository != nil {
+				row = append(row, activity.Update.Destination.Repository.Name)
+			} else {
+				row = append(row, " ")
+			}
+		case "source":
+			if activity.Update != nil && activity.Update.Source.Repository != nil {
+				row = append(row, activity.Update.Source.Repository.Name)
+			} else {
+				row = append(row, " ")
+			}
+		case "created on", "created_on", "created-on", "created":
+			if activity.Update != nil {
+				row = append(row, activity.Update.CreatedOn.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		case "updated on", "updated_on", "updated-on", "updated":
+			if activity.Update != nil && !activity.Update.UpdatedOn.IsZero() {
+				row = append(row, activity.Update.UpdatedOn.Format("2006-01-02 15:04:05"))
+			} else {
+				row = append(row, " ")
+			}
+		}
+	}
+	return row
 }
 
 // Validate validates a Comment
