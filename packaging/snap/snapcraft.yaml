@@ -10,7 +10,7 @@ website: https://github.com/gildas/bitbucket-cli
 source-code: https://github.com/gildas/bitbucket-cli
 issues: https://github.com/gildas/bitbucket-cli/issues
 license: MIT
-version: 0.16.0
+version: 0.16.1
 base: core22
 grade: stable
 confinement: strict

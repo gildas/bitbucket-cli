@@ -1,3 +1,16 @@
+0.16.1
+=============
+2025-12-17
+
+* Issue #25: Added Support for git worktrees (7a781d8)
+
+0.16.0
+=============
+2025-08-15
+
+* Issue #22: Profile cannot execute Bitbucket API endpoint with queries (b1e605b)
+* Issue #21: Added --sort and --columns to get/list commands
+* Issue #20: Moved error flags to persistent flags (111dd05)
 
 0.15.0
 =============
