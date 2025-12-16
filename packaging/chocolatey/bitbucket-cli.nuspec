@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>bitbucket-cli</id>
-    <version>0.16.0</version>
+    <version>0.16.1</version>
     <owners>Gildas Cherruel</owners>
     <title>bitbucket-cli (Install)</title>
     <authors>Gildas Cherruel</authors>
@@ -18,11 +18,7 @@
     <summary>Command line interface for Bitbucket</summary>
     <description>The Bitbucket Command Line Interface brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.</description>
     <releaseNotes>
-- Password and tokens are now stored in the Windows Credential Manager
-- Fork private repositories via https
-- Moved to github.com
-- Added support for Bitbucket Server
-- get/list now support --columns and --sort options
+- Support for git worktrees
     </releaseNotes>
   </metadata>
   <files>
