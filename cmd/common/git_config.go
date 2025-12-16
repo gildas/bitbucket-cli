@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -21,6 +22,29 @@ func OpenGitConfig(context context.Context) (io.ReadCloser, error) {
 	last := folder + "dummy"
 
 	for {
+		// If .git is a filem (e.g. worktree), read the actual git dir from there (field gitdir)
+		gitPath := filepath.Join(folder, ".git")
+		info, err := os.Stat(gitPath)
+		if err == nil && !info.IsDir() {
+			log.Debugf(".git is a file, reading gitdir from there")
+			content, err := os.ReadFile(gitPath)
+			if err == nil {
+				lines := string(content)
+				const prefix = "gitdir: "
+				for line := range strings.SplitSeq(lines, "\n") {
+					if len(line) > len(prefix) && line[:len(prefix)] == prefix {
+						gitDir := line[len(prefix):]
+						log.Debugf("found gitdir: %s", gitDir)
+						if !filepath.IsAbs(gitDir) {
+							folder = filepath.Join(folder, gitDir)
+						} else {
+							folder = gitDir
+						}
+						break
+					}
+				}
+			}
+		}
 		filename := filepath.Join(folder, ".git/config")
 		if folder == last {
 			return nil, errors.NotFound.With("file", filename)

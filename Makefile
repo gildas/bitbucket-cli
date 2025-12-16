@@ -306,7 +306,7 @@ $(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm: packaging/nfpm.yaml $(
 
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap: packaging/snap/snapcraft.yaml
 	$Q $(RM) $@
-	$Q (cd packaging && snapcraft)
+	$Q (cd packaging && snapcraft pack)
 	$Q $(MOVE) packaging/$(@F) $(@D)
 
 # build recipes for various platforms
