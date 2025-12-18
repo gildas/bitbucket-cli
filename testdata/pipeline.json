@@ -1,0 +1,71 @@
+{
+  "type": "pipeline",
+  "uuid": "{a1b2c3d4-e5f6-7890-abcd-ef1234567890}",
+  "build_number": 42,
+  "state": {
+    "type": "pipeline_state_completed",
+    "name": "COMPLETED",
+    "result": {
+      "type": "pipeline_state_completed_successful",
+      "name": "SUCCESSFUL"
+    }
+  },
+  "target": {
+    "type": "pipeline_ref_target",
+    "ref_type": "branch",
+    "ref_name": "main",
+    "commit": {
+      "type": "commit",
+      "hash": "abc123def456"
+    },
+    "selector": {
+      "type": "default"
+    }
+  },
+  "created_on": "2024-01-15T10:30:00.000000+00:00",
+  "completed_on": "2024-01-15T10:35:30.000000+00:00",
+  "duration_in_seconds": 330,
+  "creator": {
+    "type": "user",
+    "uuid": "{12345678-1234-1234-1234-123456789012}",
+    "account_id": "557058:12345678-abcd-efgh-ijkl-123456789012",
+    "display_name": "John Developer",
+    "nickname": "johnd",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/users/%7B12345678-1234-1234-1234-123456789012%7D"
+      },
+      "avatar": {
+        "href": "https://secure.gravatar.com/avatar/abc123"
+      },
+      "html": {
+        "href": "https://bitbucket.org/%7B12345678-1234-1234-1234-123456789012%7D/"
+      }
+    }
+  },
+  "repository": {
+    "type": "repository",
+    "uuid": "{repo-uuid-1234-5678-abcd}",
+    "name": "my-repo",
+    "full_name": "myworkspace/my-repo",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo"
+      },
+      "html": {
+        "href": "https://bitbucket.org/myworkspace/my-repo"
+      },
+      "avatar": {
+        "href": "https://bytebucket.org/ravatar/%7Brepo-uuid%7D"
+      }
+    }
+  },
+  "links": {
+    "self": {
+      "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pipelines/%7Ba1b2c3d4-e5f6-7890-abcd-ef1234567890%7D"
+    },
+    "steps": {
+      "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pipelines/%7Ba1b2c3d4-e5f6-7890-abcd-ef1234567890%7D/steps/"
+    }
+  }
+}
