@@ -15,19 +15,18 @@ import (
 )
 
 type Commit struct {
-	Type       string                `json:"type"               mapstructure:"type"`
 	Hash       string                `json:"hash"               mapstructure:"hash"`
 	Author     user.Author           `json:"author"             mapstructure:"author"`
 	Message    string                `json:"message"            mapstructure:"message"`
 	Summary    *common.RenderedText  `json:"summary,omitempty"  mapstructure:"summary"`
 	Rendered   *RenderedMessage      `json:"rendered,omitempty" mapstructure:"rendered"`
-	Parents    []CommitRef           `json:"parents"            mapstructure:"parents"`
+	Parents    []CommitReference     `json:"parents"            mapstructure:"parents"`
 	Date       time.Time             `json:"date"               mapstructure:"date"`
 	Repository repository.Repository `json:"repository"         mapstructure:"repository"`
 	Links      common.Links          `json:"links"              mapstructure:"links"`
 }
 
-type CommitRef struct {
+type CommitReference struct {
 	Type  string       `json:"type"  mapstructure:"type"`
 	Hash  string       `json:"hash"  mapstructure:"hash"`
 	Links common.Links `json:"links" mapstructure:"links"`
@@ -68,6 +67,30 @@ var columns = common.Columns[Commit]{
 	{Name: "repository", DefaultSorter: false, Compare: func(a, b Commit) bool {
 		return strings.Compare(strings.ToLower(a.Repository.Name), strings.ToLower(b.Repository.Name)) == -1
 	}},
+}
+
+// GetType gets the type of this commit
+//
+// implements core.TypeCarrier
+func (commit Commit) GetType() string {
+	return "commit"
+}
+
+// GetReference gets the reference string for this commit
+func (commit Commit) GetReference() *CommitReference {
+	return &CommitReference{
+		Type:  commit.GetType(),
+		Hash:  commit.Hash,
+		Links: commit.Links,
+	}
+}
+
+// AsCommit converts this CommitRef to a Commit
+func (reference CommitReference) AsCommit() *Commit {
+	return &Commit{
+		Hash:  reference.Hash,
+		Links: reference.Links,
+	}
 }
 
 // GetHeaders gets the header for a table
@@ -126,11 +149,34 @@ func (commit Commit) MarshalJSON() (data []byte, err error) {
 	type surrogate Commit
 
 	data, err = json.Marshal(struct {
+		Type string `json:"type"`
 		surrogate
 		Date string `json:"date"`
 	}{
+		Type:      commit.GetType(),
 		surrogate: surrogate(commit),
 		Date:      commit.Date.Format("2006-01-02T15:04:05.999999999-07:00"),
+	})
+	return data, errors.JSONMarshalError.Wrap(err)
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (ref CommitReference) MarshalJSON() (data []byte, err error) {
+	type surrogate CommitReference
+	var links *common.Links
+
+	if !ref.Links.IsEmpty() {
+		links = &ref.Links
+	}
+
+	data, err = json.Marshal(struct {
+		Type string `json:"type"`
+		surrogate
+		Links *common.Links `json:"links,omitempty"`
+	}{
+		Type:      "commit",
+		surrogate: surrogate(ref),
+		Links:     links,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
 }
