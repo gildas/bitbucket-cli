@@ -146,6 +146,16 @@ func GetWorkspaceFromGit(context context.Context, cmd *cobra.Command) (workspace
 	return GetWorkspace(context, cmd, remote.WorkspaceName())
 }
 
+// GetWorkspaceFromCommandOrGit gets the workspace from the command flag or git config
+func GetWorkspaceFromCommandOrGit(context context.Context, cmd *cobra.Command) (workspace *Workspace, err error) {
+	if cmd.Flag("workspace") != nil {
+		if workspaceName := cmd.Flag("workspace").Value.String(); len(workspaceName) > 0 {
+			return GetWorkspace(context, cmd, workspaceName)
+		}
+	}
+	return GetWorkspaceFromGit(context, cmd)
+}
+
 // GetMembers gets the members of the workspace
 func (workspace Workspace) GetMembers(context context.Context, cmd *cobra.Command) (members []Member, err error) {
 	members, err = profile.GetAll[Member](
