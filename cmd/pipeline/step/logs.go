@@ -15,8 +15,8 @@ import (
 )
 
 var logCmd = &cobra.Command{
-	Use:               "log [flags] <pipeline-step-uuid-or-name>",
-	Aliases:           []string{"logs"},
+	Use:               "logs [flags] <pipeline-step-uuid-or-name>",
+	Aliases:           []string{"log"},
 	Short:             "display the logs of a pipeline step",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: logValidArgs,
@@ -56,7 +56,7 @@ func logValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 }
 
 func logProcess(cmd *cobra.Command, args []string) error {
-	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "log")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "getlogs")
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
