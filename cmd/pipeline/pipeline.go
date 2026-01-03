@@ -15,17 +15,18 @@ import (
 
 // Pipeline represents a Bitbucket Pipeline
 type Pipeline struct {
-	Type              string        `json:"type"                        mapstructure:"type"`
-	UUID              string        `json:"uuid"                        mapstructure:"uuid"`
-	BuildNumber       int           `json:"build_number"                mapstructure:"build_number"`
-	State             PipelineState `json:"state"                       mapstructure:"state"`
-	Target            Target        `json:"target"                      mapstructure:"target"`
-	CreatedOn         time.Time     `json:"created_on"                  mapstructure:"created_on"`
-	CompletedOn       time.Time     `json:"completed_on,omitempty"      mapstructure:"completed_on"`
-	DurationInSeconds int           `json:"duration_in_seconds"         mapstructure:"duration_in_seconds"`
-	Creator           user.User     `json:"creator"                     mapstructure:"creator"`
-	Repository        Repository    `json:"repository"                  mapstructure:"repository"`
-	Links             common.Links  `json:"links"                       mapstructure:"links"`
+	ID                   common.UUID           `json:"uuid"                            mapstructure:"uuid"`
+	BuildNumber          uint64                `json:"build_number"                    mapstructure:"build_number"`
+	State                PipelineState         `json:"state"                           mapstructure:"state"`
+	Creator              user.User             `json:"creator"                         mapstructure:"creator"`
+	Repository           Repository            `json:"repository"                      mapstructure:"repository"`
+	Target               Target                `json:"target"                          mapstructure:"target"`
+	Variables            []Variable            `json:"variables,omitempty"             mapstructure:"variables"`
+	ConfigurationSources []ConfigurationSource `json:"configuration_sources,omitempty" mapstructure:"configuration_sources"`
+	Duration             time.Duration         `json:"duration_in_seconds"             mapstructure:"duration_in_seconds"`
+	CreatedOn            time.Time             `json:"created_on"                      mapstructure:"created_on"`
+	CompletedOn          time.Time             `json:"completed_on"                    mapstructure:"completed_on"`
+	Links                common.Links          `json:"links"                           mapstructure:"links"`
 }
 
 // PipelineState represents the state of a pipeline
@@ -48,27 +49,6 @@ type PipelineResult struct {
 	Name string `json:"name" mapstructure:"name"`
 }
 
-// Target represents the target of a pipeline (branch, tag, etc.)
-type Target struct {
-	Type     string    `json:"type"               mapstructure:"type"`
-	RefType  string    `json:"ref_type,omitempty" mapstructure:"ref_type"`
-	RefName  string    `json:"ref_name,omitempty" mapstructure:"ref_name"`
-	Selector *Selector `json:"selector,omitempty" mapstructure:"selector"`
-	Commit   *Commit   `json:"commit,omitempty"   mapstructure:"commit"`
-}
-
-// Selector represents a pipeline selector for custom pipelines
-type Selector struct {
-	Type    string `json:"type"              mapstructure:"type"`
-	Pattern string `json:"pattern,omitempty" mapstructure:"pattern"`
-}
-
-// Commit represents a commit in a pipeline target
-type Commit struct {
-	Type string `json:"type" mapstructure:"type"`
-	Hash string `json:"hash" mapstructure:"hash"`
-}
-
 // Repository represents a repository reference in a pipeline
 type Repository struct {
 	Type     string       `json:"type"      mapstructure:"type"`
@@ -80,9 +60,16 @@ type Repository struct {
 
 // Variable represents a pipeline variable
 type Variable struct {
-	Key     string `json:"key"              mapstructure:"key"`
-	Value   string `json:"value"            mapstructure:"value"`
-	Secured bool   `json:"secured"          mapstructure:"secured"`
+	ID      common.UUID `json:"uuid"         mapstructure:"uuid"`
+	Key     string      `json:"key"              mapstructure:"key"`
+	Value   string      `json:"value"            mapstructure:"value"`
+	Secured bool        `json:"secured"          mapstructure:"secured"`
+}
+
+// ConfigurationSource represents a pipeline configuration source
+type ConfigurationSource struct {
+	Source string `json:"source" mapstructure:"source"`
+	URI    string `json:"uri"    mapstructure:"uri"`
 }
 
 // TriggerBody represents the body for triggering a pipeline
@@ -94,7 +81,7 @@ type TriggerBody struct {
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:     "pipeline",
-	Aliases: []string{"pipelines", "pipe"},
+	Aliases: []string{"pipelines", "pipe", "pp"},
 	Short:   "Manage pipelines",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Pipeline requires a subcommand:")
@@ -104,12 +91,13 @@ var Command = &cobra.Command{
 	},
 }
 
+// Columns defines the available columns for the Pipeline type
 var columns = common.Columns[Pipeline]{
 	{Name: "build_number", DefaultSorter: true, Compare: func(a, b Pipeline) bool {
 		return a.BuildNumber < b.BuildNumber
 	}},
 	{Name: "uuid", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
-		return strings.Compare(strings.ToLower(a.UUID), strings.ToLower(b.UUID)) == -1
+		return strings.Compare(strings.ToLower(a.ID.String()), strings.ToLower(b.ID.String())) == -1
 	}},
 	{Name: "state", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
 		return strings.Compare(strings.ToLower(a.State.Name), strings.ToLower(b.State.Name)) == -1
@@ -143,7 +131,10 @@ var columns = common.Columns[Pipeline]{
 		return strings.Compare(strings.ToLower(a.Creator.Name), strings.ToLower(b.Creator.Name)) == -1
 	}},
 	{Name: "duration", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
-		return a.DurationInSeconds < b.DurationInSeconds
+		return a.Duration < b.Duration
+	}},
+	{Name: "creator", Compare: func(a, b Pipeline) bool {
+		return a.Creator.Username < b.Creator.Username
 	}},
 	{Name: "created_on", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
 		return a.CreatedOn.Before(b.CreatedOn)
@@ -160,6 +151,13 @@ var columns = common.Columns[Pipeline]{
 		}
 		return a.CompletedOn.Before(b.CompletedOn)
 	}},
+}
+
+// GetType gets the type name
+//
+// implements core.TypeCarrier
+func (pipeline Pipeline) GetType() string {
+	return "pipeline"
 }
 
 // GetHeaders gets the header for a table
@@ -184,8 +182,8 @@ func (pipeline Pipeline) GetRow(headers []string) []string {
 		switch strings.ToLower(header) {
 		case "build number", "build_number":
 			row = append(row, fmt.Sprintf("%d", pipeline.BuildNumber))
-		case "uuid":
-			row = append(row, pipeline.UUID)
+		case "uuid", "id":
+			row = append(row, pipeline.ID.String())
 		case "state":
 			row = append(row, pipeline.State.Name)
 		case "result":
@@ -209,7 +207,7 @@ func (pipeline Pipeline) GetRow(headers []string) []string {
 		case "creator":
 			row = append(row, pipeline.Creator.Name)
 		case "duration":
-			row = append(row, formatDuration(pipeline.DurationInSeconds))
+			row = append(row, pipeline.Duration.String())
 		case "created on", "created_on":
 			row = append(row, pipeline.CreatedOn.Format("2006-01-02 15:04:05"))
 		case "completed on", "completed_on":
@@ -221,21 +219,6 @@ func (pipeline Pipeline) GetRow(headers []string) []string {
 		}
 	}
 	return row
-}
-
-// formatDuration formats seconds into a human-readable duration
-func formatDuration(seconds int) string {
-	if seconds == 0 {
-		return "-"
-	}
-	d := time.Duration(seconds) * time.Second
-	if d < time.Minute {
-		return fmt.Sprintf("%ds", seconds)
-	}
-	if d < time.Hour {
-		return fmt.Sprintf("%dm %ds", int(d.Minutes()), int(d.Seconds())%60)
-	}
-	return fmt.Sprintf("%dh %dm", int(d.Hours()), int(d.Minutes())%60)
 }
 
 // Validate validates a Pipeline
@@ -253,17 +236,53 @@ func (pipeline Pipeline) String() string {
 }
 
 // MarshalJSON implements the json.Marshaler interface.
+//
+// implements json.Marshaler
 func (pipeline Pipeline) MarshalJSON() (data []byte, err error) {
 	type surrogate Pipeline
 
+	var completedOn string
+	if !pipeline.CompletedOn.IsZero() {
+		completedOn = pipeline.CompletedOn.Format("2006-01-02T15:04:05.999999999-07:00")
+	}
+
 	data, err = json.Marshal(struct {
+		Type string `json:"type"`
 		surrogate
-		CreatedOn   string `json:"created_on"`
-		CompletedOn string `json:"completed_on,omitempty"`
+		CreatedOn         string `json:"created_on"`
+		CompletedOn       string `json:"completed_on,omitempty"`
+		DurationInSeconds uint64 `json:"duration_in_seconds"`
 	}{
-		surrogate:   surrogate(pipeline),
-		CreatedOn:   pipeline.CreatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
-		CompletedOn: pipeline.CompletedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
+		Type:              pipeline.GetType(),
+		surrogate:         surrogate(pipeline),
+		CreatedOn:         pipeline.CreatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
+		CompletedOn:       completedOn,
+		DurationInSeconds: uint64(pipeline.Duration.Seconds()),
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+//
+// implements json.Unmarshaler
+func (pipeline *Pipeline) UnmarshalJSON(data []byte) error {
+	type surrogate Pipeline
+	var inner struct {
+		Type string `json:"type"`
+		surrogate
+		CreatedOn         core.Time `json:"created_on"`
+		CompletedOn       core.Time `json:"completed_on,omitempty"`
+		DurationInSeconds uint64    `json:"duration_in_seconds"`
+	}
+	if err := json.Unmarshal(data, &inner); err != nil {
+		return errors.JSONUnmarshalError.WrapIfNotMe(err)
+	}
+	if inner.Type != pipeline.GetType() {
+		return errors.JSONUnmarshalError.Wrap(errors.InvalidType.With(inner.Type, pipeline.GetType()))
+	}
+	*pipeline = Pipeline(inner.surrogate)
+	pipeline.CreatedOn = time.Time(inner.CreatedOn)
+	pipeline.CompletedOn = time.Time(inner.CompletedOn)
+	pipeline.Duration = time.Duration(inner.DurationInSeconds) * time.Second
+	return errors.JSONUnmarshalError.Wrap(pipeline.Validate())
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
@@ -71,10 +72,7 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if len(triggerOptions.Commit) > 0 {
-		target.Commit = &Commit{
-			Type: "commit",
-			Hash: triggerOptions.Commit,
-		}
+		target.Commit = &commit.Commit{Hash: triggerOptions.Commit}
 	}
 
 	if len(triggerOptions.Pattern) > 0 {
