@@ -3,6 +3,7 @@ package profile
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -40,6 +41,16 @@ func (profile *Profile) Get(context context.Context, cmd *cobra.Command, uripath
 	options := &request.Options{Method: http.MethodGet}
 	_, err = profile.send(context, cmd, options, uripath, response)
 	return
+}
+
+// GetRaw gets a resource without unmarshaling it
+func (profile *Profile) GetRaw(context context.Context, cmd *cobra.Command, uripath string) (raw io.Reader, err error) {
+	options := &request.Options{
+		Method: http.MethodGet,
+		Accept: "*/*",
+	}
+	result, err := profile.send(context, cmd, options, uripath, nil)
+	return result.Reader(), err
 }
 
 // Put puts/updates a resource

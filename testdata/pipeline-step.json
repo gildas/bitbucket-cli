@@ -1,0 +1,127 @@
+{
+  "type": "pipeline_step",
+  "uuid": "{cec5beef-dead-deed-bead-5ae1bedd9ada}",
+  "name": "Test and Build",
+  "duration_in_seconds": 19,
+  "run_number": 1,
+  "pipeline": {
+    "type": "pipeline",
+    "uuid": "{3edaa916-baad-beef-dead-28846deafec1}"
+  },
+  "setup_commands": [
+    {
+      "commandType": "user",
+      "name": "umask 000",
+      "command": "umask 000"
+    },
+    {
+      "commandType": "user",
+      "name": "export GIT_LFS_SKIP_SMUDGE=1",
+      "command": "export GIT_LFS_SKIP_SMUDGE=1"
+    },
+    {
+      "commandType": "user",
+      "name": "retry 6 git clone --branch=\"master\" --depth 50 https://x-token-auth:{access_token}@bbc-scm-git-backend.us-east-1.prod.atl-paas.net/$BITBUCKET_REPO_FULL_NAME.git $BUILD_DIR",
+      "command": "retry 6 git clone --branch=\"master\" --depth 50 https://x-token-auth:{access_token}@bbc-scm-git-backend.us-east-1.prod.atl-paas.net/$BITBUCKET_REPO_FULL_NAME.git $BUILD_DIR"
+    },
+    {
+      "commandType": "user",
+      "name": "git reset --hard d50d833f287c31e732983c273f23087182c9cbfd",
+      "command": "git reset --hard d50d833f287c31e732983c273f23087182c9cbfd"
+    },
+    {
+      "commandType": "user",
+      "name": "git config user.name bitbucket-pipelines",
+      "command": "git config user.name bitbucket-pipelines"
+    },
+    {
+      "commandType": "user",
+      "name": "git config user.email commits-noreply@bitbucket.org",
+      "command": "git config user.email commits-noreply@bitbucket.org"
+    },
+    {
+      "commandType": "user",
+      "name": "git config push.default current",
+      "command": "git config push.default current"
+    },
+    {
+      "commandType": "user",
+      "name": "git config http.${BITBUCKET_GIT_HTTP_ORIGIN}.proxy http://localhost:29418/",
+      "command": "git config http.${BITBUCKET_GIT_HTTP_ORIGIN}.proxy http://localhost:29418/"
+    },
+    {
+      "commandType": "user",
+      "name": "git remote set-url origin http://bitbucket.org/$BITBUCKET_REPO_FULL_NAME",
+      "command": "git remote set-url origin http://bitbucket.org/$BITBUCKET_REPO_FULL_NAME"
+    },
+    {
+      "commandType": "user",
+      "name": "git reflog expire --expire=all --all",
+      "command": "git reflog expire --expire=all --all"
+    },
+    {
+      "commandType": "user",
+      "name": "echo \".bitbucket/pipelines/generated\" >> .git/info/exclude",
+      "command": "echo \".bitbucket/pipelines/generated\" >> .git/info/exclude"
+    },
+    {
+      "commandType": "user",
+      "name": "chmod 777 $BUILD_DIR",
+      "command": "chmod 777 $BUILD_DIR"
+    }
+  ],
+  "script_commands": [
+    {
+      "commandType": "user",
+      "name": "mkdir test-reports",
+      "command": "mkdir test-reports"
+    },
+    {
+      "commandType": "user",
+      "name": "go get -u github.com/jstemmer/go-junit-report",
+      "command": "go get -u github.com/jstemmer/go-junit-report"
+    },
+    {
+      "commandType": "user",
+      "name": "go test tests/* -v 2>&1 | go-junit-report > test-reports/report.xml",
+      "command": "go test tests/* -v 2>&1 | go-junit-report > test-reports/report.xml"
+    },
+    {
+      "commandType": "user",
+      "name": "go build .",
+      "command": "go build ."
+    }
+  ],
+  "teardown_commands": [
+    {
+      "commandType": "system",
+      "action": "UPLOAD_METRICS",
+      "name": "Upload Metrics",
+      "command": "echo \"Uploading metrics\""
+    },
+    {
+      "commandType": "system",
+      "action": "PROCESS_TEST_REPORTS",
+      "name": "Process Test Reports",
+      "command": "echo \"Processing test reports\""
+    }
+  ],
+  "image": {
+    "name": "golang:1.25"
+  },
+  "maxTime": 120,
+  "build_seconds_used": 19,
+  "trigger": {
+    "type": "pipeline_step_trigger_automatic"
+  },
+  "state": {
+    "name": "COMPLETED",
+    "type": "pipeline_step_state_completed",
+    "result": {
+      "name": "FAILED",
+      "type": "pipeline_step_state_completed_failed"
+    }
+  },
+  "started_on": "2026-01-03T07:36:40.109572944Z",
+  "completed_on": "2026-01-03T07:36:59.423783406Z"
+}
