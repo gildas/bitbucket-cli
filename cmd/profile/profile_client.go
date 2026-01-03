@@ -403,7 +403,7 @@ func (profile Profile) getRepositoryFullname(context context.Context, cmd *cobra
 	log := logger.Must(logger.FromContext(context)).Child("profile", "getrepositoryname")
 
 	fullName := ""
-	if cmd != nil {
+	if cmd != nil && cmd.Flag("repository") != nil {
 		fullName = cmd.Flag("repository").Value.String()
 	}
 	if len(fullName) == 0 {
