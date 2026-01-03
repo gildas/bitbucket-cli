@@ -5,12 +5,12 @@ import (
 	"os"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
-	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
 )
 
@@ -62,13 +62,14 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 		target.RefName = triggerOptions.Branch
 	} else {
 		// Try to detect the current git branch
-		currentBranch, err := getCurrentBranch()
+		currentBranch, err := branch.GetCurrentBranch()
 		if err != nil {
+			log.Errorf("Failed to retrieve the current branch", err)
 			return errors.ArgumentMissing.With("branch or tag", "use --branch or --tag to specify the target")
 		}
-		target.RefType = "branch"
-		target.RefName = currentBranch
-		log.Infof("Using current branch: %s", currentBranch)
+		target.RefType = currentBranch.GetType()
+		target.RefName = currentBranch.Name
+		log.Infof("Using current branch: %s", currentBranch.Name)
 	}
 
 	if len(triggerOptions.Commit) > 0 {
@@ -89,10 +90,10 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 	// Parse variables
 	if len(triggerOptions.Variables) > 0 {
 		payload.Variables = make([]Variable, 0, len(triggerOptions.Variables))
-		for _, v := range triggerOptions.Variables {
-			parts := strings.SplitN(v, "=", 2)
+		for _, variable := range triggerOptions.Variables {
+			parts := strings.SplitN(variable, "=", 2)
 			if len(parts) != 2 {
-				return errors.ArgumentInvalid.With("variable", v)
+				return errors.ArgumentInvalid.With("variable", variable)
 			}
 			payload.Variables = append(payload.Variables, Variable{
 				Key:   parts[0],
@@ -121,20 +122,4 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return profile.Current.Print(cmd.Context(), cmd, pipeline)
-}
-
-// getCurrentBranch returns the current git branch name
-func getCurrentBranch() (string, error) {
-	repo, err := git.PlainOpenWithOptions(".", &git.PlainOpenOptions{DetectDotGit: true})
-	if err != nil {
-		return "", err
-	}
-	head, err := repo.Head()
-	if err != nil {
-		return "", err
-	}
-	if !head.Name().IsBranch() {
-		return "", errors.New("HEAD is not a branch")
-	}
-	return head.Name().Short(), nil
 }
