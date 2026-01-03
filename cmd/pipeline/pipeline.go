@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pipeline/step"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
@@ -27,26 +28,6 @@ type Pipeline struct {
 	CreatedOn            time.Time             `json:"created_on"                      mapstructure:"created_on"`
 	CompletedOn          time.Time             `json:"completed_on"                    mapstructure:"completed_on"`
 	Links                common.Links          `json:"links"                           mapstructure:"links"`
-}
-
-// PipelineState represents the state of a pipeline
-type PipelineState struct {
-	Type   string          `json:"type"             mapstructure:"type"`
-	Name   string          `json:"name"             mapstructure:"name"`
-	Stage  *PipelineStage  `json:"stage,omitempty"  mapstructure:"stage"`
-	Result *PipelineResult `json:"result,omitempty" mapstructure:"result"`
-}
-
-// PipelineStage represents the current stage of a pipeline
-type PipelineStage struct {
-	Type string `json:"type" mapstructure:"type"`
-	Name string `json:"name" mapstructure:"name"`
-}
-
-// PipelineResult represents the result of a completed pipeline
-type PipelineResult struct {
-	Type string `json:"type" mapstructure:"type"`
-	Name string `json:"name" mapstructure:"name"`
 }
 
 // Repository represents a repository reference in a pipeline
@@ -102,17 +83,6 @@ var columns = common.Columns[Pipeline]{
 	{Name: "state", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
 		return strings.Compare(strings.ToLower(a.State.Name), strings.ToLower(b.State.Name)) == -1
 	}},
-	{Name: "result", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
-		aResult := ""
-		bResult := ""
-		if a.State.Result != nil {
-			aResult = a.State.Result.Name
-		}
-		if b.State.Result != nil {
-			bResult = b.State.Result.Name
-		}
-		return strings.Compare(strings.ToLower(aResult), strings.ToLower(bResult)) == -1
-	}},
 	{Name: "branch", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
 		return strings.Compare(strings.ToLower(a.Target.RefName), strings.ToLower(b.Target.RefName)) == -1
 	}},
@@ -153,6 +123,10 @@ var columns = common.Columns[Pipeline]{
 	}},
 }
 
+func init() {
+	Command.AddCommand(step.Command)
+}
+
 // GetType gets the type name
 //
 // implements core.TypeCarrier
@@ -169,7 +143,7 @@ func (pipeline Pipeline) GetHeaders(cmd *cobra.Command) []string {
 			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
 	}
-	return []string{"build number", "state", "result", "branch", "creator", "duration", "created on"}
+	return []string{"build number", "state", "branch", "creator", "duration", "created on"}
 }
 
 // GetRow gets the row for a table
@@ -185,13 +159,7 @@ func (pipeline Pipeline) GetRow(headers []string) []string {
 		case "uuid", "id":
 			row = append(row, pipeline.ID.String())
 		case "state":
-			row = append(row, pipeline.State.Name)
-		case "result":
-			if pipeline.State.Result != nil {
-				row = append(row, pipeline.State.Result.Name)
-			} else {
-				row = append(row, " ")
-			}
+			row = append(row, pipeline.State.String())
 		case "branch":
 			row = append(row, pipeline.Target.RefName)
 		case "commit":
