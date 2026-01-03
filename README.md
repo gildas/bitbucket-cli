@@ -768,6 +768,54 @@ Finally, you can delete an artifact with the `bb artifact delete` command:
 bb artifact delete myartifact.zip
 ```
 
+### Pipelines
+
+You can list pipelines with the `bb pipeline list` command:
+
+```bash
+bb pipeline list
+```
+
+By default the current repository is used, you can specify a repository with the `--repository` flag.
+
+You can get the details of a pipeline with the `bb pipeline get` or `bb pipeline show` command:
+
+```bash
+bb pipeline get 123456
+```
+
+You can start a pipeline with the `bb pipeline trigger` command:
+
+```bash
+bb pipeline trigger --branch master --variable KEY1=VALUE1 --variable KEY2=VALUE2
+```
+
+By default, the pipeline is started on the current branch. You can also specify a tag or a commit with the `--tag` or `--commit` flags instead of a branch.
+
+You can stop a running pipeline with the `bb pipeline stop` command:
+
+```bash
+bb pipeline stop 123456
+```
+
+You can get the list of the steps of a pipeline with the `bb pipeline step list` command:
+
+```bash
+bb pipeline step list --pipeline 123456
+```
+
+You can get the details of a step with the `bb pipeline step get` or `bb pipeline step show` command:
+
+```bash
+bb pipeline step get --pipeline 123456 {stepUUID}
+```
+
+You can get the logs of a step with the `bb pipeline step log` command:
+
+```bash
+bb pipeline step logs --pipeline 123456 {stepUUID}
+```
+
 ### GPG Keys
 
 You can list GPG keys with the `bb key list` command:
