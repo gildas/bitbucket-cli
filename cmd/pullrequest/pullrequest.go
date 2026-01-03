@@ -33,6 +33,7 @@ type PullRequest struct {
 	CloseSourceBranch bool                `json:"close_source_branch"    mapstructure:"close_source_branch"`
 	ClosedBy          user.User           `json:"closed_by"              mapstructure:"closed_by"`
 	Author            user.User           `json:"author"                 mapstructure:"author"`
+	Reviewers         []user.User         `json:"reviewers,omitempty"    mapstructure:"reviewers"`
 	Reason            string              `json:"reason"                 mapstructure:"reason"`
 	Destination       Endpoint            `json:"destination"            mapstructure:"destination"`
 	Source            Endpoint            `json:"source"                 mapstructure:"source"`
