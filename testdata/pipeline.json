@@ -22,8 +22,8 @@
       "type": "default"
     }
   },
-  "created_on": "2024-01-15T10:30:00.000000+00:00",
-  "completed_on": "2024-01-15T10:35:30.000000+00:00",
+  "created_on": "2024-01-15T10:30:00+00:00",
+  "completed_on": "2024-01-15T10:35:30+00:00",
   "duration_in_seconds": 330,
   "creator": {
     "type": "user",
