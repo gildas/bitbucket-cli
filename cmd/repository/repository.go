@@ -22,7 +22,6 @@ import (
 )
 
 type Repository struct {
-	Type                 string              `json:"type"               mapstructure:"type"`
 	ID                   common.UUID         `json:"uuid"               mapstructure:"uuid"`
 	Name                 string              `json:"name"               mapstructure:"name"`
 	FullName             string              `json:"full_name"          mapstructure:"full_name"`
@@ -135,6 +134,13 @@ var columns = common.Columns[Repository]{
 }
 
 var RepositoryCache = common.NewCache[Repository]()
+
+// GetType gets the type of this repository
+//
+// implements core.TypeCarrier
+func (repository Repository) GetType() string {
+	return "repository"
+}
 
 // GetID gets the ID of the repository
 //
@@ -318,6 +324,7 @@ func (repository Repository) MarshalJSON() (data []byte, err error) {
 	}
 
 	data, err = json.Marshal(struct {
+		Type string `json:"type"`
 		surrogate
 		Owner      *user.User           `json:"owner,omitempty"`
 		Workspace  *workspace.Workspace `json:"workspace,omitempty"`
@@ -326,6 +333,7 @@ func (repository Repository) MarshalJSON() (data []byte, err error) {
 		CreatedOn  string               `json:"created_on,omitempty"`
 		UpdatedOn  string               `json:"updated_on,omitempty"`
 	}{
+		Type:       repository.GetType(),
 		surrogate:  surrogate(repository),
 		Owner:      owner,
 		Workspace:  wspace,
@@ -343,11 +351,15 @@ func (repository Repository) MarshalJSON() (data []byte, err error) {
 func (repository *Repository) UnmarshalJSON(data []byte) (err error) {
 	type surrogate Repository
 	var inner struct {
+		Type string `json:"type"`
 		surrogate
 		MainBranch branch `json:"mainbranch"`
 	}
 	if err = json.Unmarshal(data, &inner); err != nil {
 		return errors.JSONUnmarshalError.Wrap(err)
+	}
+	if inner.Type != repository.GetType() {
+		return errors.JSONUnmarshalError.Wrap(errors.InvalidType.With(inner.Type, repository.GetType()))
 	}
 	*repository = Repository(inner.surrogate)
 	repository.MainBranch = inner.MainBranch.Name
