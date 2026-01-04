@@ -94,6 +94,8 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to get pullrequest %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
+	log = log.Record("pullrequest", pullrequest.ID)
+	log.Record("pullrequest", pullrequest).Debugf("Fetched pullrequest %s", args[0])
 
 	updateWanted := false
 
@@ -117,7 +119,13 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		updateWanted = true
 	}
 
-	pullrequestWorkspace := pullrequest.Source.Repository.Workspace
+	pullrequestWorkspace, err := pullrequest.Destination.Repository.FetchWorkspace(cmd.Context(), cmd, profile.Current)
+	if err != nil {
+		log.Errorf("Failed to get workspace of pullrequest destination repository", err)
+		fmt.Fprintf(os.Stderr, "Failed to get workspace of pullrequest destination repository: %s\n", err)
+		os.Exit(1)
+	}
+
 	isMember := func(member workspace.Member, id string) bool {
 		if id, err := common.ParseUUID(id); err == nil {
 			return member.User.ID == id
@@ -164,19 +172,22 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 				)
 			}
 
+			log.Debugf("Getting all members from workspace %s", pullrequestWorkspace)
 			members, _ := pullrequestWorkspace.GetMembers(cmd.Context(), cmd)
+			log.Infof("Found %d members in workspace %s", len(members), pullrequestWorkspace)
 			for _, reviewer := range updateOptions.AddReviewers.Values {
+				log.Debugf("Processing reviewer to add: %s", reviewer)
 				if matches := core.Filter(members, func(member workspace.Member) bool { return isMember(member, reviewer) }); len(matches) > 0 {
 					if !slices.ContainsFunc(pullrequest.Reviewers, func(user user.User) bool { return user.ID == matches[0].User.ID }) {
-						log.Record("matches", matches).Infof("Adding reviewer: %s", matches[0].User.ID)
+						log.Record("matches", matches).Infof("Adding reviewer: %s (%s)", matches[0].User.ID, matches[0].User.Nickname)
 						pullrequest.Reviewers = append(pullrequest.Reviewers, matches[0].User)
 						updateWanted = true
+					} else {
+						log.Infof("Reviewer %s (%s) is already a reviewer, skipping", matches[0].User.ID, matches[0].User.Nickname)
 					}
-					log.Record("matches", matches).Infof("Adding reviewer: %s", matches[0].User.ID)
-					pullrequest.Reviewers = append(pullrequest.Reviewers, matches[0].User)
 				} else {
-					log.Errorf("Failed to parse reviewer ID: %s", reviewer)
-					fmt.Fprintf(os.Stderr, "Failed to parse reviewer ID: %s\n", reviewer)
+					log.Errorf("reviewer ID %s is not a member of workspace %s", reviewer, pullrequestWorkspace)
+					fmt.Fprintf(os.Stderr, "Reviewer %s is not a member of workspace %s\n", reviewer, pullrequestWorkspace)
 				}
 			}
 		}
@@ -188,6 +199,9 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Record("update", pullrequest).Infof("Updating pullrequest %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating pullrequest %d", pullrequest.ID) {
+		return nil
+	}
 
 	var updated PullRequest
 

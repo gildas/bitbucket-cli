@@ -105,7 +105,10 @@ func (workspace Workspace) GetRow(headers []string) []string {
 //
 // implements fmt.Stringer
 func (workspace Workspace) String() string {
-	return workspace.Slug
+	if len(workspace.Slug) > 0 {
+		return workspace.Slug
+	}
+	return workspace.Name
 }
 
 // GetWorkspace gets the workspace by its slug

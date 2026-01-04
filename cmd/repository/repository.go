@@ -156,6 +156,22 @@ func (repository Repository) GetName() string {
 	return repository.Name
 }
 
+// FetchWorkspace fetches the workspace of the repository
+func (repository *Repository) FetchWorkspace(context context.Context, cmd *cobra.Command, profile *profile.Profile) (*workspace.Workspace, error) {
+	if repository == nil {
+		return nil, errors.ArgumentMissing.With("repository")
+	}
+	if !repository.Workspace.ID.IsNil() {
+		return &repository.Workspace, nil
+	}
+	workspacename := strings.Split(repository.FullName, "/")[0]
+	workspace, err := workspace.GetWorkspace(context, cmd, workspacename)
+	if err == nil {
+		repository.Workspace = *workspace
+	}
+	return workspace, err
+}
+
 // GetHeaders gets the header for a table
 //
 // implements common.Tableable
@@ -292,6 +308,26 @@ func GetRepositorySlugs(context context.Context, cmd *cobra.Command, workspace s
 	return slugs, nil
 }
 
+// Validate validates a Repository
+func (repository *Repository) Validate() error {
+	var merr errors.MultiError
+
+	if repository.ID.IsNil() {
+		merr.Append(errors.ArgumentMissing.With("uuid"))
+	}
+	if len(repository.Name) == 0 {
+		merr.Append(errors.ArgumentMissing.With("name"))
+	}
+	if len(repository.FullName) == 0 {
+		merr.Append(errors.ArgumentMissing.With("full_name"))
+	}
+	if len(repository.Slug) == 0 {
+		repository.Slug = repository.Name
+	}
+
+	return merr.AsError()
+}
+
 // MarshalJSON implements the json.Marshaler interface.
 //
 // Implements json.Marshaler
@@ -363,5 +399,5 @@ func (repository *Repository) UnmarshalJSON(data []byte) (err error) {
 	}
 	*repository = Repository(inner.surrogate)
 	repository.MainBranch = inner.MainBranch.Name
-	return nil
+	return errors.JSONUnmarshalError.Wrap(repository.Validate())
 }
