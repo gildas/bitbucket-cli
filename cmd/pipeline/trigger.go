@@ -1,8 +1,6 @@
 package pipeline
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
@@ -117,8 +115,7 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 		&pipeline,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to trigger pipeline: %s\n", err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("failed to trigger pipeline"), err)
 	}
 
 	return profile.Current.Print(cmd.Context(), cmd, pipeline)

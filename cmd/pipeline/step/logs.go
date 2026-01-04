@@ -68,8 +68,7 @@ func logProcess(cmd *cobra.Command, args []string) error {
 		fmt.Sprintf("pipelines/%s/steps/%s/log", logOptions.PipelineID.Value, args[0]),
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get log for step %s: %s\n", args[0], err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("failed to get logs for step %s", args[0]), err)
 	}
 
 	// Produce the log output

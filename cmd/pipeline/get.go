@@ -2,7 +2,6 @@ package pipeline
 
 import (
 	"fmt"
-	"os"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	plcommon "bitbucket.org/gildas_cherruel/bb/cmd/pipeline/common"
@@ -70,8 +69,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		&pipeline,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get pipeline %s: %s\n", args[0], err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("failed to get pipeline %s", args[0]), err)
 	}
 
 	return profile.Current.Print(cmd.Context(), cmd, pipeline)

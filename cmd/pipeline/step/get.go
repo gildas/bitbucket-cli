@@ -2,7 +2,6 @@ package step
 
 import (
 	"fmt"
-	"os"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	plcommon "bitbucket.org/gildas_cherruel/bb/cmd/pipeline/common"
@@ -75,8 +74,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		&step,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get step %s: %s\n", args[0], err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("failed to get step %s", args[0]), err)
 	}
 
 	return profile.Current.Print(cmd.Context(), cmd, step)

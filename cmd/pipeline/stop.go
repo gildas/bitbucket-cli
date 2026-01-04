@@ -2,7 +2,6 @@ package pipeline
 
 import (
 	"fmt"
-	"os"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -51,8 +50,7 @@ func stopProcess(cmd *cobra.Command, args []string) (err error) {
 		nil,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to stop pipeline %s: %s\n", pipelineID, err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("failed to stop pipeline %s", args[0]), err)
 	}
 
 	fmt.Printf("Pipeline %s stopped successfully\n", pipelineID)
