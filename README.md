@@ -546,6 +546,22 @@ You can get the details of a pull request with the `bb pullrequest get` or `bb p
 bb pullrequest get 1
 ```
 
+You can also modify a pull request with the `bb pullrequest update` command:
+
+```bash
+bb pullrequest update 1 \
+  --title "My pull request" \
+  --description "My pull request description"
+```
+
+To add or remove reviewers from a pull request, you can use the `--add-reviewer` and `--remove-reviewer` flags:
+
+```bash
+bb pullrequest update 1 \
+  --add-reviewer    username1 --add-reviewer {userUUID2} \
+  --remove-reviewer username3 --remove-reviewer {userUUID4}
+```
+
 You can `approve`or `unapprove` a pull request with the `bb pullrequest approve` or `bb pullrequest unapprove` command:
 
 ```bash
