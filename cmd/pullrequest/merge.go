@@ -61,8 +61,9 @@ func mergeValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "merge")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	var pullrequest PullRequest
@@ -103,7 +104,7 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Merging pullrequest %s", pullRequestID) {
 		return nil
 	}
-	err = profile.Current.Post(
+	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("pullrequests/%s/merge", pullRequestID),
@@ -114,5 +115,5 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to merge pullrequest %s: %s\n", pullRequestID, err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, pullrequest)
+	return profile.Print(cmd.Context(), cmd, pullrequest)
 }

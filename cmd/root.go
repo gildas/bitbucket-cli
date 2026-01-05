@@ -175,6 +175,8 @@ func initConfig() {
 		} else {
 			profile.Current = profile.Profiles.Current(RootCmd.Context())
 		}
-		log.Record("profile", profile.Current).Infof("Current Profile: %s", profile.Current)
+		if profile.Current != nil {
+			log.Record("profile", profile.Current).Infof("Current Profile: %s", profile.Current)
+		}
 	}
 }

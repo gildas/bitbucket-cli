@@ -58,11 +58,12 @@ func reportValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 func reportProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "getreport")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
-	report, err := profile.Current.GetRaw(
+	report, err := profile.GetRaw(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("pipelines/%s/steps/%s/test_reports", reportOptions.PipelineID.Value, args[0]),

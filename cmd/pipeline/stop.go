@@ -31,8 +31,9 @@ func init() {
 func stopProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "stop")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	pipelineID := args[0]
@@ -42,7 +43,7 @@ func stopProcess(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	}
 
-	err = profile.Current.Post(
+	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("pipelines/%s/stopPipeline", pipelineID),

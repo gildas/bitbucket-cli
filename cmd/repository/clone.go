@@ -69,11 +69,13 @@ func cloneValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 func cloneProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "clone")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
+
 	if len(cloneOptions.Workspace.Value) == 0 {
-		cloneOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		cloneOptions.Workspace.Value = profile.DefaultWorkspace
 		if len(cloneOptions.Workspace.Value) == 0 {
 			return errors.ArgumentMissing.With("workspace")
 		}
@@ -94,7 +96,7 @@ func cloneProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if len(cloneOptions.Protocol.Value) == 0 {
-		cloneOptions.Protocol.Value = profile.Current.CloneProtocol
+		cloneOptions.Protocol.Value = profile.CloneProtocol
 		if len(cloneOptions.Protocol.Value) == 0 {
 			cloneOptions.Protocol.Value = "git"
 			log.Debugf("Protocol not specified, using default: %s", cloneOptions.Protocol.Value)
@@ -136,9 +138,9 @@ func cloneProcess(cmd *cobra.Command, args []string) (err error) {
 		options.URL = repoURL.String()
 		vaultUsername := cloneOptions.User
 		if len(vaultUsername) == 0 {
-			vaultUsername = profile.Current.CloneUser
+			vaultUsername = profile.CloneUser
 			if len(vaultUsername) == 0 {
-				vaultUsername = profile.Current.User
+				vaultUsername = profile.User
 			}
 		}
 		if len(vaultUsername) > 0 {

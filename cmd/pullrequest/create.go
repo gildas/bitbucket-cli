@@ -69,8 +69,9 @@ func init() {
 func createProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	if len(createOptions.Title) == 0 {
@@ -87,7 +88,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		payload.Destination = &Endpoint{Branch: Branch{Name: createOptions.Destination.Value}}
 	}
 
-	pullrequestRepository, err := repository.GetRepositoryFromGit(cmd.Context(), cmd, profile.Current)
+	pullrequestRepository, err := repository.GetRepositoryFromGit(cmd.Context(), cmd, profile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get repository: %s\n", err)
 		os.Exit(1)
@@ -139,7 +140,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	var pullrequest PullRequest
 
-	err = profile.Current.Post(
+	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
 		"pullrequests",
@@ -150,5 +151,5 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to create pullrequest: %s\n", err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, pullrequest)
+	return profile.Print(cmd.Context(), cmd, pullrequest)
 }

@@ -13,7 +13,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -76,15 +75,16 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 func updateProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	var pullrequest PullRequest
 
 	log.Infof("Fetching pullrequest %s", args[0])
 
-	err := profile.Current.Get(
+	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("pullrequests/%s", args[0]),
@@ -120,7 +120,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		updateWanted = true
 	}
 
-	pullrequestWorkspace, err := pullrequest.Destination.Repository.FetchWorkspace(cmd.Context(), cmd, profile.Current)
+	pullrequestWorkspace, err := pullrequest.Destination.Repository.FetchWorkspace(cmd.Context(), cmd, profile)
 	if err != nil {
 		log.Errorf("Failed to get workspace of pullrequest destination repository", err)
 		fmt.Fprintf(os.Stderr, "Failed to get workspace of pullrequest destination repository: %s\n", err)
@@ -211,7 +211,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 
 	var updated PullRequest
 
-	err = profile.Current.Put(
+	err = profile.Put(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("pullrequests/%s", args[0]),
@@ -223,5 +223,5 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 
-	return profile.Current.Print(cmd.Context(), cmd, updated)
+	return profile.Print(cmd.Context(), cmd, updated)
 }

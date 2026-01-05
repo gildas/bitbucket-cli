@@ -60,14 +60,15 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 func getProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	log.Infof("Displaying pipeline step %s", args[0])
 	var step Step
 
-	err := profile.Current.Get(
+	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("pipelines/%s/steps/%s", getOptions.PipelineID.Value, args[0]),
@@ -77,5 +78,5 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return errors.Join(errors.Errorf("failed to get step %s", args[0]), err)
 	}
 
-	return profile.Current.Print(cmd.Context(), cmd, step)
+	return profile.Print(cmd.Context(), cmd, step)
 }

@@ -43,8 +43,9 @@ func init() {
 func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "trigger")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	// Build the target
@@ -107,7 +108,7 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 
 	var pipeline Pipeline
 
-	err = profile.Current.Post(
+	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
 		"pipelines/",
@@ -118,5 +119,5 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.Join(errors.Errorf("failed to trigger pipeline"), err)
 	}
 
-	return profile.Current.Print(cmd.Context(), cmd, pipeline)
+	return profile.Print(cmd.Context(), cmd, pipeline)
 }

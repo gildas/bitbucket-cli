@@ -58,11 +58,12 @@ func casesValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 func casesProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "listcases")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
-	cases, err := profile.Current.GetRaw(
+	cases, err := profile.GetRaw(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("pipelines/%s/steps/%s/test_reports/test_cases", casesOptions.PipelineID.Value, args[0]),

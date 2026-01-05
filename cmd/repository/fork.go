@@ -78,11 +78,13 @@ func forkValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]stri
 func forkProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "fork")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
+
 	if len(forkOptions.Workspace.Value) == 0 {
-		forkOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		forkOptions.Workspace.Value = profile.DefaultWorkspace
 		if len(forkOptions.Workspace.Value) == 0 {
 			return errors.ArgumentMissing.With("workspace")
 		}
@@ -107,7 +109,7 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 	}
 	var forked Repository
 
-	err := profile.Current.Post(
+	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("/repositories/%s/%s/forks", forkOptions.Workspace, args[0]),
@@ -117,5 +119,5 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return profile.Current.Print(cmd.Context(), cmd, forked)
+	return profile.Print(cmd.Context(), cmd, forked)
 }

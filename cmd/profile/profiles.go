@@ -24,7 +24,7 @@ func (profiles profiles) Current(context context.Context) *Profile {
 	if gitConfig, err := common.OpenGitConfig(context); err == nil {
 		log.Debugf("Found a git config file")
 		if section, err := common.GetGitSection(context, gitConfig, `bitbucket "cli"`); err == nil {
-			log.Debugf("Found a bitbucket \"cli\" section in git config: %v", section)
+			log.Debugf("Found a bitbucket \"cli\" section in git config: %#+v", section)
 			if profileName := section.Key("profile").String(); len(profileName) > 0 {
 				log.Debugf("Found a profile in git config: %s", profileName)
 				if profile, found := profiles.Find(profileName); found {
@@ -46,9 +46,7 @@ func (profiles profiles) Current(context context.Context) *Profile {
 	if len(profiles) > 0 {
 		return profiles[0]
 	}
-	return &Profile{
-		Name: "default",
-	}
+	return nil
 }
 
 // Names gets the names of the profiles

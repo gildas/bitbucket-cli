@@ -73,8 +73,9 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	payload := CommentUpdator{
@@ -101,7 +102,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	var comment Comment
 
-	err = profile.Current.Put(
+	err = profile.Put(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("pullrequests/%s/comments/%s", updateOptions.PullRequestID.Value, args[0]),
@@ -112,5 +113,5 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to update comment for pullrequest %s: %s\n", updateOptions.PullRequestID.Value, err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, comment)
+	return profile.Print(cmd.Context(), cmd, comment)
 }

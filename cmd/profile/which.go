@@ -19,5 +19,10 @@ func init() {
 func whichProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "which")
 
-	return Current.Print(log.ToContext(cmd.Context()), cmd, Current)
+	profile, err := GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	return profile.Print(log.ToContext(cmd.Context()), cmd, Current)
 }

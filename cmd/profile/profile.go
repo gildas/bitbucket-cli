@@ -113,6 +113,9 @@ func GetProfileFromCommand(context context.Context, cmd *cobra.Command) (profile
 			}
 		}
 		Current = Profiles.Current(context)
+		if Current == nil {
+			return nil, errors.ArgumentMissing.With("profile")
+		}
 		profile = Current
 	} else {
 		profile = Current

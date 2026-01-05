@@ -55,11 +55,13 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 func getProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	currentProfile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
+
 	if len(getOptions.Workspace.Value) == 0 {
-		getOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		getOptions.Workspace.Value = currentProfile.DefaultWorkspace
 		if len(getOptions.Workspace.Value) == 0 {
 			return errors.ArgumentMissing.With("workspace")
 		}
@@ -79,14 +81,14 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("No fork found")
 			return nil
 		}
-		return profile.Current.Print(cmd.Context(), cmd, Repositories(forks))
+		return currentProfile.Print(cmd.Context(), cmd, Repositories(forks))
 	}
 
 	log.Infof("Displaying repository %s", args[0])
-	repository, err := GetRepository(log.ToContext(cmd.Context()), cmd, profile.Current, getOptions.Workspace.String(), args[0])
+	repository, err := GetRepository(log.ToContext(cmd.Context()), cmd, currentProfile, getOptions.Workspace.String(), args[0])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get repository %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, repository)
+	return currentProfile.Print(cmd.Context(), cmd, repository)
 }
