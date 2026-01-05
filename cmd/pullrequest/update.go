@@ -106,6 +106,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 
 	if cmd.Flag("description").Changed {
 		pullrequest.Description = updateOptions.Description
+		pullrequest.Summary.Raw = updateOptions.Description
 		updateWanted = true
 	}
 
@@ -197,6 +198,11 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		log.Infof("No update options were changed, exiting")
 		return nil
 	}
+
+	// Remove fields that should not be sent in update
+	pullrequest.Summary.Type = ""
+	pullrequest.Summary.Markup = ""
+	pullrequest.Summary.HTML = ""
 
 	log.Record("update", pullrequest).Infof("Updating pullrequest %s", args[0])
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating pullrequest %d", pullrequest.ID) {
