@@ -380,6 +380,9 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 	if options.Logger == nil {
 		options.Logger = log
 	}
+	if options.RequestBodyLogSize == 0 {
+		options.RequestBodyLogSize = 16 * 1024
+	}
 	if options.ResponseBodyLogSize == 0 {
 		options.ResponseBodyLogSize = 16 * 1024
 	}
