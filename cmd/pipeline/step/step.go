@@ -60,7 +60,7 @@ var columns = common.Columns[Step]{
 	{Name: "duration", DefaultSorter: false, Compare: func(a, b Step) bool {
 		return a.Duration < b.Duration
 	}},
-	{Name: "commands", DefaultSorter: false, Compare: func(a, b Step) bool {
+	{Name: "logs-command", DefaultSorter: false, Compare: func(a, b Step) bool {
 		return a.ID.String() < b.ID.String()
 	}},
 }
@@ -82,7 +82,7 @@ func (step Step) GetHeaders(cmd *cobra.Command) []string {
 		}
 	}
 	if step.ShowLogsCommand {
-		return []string{"ID", "Name", "State", "Duration", "Image", "Commands"}
+		return []string{"ID", "Name", "State", "Duration", "Image", "Logs Command"}
 	}
 	return []string{"ID", "Name", "State", "Duration", "Image"}
 }
@@ -113,7 +113,7 @@ func (step Step) GetRow(headers []string) []string {
 			row = append(row, fmt.Sprintf("%d", step.RunNumber))
 		case "max time":
 			row = append(row, step.MaxTime.String())
-		case "commands":
+		case "logs command", "logs-command":
 			row = append(row, fmt.Sprintf("bb pipeline step logs --pipeline %d --step %s", step.BuildNumber, step.ID.String()))
 		default:
 			row = append(row, "")
