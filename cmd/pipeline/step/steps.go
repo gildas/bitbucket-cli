@@ -7,23 +7,26 @@ type Steps []Step
 // GetHeaders gets the headers for the list command
 //
 // implements common.Tableables
-func (comments Steps) GetHeaders(cmd *cobra.Command) []string {
-	return Step{}.GetHeaders(cmd)
+func (steps Steps) GetHeaders(cmd *cobra.Command) []string {
+	if len(steps) == 0 {
+		return Step{}.GetHeaders(cmd)
+	}
+	return steps[0].GetHeaders(cmd)
 }
 
 // GetRowAt gets the row for the list command
 //
 // implements common.Tableables
-func (comments Steps) GetRowAt(index int, headers []string) []string {
-	if index < 0 || index >= len(comments) {
+func (steps Steps) GetRowAt(index int, headers []string) []string {
+	if index < 0 || index >= len(steps) {
 		return []string{}
 	}
-	return comments[index].GetRow(headers)
+	return steps[index].GetRow(headers)
 }
 
 // Size gets the number of elements
 //
 // implements common.Tableables
-func (comments Steps) Size() int {
-	return len(comments)
+func (steps Steps) Size() int {
+	return len(steps)
 }

@@ -2,6 +2,7 @@ package step
 
 import (
 	"fmt"
+	"strconv"
 
 	plcommon "bitbucket.org/gildas_cherruel/bb/cmd/pipeline/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -20,10 +21,11 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Repository string
-	PipelineID *flags.EnumFlag
-	Columns    *flags.EnumSliceFlag
-	SortBy     *flags.EnumFlag
+	Repository      string
+	PipelineID      *flags.EnumFlag
+	Columns         *flags.EnumSliceFlag
+	SortBy          *flags.EnumFlag
+	ShowLogsCommand bool
 }
 
 func init() {
@@ -36,6 +38,7 @@ func init() {
 	listCmd.Flags().Var(listOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
+	listCmd.Flags().BoolVar(&listOptions.ShowLogsCommand, "show-logs-command", false, "Show the command to get the logs for each step")
 	_ = listCmd.MarkFlagRequired("pipeline")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.PipelineID.CompletionFunc("pipeline"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
@@ -63,5 +66,11 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	}
 	core.Sort(steps, columns.SortBy(listOptions.SortBy.Value))
+	steps = core.Map(steps, func(step Step) Step {
+		step.BuildNumber, _ = strconv.ParseUint(listOptions.PipelineID.Value, 10, 64)
+		step.ShowLogsCommand = listOptions.ShowLogsCommand
+		log.Debugf("Updated step %s with BuildNumber %d and ShowLogsCommand=%v", step.ID.String(), step.BuildNumber, step.ShowLogsCommand)
+		return step
+	})
 	return profile.Current.Print(cmd.Context(), cmd, Steps(steps))
 }

@@ -20,6 +20,7 @@ import (
 type Step struct {
 	ID               common.UUID                `json:"uuid"                mapstructure:"uuid"`
 	Name             string                     `json:"name"                mapstructure:"name"`
+	BuildNumber      uint64                     `json:"-"                   mapstructure:"-"`
 	RunNumber        uint64                     `json:"run_number"          mapstructure:"run_number"`
 	Pipeline         plcommon.PipelineReference `json:"pipeline"            mapstructure:"pipeline"`
 	State            StepState                  `json:"state"               mapstructure:"state"`
@@ -31,6 +32,7 @@ type Step struct {
 	StartedOn        time.Time                  `json:"started_on"          mapstructure:"started_on"`
 	CompletedOn      time.Time                  `json:"completed_on"        mapstructure:"completed_on"`
 	Duration         time.Duration              `json:"duration_in_seconds" mapstructure:"duration_in_seconds"`
+	ShowLogsCommand  bool                       `json:"-"                   mapstructure:"-"`
 }
 
 // Command represents this folder's command
@@ -55,6 +57,12 @@ var columns = common.Columns[Step]{
 	{Name: "image", DefaultSorter: false, Compare: func(a, b Step) bool {
 		return a.Image.Name < b.Image.Name
 	}},
+	{Name: "duration", DefaultSorter: false, Compare: func(a, b Step) bool {
+		return a.Duration < b.Duration
+	}},
+	{Name: "commands", DefaultSorter: false, Compare: func(a, b Step) bool {
+		return a.ID.String() < b.ID.String()
+	}},
 }
 
 // GetType gets the type of the struct
@@ -72,6 +80,9 @@ func (step Step) GetHeaders(cmd *cobra.Command) []string {
 		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
 			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
+	}
+	if step.ShowLogsCommand {
+		return []string{"ID", "Name", "State", "Duration", "Image", "Commands"}
 	}
 	return []string{"ID", "Name", "State", "Duration", "Image"}
 }
@@ -102,6 +113,8 @@ func (step Step) GetRow(headers []string) []string {
 			row = append(row, fmt.Sprintf("%d", step.RunNumber))
 		case "max time":
 			row = append(row, step.MaxTime.String())
+		case "commands":
+			row = append(row, fmt.Sprintf("bb pipeline step logs --pipeline %d --step %s", step.BuildNumber, step.ID.String()))
 		default:
 			row = append(row, "")
 		}

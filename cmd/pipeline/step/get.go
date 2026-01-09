@@ -2,6 +2,7 @@ package step
 
 import (
 	"fmt"
+	"strconv"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	plcommon "bitbucket.org/gildas_cherruel/bb/cmd/pipeline/common"
@@ -22,9 +23,10 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Repository string
-	PipelineID *flags.EnumFlag
-	Columns    *flags.EnumSliceFlag
+	Repository      string
+	PipelineID      *flags.EnumFlag
+	Columns         *flags.EnumSliceFlag
+	ShowLogsCommand bool
 }
 
 func init() {
@@ -35,6 +37,7 @@ func init() {
 	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pipeline from. Defaults to the current repository")
 	getCmd.Flags().Var(getOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
+	getCmd.Flags().BoolVar(&getOptions.ShowLogsCommand, "show-logs-command", false, "Show the command to get the logs for this step")
 	_ = getCmd.MarkFlagRequired("pipeline")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.PipelineID.CompletionFunc("pipeline"))
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
@@ -77,6 +80,9 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Join(errors.Errorf("failed to get step %s", args[0]), err)
 	}
+	step.BuildNumber, _ = strconv.ParseUint(getOptions.PipelineID.Value, 10, 64)
+	step.ShowLogsCommand = getOptions.ShowLogsCommand
+	log.Debugf("Updated step %s with BuildNumber %d and ShowLogsCommand=%v", step.ID.String(), step.BuildNumber, step.ShowLogsCommand)
 
 	return profile.Print(cmd.Context(), cmd, step)
 }
