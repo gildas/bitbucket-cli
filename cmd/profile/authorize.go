@@ -69,6 +69,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 			"client_id":     {profile.ClientID},
 		}.Encode(),
 	}
+	common.Verbose(cmd.Context(), cmd, "\nIf you are not redirected automatically, please open the following URL in your browser:\n%s\n", bitbucketAuthURL.String())
 
 	if cmd.Flag("verbose").Changed {
 		spinner.Reverse()
