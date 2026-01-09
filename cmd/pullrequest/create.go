@@ -25,6 +25,7 @@ type PullRequestCreator struct {
 	Destination       *Endpoint   `json:"destination,omitempty"`
 	Reviewers         []user.User `json:"reviewers,omitempty"`
 	CloseSourceBranch bool        `json:"close_source_branch,omitempty"`
+	Draft             bool        `json:"draft,omitempty"`
 }
 
 var createCmd = &cobra.Command{
@@ -43,6 +44,7 @@ var createOptions struct {
 	Destination       *flags.EnumFlag
 	Reviewers         *flags.EnumSliceFlag
 	CloseSourceBranch bool
+	Draft             bool
 }
 
 func init() {
@@ -59,6 +61,7 @@ func init() {
 	createCmd.Flags().Var(createOptions.Destination, "destination", "Destination branch of the pullrequest")
 	createCmd.Flags().Var(createOptions.Reviewers, "reviewer", "Reviewer(s) of the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname. If the first reviewer is `default`, the command will try to find the default reviewers from the repository or project settings.")
 	createCmd.Flags().BoolVar(&createOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
+	createCmd.Flags().BoolVar(&createOptions.Draft, "draft", false, "Create the pullrequest as a draft")
 	_ = createCmd.MarkFlagRequired("title")
 	_ = createCmd.MarkFlagRequired("source")
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Source.CompletionFunc("source"))
@@ -83,6 +86,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		Description:       createOptions.Description,
 		Source:            Endpoint{Branch: Branch{Name: createOptions.Source.Value}},
 		CloseSourceBranch: createOptions.CloseSourceBranch,
+		Draft:             createOptions.Draft,
 	}
 	if len(createOptions.Destination.Value) > 0 {
 		payload.Destination = &Endpoint{Branch: Branch{Name: createOptions.Destination.Value}}
