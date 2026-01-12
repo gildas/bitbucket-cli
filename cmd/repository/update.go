@@ -66,11 +66,13 @@ func init() {
 func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
+
 	if len(updateOptions.Workspace.Value) == 0 {
-		updateOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		updateOptions.Workspace.Value = profile.DefaultWorkspace
 		if len(updateOptions.Workspace.Value) == 0 {
 			return errors.ArgumentMissing.With("workspace")
 		}
@@ -99,12 +101,12 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Updating repository %s/%s in project %s", updateOptions.Workspace, updateOptions.Name, updateOptions.Project)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating repository %s/%s in projecct %s", updateOptions.Workspace, updateOptions.Name, updateOptions.Project) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating repository %s/%s in project %s", updateOptions.Workspace, updateOptions.Name, updateOptions.Project) {
 		return nil
 	}
 	var repository Repository
 
-	err = profile.Current.Put(
+	err = profile.Put(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("/repositories/%s/%s", updateOptions.Workspace, args[0]),
@@ -115,5 +117,5 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to update repository %s/%s: %s\n", updateOptions.Workspace, args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, repository)
+	return profile.Print(cmd.Context(), cmd, repository)
 }

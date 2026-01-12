@@ -3,6 +3,7 @@ package profile
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -40,6 +41,16 @@ func (profile *Profile) Get(context context.Context, cmd *cobra.Command, uripath
 	options := &request.Options{Method: http.MethodGet}
 	_, err = profile.send(context, cmd, options, uripath, response)
 	return
+}
+
+// GetRaw gets a resource without unmarshaling it
+func (profile *Profile) GetRaw(context context.Context, cmd *cobra.Command, uripath string) (raw io.Reader, err error) {
+	options := &request.Options{
+		Method: http.MethodGet,
+		Accept: "*/*",
+	}
+	result, err := profile.send(context, cmd, options, uripath, nil)
+	return result.Reader(), err
 }
 
 // Put puts/updates a resource
@@ -369,6 +380,9 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 	if options.Logger == nil {
 		options.Logger = log
 	}
+	if options.RequestBodyLogSize == 0 {
+		options.RequestBodyLogSize = 16 * 1024
+	}
 	if options.ResponseBodyLogSize == 0 {
 		options.ResponseBodyLogSize = 16 * 1024
 	}
@@ -392,7 +406,7 @@ func (profile Profile) getRepositoryFullname(context context.Context, cmd *cobra
 	log := logger.Must(logger.FromContext(context)).Child("profile", "getrepositoryname")
 
 	fullName := ""
-	if cmd != nil {
+	if cmd != nil && cmd.Flag("repository") != nil {
 		fullName = cmd.Flag("repository").Value.String()
 	}
 	if len(fullName) == 0 {

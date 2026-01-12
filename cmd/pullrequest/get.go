@@ -7,7 +7,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -56,14 +55,15 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 func getProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	log.Infof("Displaying pull request %s", args[0])
 	var pullrequest PullRequest
 
-	err := profile.Current.Get(
+	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("pullrequests/%s", args[0]),
@@ -74,5 +74,5 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 
-	return profile.Current.Print(cmd.Context(), cmd, pullrequest)
+	return profile.Print(cmd.Context(), cmd, pullrequest)
 }

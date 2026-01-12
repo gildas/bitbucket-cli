@@ -113,6 +113,9 @@ func GetProfileFromCommand(context context.Context, cmd *cobra.Command) (profile
 			}
 		}
 		Current = Profiles.Current(context)
+		if Current == nil {
+			return nil, errors.ArgumentMissing.With("profile")
+		}
 		profile = Current
 	} else {
 		profile = Current
@@ -423,12 +426,14 @@ func (profile Profile) PrintTable(context context.Context, cmd *cobra.Command, p
 	case common.Tableable:
 		headers := actual.GetHeaders(cmd)
 		table.SetHeader(headers)
+		table.SetAutoWrapText(false)
 		table.Append(actual.GetRow(headers))
 	case common.Tableables:
 		log.Debugf("Payload is a slice of %d elements", actual.Size())
 		if actual.Size() > 0 {
 			headers := actual.GetHeaders(cmd)
 			table.SetHeader(headers)
+			table.SetAutoWrapText(false)
 			for i := 0; i < actual.Size(); i++ {
 				table.Append(actual.GetRowAt(i, headers))
 			}

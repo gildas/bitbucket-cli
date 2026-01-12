@@ -54,8 +54,9 @@ func getVAlidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 func getProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	if getOptions.WithMembers {
@@ -68,17 +69,17 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("No member found")
 			return nil
 		}
-		return profile.Current.Print(cmd.Context(), cmd, Members(members))
+		return profile.Print(cmd.Context(), cmd, Members(members))
 	}
 
 	if len(getOptions.Member) != 0 {
 		log.Infof("Displaying workspace %s member %s", args[0], getOptions.Member)
-		member, err := getWorkspaceMember(cmd.Context(), cmd, profile.Current, args[0], getOptions.Member)
+		member, err := getWorkspaceMember(cmd.Context(), cmd, profile, args[0], getOptions.Member)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get workspace member %s: %s\n", getOptions.Member, err)
 			os.Exit(1)
 		}
-		return profile.Current.Print(cmd.Context(), cmd, member)
+		return profile.Print(cmd.Context(), cmd, member)
 	}
 
 	log.Infof("Displaying workspace %s", args[0])
@@ -87,7 +88,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to get workspace %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, workspace)
+	return profile.Print(cmd.Context(), cmd, workspace)
 }
 
 func getWorkspaceMember(context context.Context, cmd *cobra.Command, profile *profile.Profile, workspace string, member string) (*Member, error) {

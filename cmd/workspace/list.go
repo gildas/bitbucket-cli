@@ -1,6 +1,9 @@
 package workspace
 
 import (
+	"fmt"
+	"net/url"
+
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
@@ -17,6 +20,7 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	WithMembership bool
+	Query          string
 	Columns        *flags.EnumSliceFlag
 	SortBy         *flags.EnumFlag
 }
@@ -27,6 +31,7 @@ func init() {
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().BoolVar(&listOptions.WithMembership, "membership", false, "List also the workspace memberships of the current user")
+	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter workspaces")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
@@ -49,12 +54,14 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return profile.Current.Print(cmd.Context(), cmd, Memberships(memberships))
 	}
 
+	uripath := "workspaces"
+	if len(listOptions.Query) > 0 {
+		uripath = uripath + "?q=" + listOptions.Query
+		uripath = fmt.Sprintf("workspaces?q=%s", url.QueryEscape(listOptions.Query))
+	}
+
 	log.Infof("Listing all workspaces")
-	workspaces, err := profile.GetAll[Workspace](
-		cmd.Context(),
-		cmd,
-		"/workspaces",
-	)
+	workspaces, err := profile.GetAll[Workspace](cmd.Context(), cmd, uripath)
 	if err != nil {
 		return err
 	}

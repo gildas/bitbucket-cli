@@ -546,6 +546,22 @@ You can get the details of a pull request with the `bb pullrequest get` or `bb p
 bb pullrequest get 1
 ```
 
+You can also modify a pull request with the `bb pullrequest update` command:
+
+```bash
+bb pullrequest update 1 \
+  --title "My pull request" \
+  --description "My pull request description"
+```
+
+To add or remove reviewers from a pull request, you can use the `--add-reviewer` and `--remove-reviewer` flags:
+
+```bash
+bb pullrequest update 1 \
+  --add-reviewer    username1 --add-reviewer {userUUID2} \
+  --remove-reviewer username3 --remove-reviewer {userUUID4}
+```
+
 You can `approve`or `unapprove` a pull request with the `bb pullrequest approve` or `bb pullrequest unapprove` command:
 
 ```bash
@@ -766,6 +782,54 @@ Finally, you can delete an artifact with the `bb artifact delete` command:
 
 ```bash
 bb artifact delete myartifact.zip
+```
+
+### Pipelines
+
+You can list pipelines with the `bb pipeline list` command:
+
+```bash
+bb pipeline list
+```
+
+By default the current repository is used, you can specify a repository with the `--repository` flag.
+
+You can get the details of a pipeline with the `bb pipeline get` or `bb pipeline show` command:
+
+```bash
+bb pipeline get 123456
+```
+
+You can start a pipeline with the `bb pipeline trigger` command:
+
+```bash
+bb pipeline trigger --branch master --variable KEY1=VALUE1 --variable KEY2=VALUE2
+```
+
+By default, the pipeline is started on the current branch. You can also specify a tag or a commit with the `--tag` or `--commit` flags instead of a branch.
+
+You can stop a running pipeline with the `bb pipeline stop` command:
+
+```bash
+bb pipeline stop 123456
+```
+
+You can get the list of the steps of a pipeline with the `bb pipeline step list` command:
+
+```bash
+bb pipeline step list --pipeline 123456
+```
+
+You can get the details of a step with the `bb pipeline step get` or `bb pipeline step show` command:
+
+```bash
+bb pipeline step get --pipeline 123456 {stepUUID}
+```
+
+You can get the logs of a step with the `bb pipeline step log` command:
+
+```bash
+bb pipeline step logs --pipeline 123456 {stepUUID}
 ```
 
 ### GPG Keys

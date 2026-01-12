@@ -15,6 +15,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/component"
 	"bitbucket.org/gildas_cherruel/bb/cmd/gpg-key"
 	"bitbucket.org/gildas_cherruel/bb/cmd/issue"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pipeline"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
@@ -102,6 +103,7 @@ func init() {
 	RootCmd.AddCommand(commit.Command)
 	RootCmd.AddCommand(component.Command)
 	RootCmd.AddCommand(issue.Command)
+	RootCmd.AddCommand(pipeline.Command)
 	RootCmd.AddCommand(pullrequest.Command)
 	RootCmd.AddCommand(repository.Command)
 	RootCmd.AddCommand(user.Command)
@@ -173,6 +175,8 @@ func initConfig() {
 		} else {
 			profile.Current = profile.Profiles.Current(RootCmd.Context())
 		}
-		log.Record("profile", profile.Current).Infof("Current Profile: %s", profile.Current)
+		if profile.Current != nil {
+			log.Record("profile", profile.Current).Infof("Current Profile: %s", profile.Current)
+		}
 	}
 }

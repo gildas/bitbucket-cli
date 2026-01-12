@@ -52,21 +52,22 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 func deleteProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	var merr errors.MultiError
 	for _, commentID := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting comment %s from pullrequest %s", commentID, deleteOptions.PullRequestID) {
-			err := profile.Current.Delete(
+			err := profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
 				fmt.Sprintf("pullrequests/%s/comments/%s", deleteOptions.PullRequestID.Value, commentID),
 				nil,
 			)
 			if err != nil {
-				if profile.Current.ShouldStopOnError(cmd) {
+				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to delete pullrequest comment %s: %s\n", commentID, err)
 					os.Exit(1)
 				} else {
@@ -76,11 +77,11 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 			log.Infof("Pullrequest comment %s deleted", commentID)
 		}
 	}
-	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
 		fmt.Fprintf(os.Stderr, "Failed to delete these comments: %s\n", merr)
 		return nil
 	}
-	if profile.Current.ShouldIgnoreErrors(cmd) {
+	if profile.ShouldIgnoreErrors(cmd) {
 		log.Warnf("Failed to delete these comments, but ignoring errors: %s", merr)
 		return nil
 	}

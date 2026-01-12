@@ -67,4 +67,5 @@ Thumbs.db
 
 
 # Snyk Security Extension - AI Rules (auto-generated)
+.dccache
 .github/instructions/snyk_rules.instructions.md

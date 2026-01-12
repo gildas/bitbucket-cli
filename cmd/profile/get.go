@@ -37,6 +37,13 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	if getOptions.Current {
 		log.Infof("Displaying current profile")
+		if Current == nil {
+			log.Debugf("There is no current profile")
+			if cmd.Flag("stop-on-error").Value.String() == "true" {
+				return errors.Errorf("There is no profile configured")
+			}
+			return nil
+		}
 		return Current.Print(cmd.Context(), cmd, Current)
 	}
 

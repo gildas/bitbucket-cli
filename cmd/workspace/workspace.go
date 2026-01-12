@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -9,13 +10,13 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
 	"github.com/gildas/go-core"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
 type Workspace struct {
-	Type  string       `json:"type"  mapstructure:"type"`
 	ID    common.UUID  `json:"uuid"  mapstructure:"uuid"`
 	Name  string       `json:"name"  mapstructure:"name"`
 	Slug  string       `json:"slug"  mapstructure:"slug"`
@@ -47,6 +48,13 @@ var columns = common.Columns[Workspace]{
 }
 
 var WorkspaceCache = common.NewCache[Workspace]()
+
+// GetType gets the type of the workspace
+//
+// implements core.TypeCarrier
+func (workspace Workspace) GetType() string {
+	return "workspace"
+}
 
 // GetID gets the ID of the workspace
 //
@@ -93,6 +101,16 @@ func (workspace Workspace) GetRow(headers []string) []string {
 	return row
 }
 
+// String returns the string representation of the workspace
+//
+// implements fmt.Stringer
+func (workspace Workspace) String() string {
+	if len(workspace.Slug) > 0 {
+		return workspace.Slug
+	}
+	return workspace.Name
+}
+
 // GetWorkspace gets the workspace by its slug
 func GetWorkspace(context context.Context, cmd *cobra.Command, workspaceName string) (workspace *Workspace, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "get")
@@ -131,6 +149,16 @@ func GetWorkspaceFromGit(context context.Context, cmd *cobra.Command) (workspace
 	return GetWorkspace(context, cmd, remote.WorkspaceName())
 }
 
+// GetWorkspaceFromCommandOrGit gets the workspace from the command flag or git config
+func GetWorkspaceFromCommandOrGit(context context.Context, cmd *cobra.Command) (workspace *Workspace, err error) {
+	if cmd.Flag("workspace") != nil {
+		if workspaceName := cmd.Flag("workspace").Value.String(); len(workspaceName) > 0 {
+			return GetWorkspace(context, cmd, workspaceName)
+		}
+	}
+	return GetWorkspaceFromGit(context, cmd)
+}
+
 // GetMembers gets the members of the workspace
 func (workspace Workspace) GetMembers(context context.Context, cmd *cobra.Command) (members []Member, err error) {
 	members, err = profile.GetAll[Member](
@@ -157,4 +185,42 @@ func GetWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []strin
 	return core.Map(workspaces, func(workspace Workspace) string {
 		return workspace.Slug
 	}), nil
+}
+
+// MarshalJSON marshals the workspace to JSON
+//
+// implements json.Marshaler
+func (workspace Workspace) MarshalJSON() ([]byte, error) {
+	type surrogate Workspace
+
+	data, err := json.Marshal(struct {
+		Type string `json:"type"`
+		surrogate
+	}{
+		Type:      workspace.GetType(),
+		surrogate: surrogate(workspace),
+	})
+	return data, errors.JSONMarshalError.Wrap(err)
+}
+
+// UnmarshalJSON unmarshals the workspace from JSON
+//
+// implements json.Unmarshaler
+func (workspace *Workspace) UnmarshalJSON(data []byte) error {
+	type surrogate Workspace
+
+	var inner struct {
+		Type string `json:"type"`
+		surrogate
+	}
+
+	if err := json.Unmarshal(data, &inner); err != nil {
+		return errors.JSONUnmarshalError.WrapIfNotMe(err)
+	}
+	if inner.Type != workspace.GetType() {
+		return errors.JSONUnmarshalError.Wrap(errors.InvalidType.With(inner.Type, workspace.GetType()))
+	}
+
+	*workspace = Workspace(inner.surrogate)
+	return nil
 }

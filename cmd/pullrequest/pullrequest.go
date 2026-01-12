@@ -33,6 +33,7 @@ type PullRequest struct {
 	CloseSourceBranch bool                `json:"close_source_branch"    mapstructure:"close_source_branch"`
 	ClosedBy          user.User           `json:"closed_by"              mapstructure:"closed_by"`
 	Author            user.User           `json:"author"                 mapstructure:"author"`
+	Reviewers         []user.User         `json:"reviewers,omitempty"    mapstructure:"reviewers"`
 	Reason            string              `json:"reason"                 mapstructure:"reason"`
 	Destination       Endpoint            `json:"destination"            mapstructure:"destination"`
 	Source            Endpoint            `json:"source"                 mapstructure:"source"`
@@ -218,26 +219,23 @@ func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 // GetReviewerNicknames gets the reviewer nicknames for the current Workspace
 func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string, toComplete string) (nicknames []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getreviewers")
-	var pullrequestWorkspace *workspace.Workspace
 
 	if cmd == nil {
 		fmt.Fprintln(os.Stderr, "cmd is nil")
 		return []string{}, errors.ArgumentMissing.With("cmd")
 	}
 
-	if workspaceName := cmd.Flag("workspace").Value.String(); len(workspaceName) > 0 {
-		pullrequestWorkspace, err = workspace.GetWorkspace(cmd.Context(), cmd, workspaceName)
-	} else {
-		pullrequestWorkspace, err = workspace.GetWorkspaceFromGit(cmd.Context(), cmd)
-	}
+	log.Infof("Getting reviewer nicknames for profile %s", profile.Current)
+	pullrequestWorkspace, err := workspace.GetWorkspaceFromCommandOrGit(cmd.Context(), cmd)
 	if err != nil {
 		log.Errorf("Failed to get repository: %s", err)
 		return []string{}, err
 	}
+	log.Infof("Getting members of workspace %s", pullrequestWorkspace)
 	members, _ := pullrequestWorkspace.GetMembers(context, cmd)
 	nicknames = core.Map(members, func(member workspace.Member) string { return member.User.Nickname })
 	core.Sort(nicknames, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
-	return nicknames, nil
+	return common.FilterValidArgs(nicknames, args, toComplete), nil
 }
 
 // GetBranchNames gets the branch names of a repository

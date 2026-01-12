@@ -7,7 +7,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -50,14 +49,15 @@ func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([
 func unapproveProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "unapprove")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Unapproving pullrequest %s", args[0]) {
 		return nil
 	}
-	err = profile.Current.Delete(
+	err = profile.Delete(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("pullrequests/%s/approve", args[0]),

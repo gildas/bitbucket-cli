@@ -8,7 +8,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -53,8 +52,9 @@ func approveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 func approveProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "approve")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Approving pullrequest %s", args[0]) {
@@ -62,7 +62,7 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	var participant user.Participant
 
-	err = profile.Current.Post(
+	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
 		fmt.Sprintf("pullrequests/%s/approve", args[0]),
@@ -73,5 +73,5 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "Failed to approve pullrequest %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Current.Print(cmd.Context(), cmd, participant)
+	return profile.Print(cmd.Context(), cmd, participant)
 }

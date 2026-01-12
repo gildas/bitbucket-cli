@@ -49,11 +49,13 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 func deleteProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
+
 	if len(deleteOptions.Workspace.Value) == 0 {
-		deleteOptions.Workspace.Value = profile.Current.DefaultWorkspace
+		deleteOptions.Workspace.Value = profile.DefaultWorkspace
 		if len(deleteOptions.Workspace.Value) == 0 {
 			return errors.ArgumentMissing.With("workspace")
 		}
@@ -62,14 +64,14 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 	var merr errors.MultiError
 	for _, repositorySlug := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting repository %s", repositorySlug) {
-			err := profile.Current.Delete(
+			err := profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
 				fmt.Sprintf("/repositories/%s/%s", deleteOptions.Workspace, repositorySlug),
 				nil,
 			)
 			if err != nil {
-				if profile.Current.ShouldStopOnError(cmd) {
+				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to delete repository %s: %s\n", repositorySlug, err)
 					os.Exit(1)
 				} else {
@@ -79,11 +81,11 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		}
 		log.Infof("Repository %s deleted", repositorySlug)
 	}
-	if !merr.IsEmpty() && profile.Current.ShouldWarnOnError(cmd) {
+	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
 		fmt.Fprintf(os.Stderr, "Failed to delete these repositories: %s\n", merr)
 		return nil
 	}
-	if profile.Current.ShouldIgnoreErrors(cmd) {
+	if profile.ShouldIgnoreErrors(cmd) {
 		log.Warnf("Failed to delete these repositories, but ignoring errors: %s", merr)
 		return nil
 	}
