@@ -21,6 +21,8 @@ filters:
     - Merge pull request
     - Merge remote-tracking branch
     - Merge branch
+    - More git ignore
+    - New git ignore
     - "^Bumped to version"
     - Updated go packages
     - Updated Go packages
@@ -29,6 +31,7 @@ filters:
     - Updated Changelog
     - Updated modules
     - Updated packaging
+    - Updated Packaging
     - Updated Documentation
     - Updated checksums
     - go mod tidy

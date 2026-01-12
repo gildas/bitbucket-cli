@@ -1,3 +1,107 @@
+- semver: 0.16.1
+  date: 2025-12-17T23:09:01.123534564+09:00
+  packager: Gildas Cherruel <gildas@breizh.org>
+  changes:
+    - commit: 7a781d841a2519f6ad960af5fd05f32f0d985070
+      note: 'Issue #25: Added support for git worktrees'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: b33ef6456286f5ae7b78842788e5a4dc6539be5d
+      note: 'Makefile: snapcraft command new format'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 893034e2fa8d168fd195fe2ac29974135b80f696
+      note: Missing flag register
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+- semver: 0.16.0
+  date: 2026-08-15T21:14:24.345234623+09:00
+  packager: Gildas Cherruel <gildas@breizh.org>
+  changes:
+    - commit: 6c0c51445ec11e51fde555635427ea440d4d54d0
+      note: 'Issue #21: Added --sort to list commands'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: f99bb46eaaa8b90e0bac8c1d0d7ac48ea8364049
+      note: Adding --sort to get/list commands
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 284c62aa02a72e549c167745dcdef6a81bc592f6
+      note: 'Issue #21: Added --columns flag to get/list commands'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: fefd669373fb834f9e225cd91941f1b1546bf5d3
+      note: 'Issue #21: Separated payload printers'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 111dd05011bdbd41a1e35ff244db6388e4db5291
+      note: 'Issue #20: Moved error flags to persistent flags'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: b1e605b136324e0d750c59caa85ba4fef9e439f7
+      note: 'Issue #22: URL query fix'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 95ee95a81737e70d82a64d3ca40fda5efc442bc8
+      note: 'Makefile: missing folder dependencies, archive only current version'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 92ef97c49b2e2207610772e5a5c6280d7ea82eaf
+      note: Better error description
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: b5497227d23ac9e6e0a6ea89bbd6ebd1d52192e3
+      note: use function argument instead of global variable
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
 - semver: 0.15.0
   date: 2025-08-05T01:36:51.841806243+09:00
   packager: Gildas Cherruel <gildas@breizh.org>
