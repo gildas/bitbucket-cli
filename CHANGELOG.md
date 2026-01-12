@@ -1,16 +1,57 @@
+0.17.0
+=============
+2026-01-12
+
+* Issue #32: Added `--query` to list commands (0a01f9b4)
+* Issue #31: added support for draft pull requests (115087bb)
+* Issue #26: More verbose profile authorization (6ba1ee8c)
+* Issue #26: better column name (fd017bcf)
+* Issue #26: pipeline steps can show their log command when listed (508311bd)
+* Do not wrap columns by default (458cb353)
+* Issue #30: report an error if there is no profile (d9f5f4e3)
+* Issue #26: Added Pipeline step test reports and cases (f2ecbd49)
+* Issue #28: Do not update the Summary metadata, but update the Summary Raw when updating the description (59d23db7)
+* Better logging (50988b84)
+* Better error management (4e61733b)
+* Issue #28: Updated Documentation (8a09694f)
+* Issue #28: Added pull request update command (3e9096d4)
+* Issue #28: Added pull request update command (d2033af4)
+* Added Reviewers to Pull Request struct (333842e8)
+* Do not extract the repository name from the arguments if --repository is not present (918871e9)
+* refactored workspace code (dd99c7e9)
+* Issue #29: Workspace unmarshaling should check for the type field (20798c31)
+* Added Pipeline step commands (22696dd3)
+* Moved types around (04a30a9e)
+* Added pipeline completion for get command (34f2b6af)
+* Moved branch code to cmd/branch (fbe267a1)
+* Use more common objects in pipelines (c901f5e5)
+* Reset RootCmd (b5d20b98)
+* Commit should give a CommitReference and vice-versa (d14334ba)
+* New links (9c30646c)
+* test: add unit tests for pipeline command (15e8c74b)
+* feat: add pipeline command for managing Bitbucket Pipelines (234e7fa0)
+
 0.16.1
 =============
 2025-12-17
 
-* Issue #25: Added Support for git worktrees (7a781d8)
+* Issue #25: Added support for git worktrees (7a781d84)
+* Makefile: snapcraft command new format (b33ef645)
+* Missing flag register (893034e2)
 
 0.16.0
 =============
-2025-08-15
+2026-08-15
 
-* Issue #22: Profile cannot execute Bitbucket API endpoint with queries (b1e605b)
-* Issue #21: Added --sort and --columns to get/list commands
-* Issue #20: Moved error flags to persistent flags (111dd05)
+* Issue #21: Added --sort to list commands (6c0c5144)
+* Adding --sort to get/list commands (f99bb46e)
+* Issue #21: Added --columns flag to get/list commands (284c62aa)
+* Issue #21: Separated payload printers (fefd6693)
+* Issue #20: Moved error flags to persistent flags (111dd050)
+* Issue #22: URL query fix (b1e605b1)
+* Makefile: missing folder dependencies, archive only current version (95ee95a8)
+* Better error description (92ef97c4)
+* use function argument instead of global variable (b5497227)
 
 0.15.0
 =============
