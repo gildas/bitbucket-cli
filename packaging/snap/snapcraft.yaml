@@ -1,4 +1,5 @@
 name: bitbucket-cli
+title: Bitbucket CLI
 summary: Bitbucket CLI
 description: |
       The Bitbucket Command Line Interface brings the power of the Bitbucket
@@ -9,6 +10,8 @@ description: |
 website: https://github.com/gildas/bitbucket-cli
 source-code: https://github.com/gildas/bitbucket-cli
 issues: https://github.com/gildas/bitbucket-cli/issues
+contact:
+  - https://github.com/gildas/bitbucket-cli
 license: MIT
 version: 0.17.0
 base: core22
