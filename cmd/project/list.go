@@ -2,6 +2,7 @@ package project
 
 import (
 	"fmt"
+	"net/url"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
@@ -20,6 +21,7 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Workspace *flags.EnumFlag
+	Query     string
 	Columns   *flags.EnumSliceFlag
 	SortBy    *flags.EnumFlag
 }
@@ -31,6 +33,7 @@ func init() {
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list projects from")
+	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter projects")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Workspace.CompletionFunc("workspace"))
@@ -51,12 +54,16 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	var uripath string
+
+	if len(listOptions.Query) > 0 {
+		uripath = fmt.Sprintf("workspaces/%s/projects?q=%s", workspace, url.QueryEscape(listOptions.Query))
+	} else {
+		uripath = fmt.Sprintf("workspaces/%s/projects", workspace)
+	}
+
 	log.Infof("Listing all projects from workspace %s with profile %s", workspace, currentProfile)
-	projects, err := profile.GetAll[Project](
-		cmd.Context(),
-		cmd,
-		fmt.Sprintf("/workspaces/%s/projects", workspace),
-	)
+	projects, err := profile.GetAll[Project](cmd.Context(), cmd, uripath)
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"fmt"
+	"net/url"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
@@ -20,6 +21,7 @@ var listCmd = &cobra.Command{
 
 var listOptions struct {
 	Repository string
+	Query      string
 	Columns    *flags.EnumSliceFlag
 	SortBy     *flags.EnumFlag
 }
@@ -30,6 +32,7 @@ func init() {
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pipelines from. Defaults to the current repository")
+	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter pipelines")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
@@ -43,12 +46,13 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
+	uripath := "pipelines"
+	if len(listOptions.Query) > 0 {
+		uripath = fmt.Sprintf("pipelines?q=%s", url.QueryEscape(listOptions.Query))
+	}
+
 	log.Infof("Listing pipelines for repository: %s", listOptions.Repository)
-	pipelines, err := profile.GetAll[Pipeline](
-		log.ToContext(cmd.Context()),
-		cmd,
-		"pipelines/",
-	)
+	pipelines, err := profile.GetAll[Pipeline](log.ToContext(cmd.Context()), cmd, uripath)
 	if err != nil {
 		return err
 	}

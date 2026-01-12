@@ -2,6 +2,7 @@ package comment
 
 import (
 	"fmt"
+	"net/url"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
@@ -20,6 +21,7 @@ var listCmd = &cobra.Command{
 var listOptions struct {
 	Repository string
 	IssueID    *flags.EnumFlag
+	Query      string
 	Columns    *flags.EnumSliceFlag
 	SortBy     *flags.EnumFlag
 }
@@ -32,6 +34,7 @@ func init() {
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issue comments from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.IssueID, "issue", "Issue to list comments from")
+	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter comments")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.MarkFlagRequired("issue")
@@ -43,12 +46,16 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
+	var uripath string
+
+	if len(listOptions.Query) > 0 {
+		uripath = fmt.Sprintf("issues/%s/comments?q=%s", listOptions.IssueID.Value, url.QueryEscape(listOptions.Query))
+	} else {
+		uripath = fmt.Sprintf("issues/%s/comments", listOptions.IssueID.Value)
+	}
+
 	log.Infof("Listing all comments from repository %s", listOptions.Repository)
-	comments, err := profile.GetAll[Comment](
-		cmd.Context(),
-		cmd,
-		fmt.Sprintf("issues/%s/comments", listOptions.IssueID.Value),
-	)
+	comments, err := profile.GetAll[Comment](cmd.Context(), cmd, uripath)
 	if err != nil {
 		return err
 	}

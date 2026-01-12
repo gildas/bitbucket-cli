@@ -2,6 +2,7 @@ package issue
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -21,6 +22,7 @@ var listCmd = &cobra.Command{
 var listOptions struct {
 	Repository string
 	States     *flags.EnumSliceFlag
+	Query      string
 	Columns    *flags.EnumSliceFlag
 	SortBy     *flags.EnumFlag
 }
@@ -33,6 +35,7 @@ func init() {
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issues from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.States, "state", "State of the issues to list. Can be repeated. One of: all, closed, duplicate, invalid, on hold, new, open, resolved, submitted, wontfix. Default: open, new")
+	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter issues")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.States.CompletionFunc("state"))
@@ -54,6 +57,15 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 				filter += fmt.Sprintf(`state="%s"`, strings.ReplaceAll(state, " ", "+"))
 			}
 		}
+	}
+
+	if len(listOptions.Query) > 0 {
+		if len(filter) == 0 {
+			filter = "?q="
+		} else {
+			filter += "+AND+"
+		}
+		filter += url.QueryEscape(listOptions.Query)
 	}
 
 	log.Infof("Listing all issues from repository %s with profile %s", listOptions.Repository, profile.Current)

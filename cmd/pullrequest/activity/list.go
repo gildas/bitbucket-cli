@@ -2,6 +2,7 @@ package activity
 
 import (
 	"fmt"
+	"net/url"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
@@ -22,6 +23,7 @@ var listCmd = &cobra.Command{
 var listOptions struct {
 	Repository    string
 	PullRequestID *flags.EnumFlag
+	Query         string
 	Columns       *flags.EnumSliceFlag
 	SortBy        *flags.EnumFlag
 }
@@ -34,6 +36,7 @@ func init() {
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequest activities from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.PullRequestID, "pullrequest", "pullrequest to list activities from")
+	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter activities")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.MarkFlagRequired("pullrequest")
@@ -49,12 +52,16 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
+	var uripath string
+
+	if len(listOptions.Query) > 0 {
+		uripath = fmt.Sprintf("pullrequests/%s/activity?q=%s", listOptions.PullRequestID.Value, url.QueryEscape(listOptions.Query))
+	} else {
+		uripath = fmt.Sprintf("pullrequests/%s/activity", listOptions.PullRequestID.Value)
+	}
+
 	log.Infof("Listing all activities from repository %s with profile %s", listOptions.Repository, profile.Current)
-	activities, err := profile.GetAll[Activity](
-		cmd.Context(),
-		cmd,
-		fmt.Sprintf("pullrequests/%s/activity", listOptions.PullRequestID.Value),
-	)
+	activities, err := profile.GetAll[Activity](cmd.Context(), cmd, uripath)
 	if err != nil {
 		return err
 	}
