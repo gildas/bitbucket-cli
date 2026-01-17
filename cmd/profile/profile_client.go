@@ -87,7 +87,24 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 	}
 	Current = profile // Make sure the current profile is set
 
-	log.Infof("Getting all resources for profile %s", profile.Name)
+	pageLength := Current.DefaultPageLength
+
+	if cmd != nil && cmd.Flag("page-length") != nil && cmd.Flag("page-length").Changed {
+		if length, err := cmd.Flags().GetInt("page-length"); err == nil && length > 0 {
+			pageLength = length
+			log.Debugf("Using page length of %d from the command line flags", pageLength)
+		}
+	}
+
+	if !strings.Contains(uripath, "pagelen") && pageLength > 0 {
+		if strings.Contains(uripath, "?") {
+			uripath = fmt.Sprintf("%s&pagelen=%d", uripath, pageLength)
+		} else {
+			uripath = fmt.Sprintf("%s?pagelen=%d", uripath, pageLength)
+		}
+	}
+
+	log.Infof("Getting all resources for profile %s (%d at a time)", profile.Name, pageLength)
 	for {
 		var paginated PaginatedResources[T]
 

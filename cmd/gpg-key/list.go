@@ -16,9 +16,10 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Owner   string
-	Columns *flags.EnumSliceFlag
-	SortBy  *flags.EnumFlag
+	Owner      string
+	Columns    *flags.EnumSliceFlag
+	SortBy     *flags.EnumFlag
+	PageLength int
 }
 
 func init() {
@@ -29,6 +30,7 @@ func init() {
 	listCmd.Flags().StringVar(&listOptions.Owner, "user", "", "Owner of the keys")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
+	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
