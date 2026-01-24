@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>bitbucket-cli</id>
-    <version>0.17.0</version>
+    <version>0.17.1</version>
     <owners>Gildas Cherruel</owners>
     <title>bitbucket-cli (Install)</title>
     <authors>Gildas Cherruel</authors>
@@ -18,12 +18,7 @@
     <summary>Command line interface for Bitbucket</summary>
     <description>The Bitbucket Command Line Interface brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.</description>
     <releaseNotes>
-- Added Pipeline commands
-- Pull Requests can now be updated
-- Added more verbosity to profile authorize command (the token URL is now shown)
-- Added support for draft pull requests
-- Added --query to list commands
-- Fixed crash when using profile get --current without any profile configured
+- List commands pagination can now be controlled
     </releaseNotes>
   </metadata>
   <files>
