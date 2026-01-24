@@ -22,31 +22,36 @@ import (
 
 // Profile describes the configuration needed to connect to BitBucket
 type Profile struct {
-	Name             string                 `json:"name"                       mapstructure:"name"`
-	Description      string                 `json:"description,omitempty"      mapstructure:"description,omitempty"     yaml:",omitempty"`
-	Default          bool                   `json:"default"                    mapstructure:"default"                   yaml:",omitempty"`
-	APIRoot          *url.URL               `json:"apiRoot,omitempty"         mapstructure:"apiRoot,omitempty"          yaml:",omitempty"`
-	DefaultWorkspace string                 `json:"defaultWorkspace,omitempty" mapstructure:"defaultWorkspace"          yaml:",omitempty"`
-	DefaultProject   string                 `json:"defaultProject,omitempty"   mapstructure:"defaultProject"            yaml:",omitempty"`
-	ErrorProcessing  common.ErrorProcessing `json:"errorProcessing,omitempty"  mapstructure:"errorProcessing,omitempty" yaml:",omitempty"`
-	OutputFormat     string                 `json:"outputFormat,omitempty"     mapstructure:"outputFormat,omitempty"    yaml:",omitempty"`
-	Progress         bool                   `json:"progress,omitempty"         mapstructure:"progress,omitempty"        yaml:",omitempty"`
-	VaultKey         string                 `json:"vaultKey,omitempty"         mapstructure:"vaultKey,omitempty"        yaml:",omitempty"`
-	User             string                 `json:"user,omitempty"             mapstructure:"user"                      yaml:",omitempty"`
-	Password         string                 `json:"password,omitempty"         mapstructure:"password"                  yaml:",omitempty"`
-	ClientID         string                 `json:"clientID,omitempty"         mapstructure:"clientID"                  yaml:",omitempty"`
-	ClientSecret     string                 `json:"clientSecret,omitempty"     mapstructure:"clientSecret"              yaml:",omitempty"`
-	CallbackPort     uint16                 `json:"callbackPort,omitempty"     mapstructure:"callbackPort"              yaml:",omitempty"`
-	AccessToken      string                 `json:"accessToken,omitempty"      mapstructure:"accessToken"               yaml:",omitempty"`
-	RefreshToken     string                 `json:"-"                          mapstructure:"refreshToken"              yaml:"-"`
-	TokenExpires     time.Time              `json:"-"                          mapstructure:"tokenExpires"              yaml:"-"`
-	TokenScopes      []string               `json:"-"                          mapstructure:"tokenScopes"               yaml:"-"`
-	CloneProtocol    string                 `json:"cloneProtocol,omitempty"    mapstructure:"cloneProtocol,omitempty"   yaml:",omitempty"`
-	CloneUser        string                 `json:"cloneUser,omitempty"        mapstructure:"cloneUser,omitempty"       yaml:",omitempty"`
+	Name              string                 `json:"name"                        mapstructure:"name"`
+	Description       string                 `json:"description,omitempty"       mapstructure:"description,omitempty"       yaml:",omitempty"`
+	Default           bool                   `json:"default"                     mapstructure:"default"                     yaml:",omitempty"`
+	APIRoot           *url.URL               `json:"apiRoot,omitempty"           mapstructure:"apiRoot,omitempty"           yaml:",omitempty"`
+	DefaultWorkspace  string                 `json:"defaultWorkspace,omitempty"  mapstructure:"defaultWorkspace,omitempty"  yaml:",omitempty"`
+	DefaultProject    string                 `json:"defaultProject,omitempty"    mapstructure:"defaultProject,omitempty"    yaml:",omitempty"`
+	ErrorProcessing   common.ErrorProcessing `json:"errorProcessing,omitempty"   mapstructure:"errorProcessing,omitempty"   yaml:",omitempty"`
+	DefaultPageLength int                    `json:"defaultPageLength,omitempty" mapstructure:"defaultPageLength,omitempty" yaml:",omitempty"`
+	OutputFormat      string                 `json:"outputFormat,omitempty"      mapstructure:"outputFormat,omitempty"      yaml:",omitempty"`
+	Progress          bool                   `json:"progress,omitempty"          mapstructure:"progress,omitempty"          yaml:",omitempty"`
+	VaultKey          string                 `json:"vaultKey,omitempty"          mapstructure:"vaultKey,omitempty"          yaml:",omitempty"`
+	User              string                 `json:"user,omitempty"              mapstructure:"user"                        yaml:",omitempty"`
+	Password          string                 `json:"password,omitempty"          mapstructure:"password"                    yaml:",omitempty"`
+	ClientID          string                 `json:"clientID,omitempty"          mapstructure:"clientID"                    yaml:",omitempty"`
+	ClientSecret      string                 `json:"clientSecret,omitempty"      mapstructure:"clientSecret"                yaml:",omitempty"`
+	CallbackPort      uint16                 `json:"callbackPort,omitempty"      mapstructure:"callbackPort"                yaml:",omitempty"`
+	AccessToken       string                 `json:"accessToken,omitempty"       mapstructure:"accessToken"                 yaml:",omitempty"`
+	RefreshToken      string                 `json:"-"                           mapstructure:"refreshToken"                yaml:"-"`
+	TokenExpires      time.Time              `json:"-"                           mapstructure:"tokenExpires"                yaml:"-"`
+	TokenScopes       []string               `json:"-"                           mapstructure:"tokenScopes"                 yaml:"-"`
+	CloneProtocol     string                 `json:"cloneProtocol,omitempty"     mapstructure:"cloneProtocol,omitempty"     yaml:",omitempty"`
+	CloneUser         string                 `json:"cloneUser,omitempty"         mapstructure:"cloneUser,omitempty"         yaml:",omitempty"`
 }
 
 // Current is the current profile
 var Current *Profile
+
+const (
+	DefaultPageLength = 50 // DefaultPageLength is the default number of items per page to retrieve from Bitbucket
+)
 
 // Command represents this folder's command
 var Command = &cobra.Command{
@@ -273,6 +278,14 @@ func (profile *Profile) Validate() error {
 	if profile.CloneProtocol != "git" && profile.CloneProtocol != "https" && profile.CloneProtocol != "ssh" {
 		merr.Append(errors.ArgumentInvalid.With("cloneProtocol", profile.CloneProtocol))
 	}
+	if len(profile.OutputFormat) == 0 {
+		profile.OutputFormat = "table"
+	}
+	if profile.DefaultPageLength == 0 {
+		profile.DefaultPageLength = DefaultPageLength
+	} else if profile.DefaultPageLength < 0 || profile.DefaultPageLength > 100 {
+		merr.Append(errors.Errorf("Default Page Length must be between 0 and 100 (value: %d)", profile.DefaultPageLength))
+	}
 	return merr.AsError()
 }
 
@@ -450,9 +463,12 @@ func (profile Profile) PrintTable(context context.Context, cmd *cobra.Command, p
 // implements json.Marshaler
 func (profile Profile) MarshalJSON() ([]byte, error) {
 	type surrogate Profile
-	outputFormat := profile.OutputFormat
-	if outputFormat == "table" {
-		outputFormat = ""
+
+	if profile.OutputFormat == "table" {
+		profile.OutputFormat = ""
+	}
+	if profile.DefaultPageLength == DefaultPageLength {
+		profile.DefaultPageLength = 0
 	}
 	errorProcessing := profile.ErrorProcessing.String()
 	if errorProcessing == common.StopOnError.String() {
@@ -460,11 +476,9 @@ func (profile Profile) MarshalJSON() ([]byte, error) {
 	}
 	data, err := json.Marshal(struct {
 		surrogate
-		OutputFormat    string `json:"outputFormat,omitempty"`
 		ErrorProcessing string `json:"errorProcessing,omitempty"`
 	}{
 		surrogate:       surrogate(profile),
-		OutputFormat:    outputFormat,
 		ErrorProcessing: errorProcessing,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
@@ -480,10 +494,7 @@ func (profile *Profile) UnmarshalJSON(data []byte) error {
 		return errors.JSONUnmarshalError.Wrap(err)
 	}
 	*profile = Profile(inner)
-	if len(profile.OutputFormat) == 0 {
-		profile.OutputFormat = "table"
-	}
-	return nil
+	return errors.JSONUnmarshalError.Wrap(profile.Validate())
 }
 
 // loadAccessToken loads the access token from the cache

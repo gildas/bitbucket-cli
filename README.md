@@ -90,6 +90,20 @@ bb repo list --columns name --columns slug
 bb repo list --sort name
 ```
 
+`list` commands also support the `--query` flag to filter the output by a specific query. The query syntax is similar to the one used in the Bitbucket web interface. For example, to filter Pull Requests updated after a specific date:
+
+```bash
+bb pullrequest list --query 'updated_on > 2025-12-31'
+```
+
+Please refer to the [Bitbucket API documentation](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#filtering) for more information about the supported query syntax and fields.
+
+`list` commands also support the 'page-length' flag to set the number of items to retrieve per request to Bitbucket API at a time. By default, the page length is set on the profile and the default is 50. You can set it to a value between 1 and 100.
+
+```bash
+bb repo list --page-length 25
+```
+
 ### Output
 
 `bb` outputs a table by default. You can change the output format with the `--output` flag,  by setting the `BB_OUTPUT_FORMAT` environment variable, or by modifying the profile configuration (See [Profiles](#profiles)).

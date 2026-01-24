@@ -34,6 +34,7 @@ var listOptions struct {
 	IsPrivate  bool
 	Columns    *flags.EnumSliceFlag
 	SortBy     *flags.EnumFlag
+	PageLength int
 }
 
 func init() {
@@ -54,6 +55,7 @@ func init() {
 	listCmd.Flags().StringVar(&listOptions.MainBranch, "main-branch", "", "Filter repositories by main branch name (optional)")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
+	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Workspace.CompletionFunc("workspace"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Role.CompletionFunc("role"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))

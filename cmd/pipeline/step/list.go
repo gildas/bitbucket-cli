@@ -25,6 +25,7 @@ var listOptions struct {
 	PipelineID      *flags.EnumFlag
 	Columns         *flags.EnumSliceFlag
 	SortBy          *flags.EnumFlag
+	PageLength      int
 	ShowLogsCommand bool
 }
 
@@ -38,6 +39,7 @@ func init() {
 	listCmd.Flags().Var(listOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
+	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
 	listCmd.Flags().BoolVar(&listOptions.ShowLogsCommand, "show-logs-command", false, "Show the command to get the logs for each step")
 	_ = listCmd.MarkFlagRequired("pipeline")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.PipelineID.CompletionFunc("pipeline"))
