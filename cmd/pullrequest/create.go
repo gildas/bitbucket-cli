@@ -99,11 +99,11 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	log.Record("repository", pullrequestRepository).Infof("Using repository: %s", pullrequestRepository.Slug)
 
+	var reviewers []reviewer.Reviewer
+
 	if len(createOptions.Reviewers.Values) > 0 {
 		if createOptions.Reviewers.Values[0] == "default" {
 			// Find the default reviewers from the repo or project settings
-			var reviewers []reviewer.Reviewer
-
 			log.Debugf("No reviewers in the repository, trying to get default reviewers from project settings")
 			reviewers, err = reviewer.GetProjectDefaultReviewers(cmd.Context(), cmd, pullrequestRepository.Workspace.Slug, pullrequestRepository.Project.Key)
 			if err != nil {
@@ -140,6 +140,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	log.Record("payload", payload).Infof("Creating pullrequest")
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating pullrequest") {
+		fmt.Printf("Dry run: reviewers: %v\n", payload.Reviewers)
 		return nil
 	}
 	var pullrequest PullRequest
