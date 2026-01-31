@@ -99,25 +99,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	log.Record("repository", pullrequestRepository).Infof("Using repository: %s", pullrequestRepository.Slug)
 
-	var reviewers []reviewer.Reviewer
-
-	if len(createOptions.Reviewers.Values) > 0 {
-		if createOptions.Reviewers.Values[0] == "default" {
-			// Find the default reviewers from the repo or project settings
-			log.Debugf("No reviewers in the repository, trying to get default reviewers from project settings")
-			reviewers, err = reviewer.GetProjectDefaultReviewers(cmd.Context(), cmd, pullrequestRepository.Workspace.Slug, pullrequestRepository.Project.Key)
-			if err != nil {
-				log.Errorf("Failed to get default reviewers", err)
-				return err
-			}
-			log.Debugf("Found %d default reviewers", len(reviewers))
-			// Replace the first reviewer with the list of default reviewers and appends the rest
-			createOptions.Reviewers.Values = append(
-				core.Map(reviewers, func(reviewer reviewer.Reviewer) string { return reviewer.User.ID.String() }),
-				createOptions.Reviewers.Values[1:]...,
-			)
-		}
-
+	if len(createOptions.Reviewers.Values) > 0 && createOptions.Reviewers.Values[0] != "default" {
 		isMember := func(member workspace.Member, id string) bool {
 			if id, err := common.ParseUUID(id); err == nil {
 				return member.User.ID == id
@@ -139,6 +121,18 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 				fmt.Fprintf(os.Stderr, "Reviewer %s is not a member of the workspace\n", reviewer)
 			}
 		}
+	} else {
+		var reviewers []reviewer.Reviewer
+
+		// Find the default reviewers from the repo or project settings
+		log.Debugf("No reviewers in the repository, trying to get default reviewers from project settings")
+		reviewers, err = reviewer.GetProjectDefaultReviewers(cmd.Context(), cmd, pullrequestRepository.Workspace.Slug, pullrequestRepository.Project.Key)
+		if err != nil {
+			log.Errorf("Failed to get default reviewers", err)
+			return err
+		}
+		log.Debugf("Found %d default reviewers", len(reviewers))
+		payload.Reviewers = core.Map(reviewers, func(reviewer reviewer.Reviewer) user.User { return reviewer.User })
 	}
 
 	log.Record("payload", payload).Infof("Creating pullrequest")
