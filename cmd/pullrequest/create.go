@@ -132,8 +132,8 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 				log.Record("matches", matches).Infof("Adding reviewer: %s", matches[0].User.ID)
 				payload.Reviewers = append(payload.Reviewers, matches[0].User)
 			} else {
-				log.Errorf("Failed to parse reviewer ID: %s", reviewer)
-				fmt.Fprintf(os.Stderr, "Failed to parse reviewer ID: %s\n", reviewer)
+				log.Errorf("Reviewer %s is not a member of the workspace", reviewer)
+				fmt.Fprintf(os.Stderr, "Reviewer %s is not a member of the workspace\n", reviewer)
 			}
 		}
 	}
