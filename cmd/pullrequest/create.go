@@ -131,6 +131,9 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			if matches := core.Filter(members, func(member workspace.Member) bool { return isMember(member, reviewer) }); len(matches) > 0 {
 				log.Record("matches", matches).Infof("Adding reviewer: %s", matches[0].User.ID)
 				payload.Reviewers = append(payload.Reviewers, matches[0].User)
+			} else if user, err := user.GetUser(cmd.Context(), cmd, reviewer); err == nil {
+				log.Record("user", user).Infof("Adding reviewer: %s", reviewer)
+				payload.Reviewers = append(payload.Reviewers, *user)
 			} else {
 				log.Errorf("Reviewer %s is not a member of the workspace", reviewer)
 				fmt.Fprintf(os.Stderr, "Reviewer %s is not a member of the workspace\n", reviewer)
