@@ -65,6 +65,8 @@ Thumbs.db
 *.mov
 *.wmv
 
+# VS code
+.vscode/
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .dccache
