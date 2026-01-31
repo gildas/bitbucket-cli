@@ -45,7 +45,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 
 	if listOptions.WithMembership {
 		log.Infof("Listing all workspace memberships for current user")
-		memberships, err := profile.GetAll[Membership](cmd.Context(), cmd, "/user/permissions/workspaces")
+		memberships, err := profile.GetAll[Membership](cmd.Context(), cmd, "/user/workspaces")
 		if err != nil {
 			return err
 		}
