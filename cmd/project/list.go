@@ -59,9 +59,9 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	var uripath string
 
 	if len(listOptions.Query) > 0 {
-		uripath = fmt.Sprintf("workspaces/%s/projects?q=%s", workspace, url.QueryEscape(listOptions.Query))
+		uripath = fmt.Sprintf("/workspaces/%s/projects?q=%s", workspace, url.QueryEscape(listOptions.Query))
 	} else {
-		uripath = fmt.Sprintf("workspaces/%s/projects", workspace)
+		uripath = fmt.Sprintf("/workspaces/%s/projects", workspace)
 	}
 
 	log.Infof("Listing all projects from workspace %s with profile %s", workspace, currentProfile)
