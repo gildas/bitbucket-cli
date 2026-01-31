@@ -287,7 +287,7 @@ To add an OAuth 2.0 profile, you need to create an OAuth consumer on Bitbucket. 
 
 To use an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to fill in the `Callback URL` with a link like <http://localhost:yyyy> (where `yyyy` is the port you want to use and provide to the `--callback-port` flag of `bb profile create`) and **do not** enable the check box for `This is a private consumer`.
 
-To use an [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-), you will need to enable the check box for `This is a private consumer` and **do not** fill in the `Callback URL`.
+To use an [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-), you will need to enable the check box for `This is a private consumer` and add a _dummy_ `Callback URL`.
 
 In both cases, you will need to fill in the permissions you want to grant to the consumer.
 
@@ -300,6 +300,26 @@ bb profile authorize myprofile
 ```
 
 You can also use the `--verbose` to get some information about the authorization process.
+
+### Users
+
+You can get the details of your user with the `bb user me` command:
+
+```bash
+bb user me
+```
+
+You can get the details of a user with the `bb user get` or `bb user show` command:
+
+```bash
+bb user get {UUID}
+```
+
+Or,
+
+```bash
+bb user get UUID
+```
 
 ### Workspaces
 
@@ -331,6 +351,18 @@ Or, even, a specific member with the flag `--member`:
 
 ```bash
 bb workspace get myworkspace --member mymember
+```
+
+You can get your permission in a workspace with the `bb workspace permission get` command:
+
+```bash
+bb workspace permission get myworkspace
+```
+
+You can list all user permissions in a workspace with the `bb workspace permission list` command:
+
+```bash
+bb workspace permission list myworkspace
 ```
 
 ### Projects

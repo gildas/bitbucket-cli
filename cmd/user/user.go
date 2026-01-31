@@ -44,14 +44,28 @@ var Command = &cobra.Command{
 	},
 }
 
-var columns = []string{
-	"id",
-	"username",
-	"name",
-	"nickname",
-	"account",
-	"created_on",
-	"account_status",
+var columns = common.Columns[User]{
+	{Name: "id", DefaultSorter: true, Compare: func(a, b User) bool {
+		return strings.Compare(strings.ToLower(a.ID.String()), strings.ToLower(b.ID.String())) == -1
+	}},
+	{Name: "username", DefaultSorter: false, Compare: func(a, b User) bool {
+		return strings.Compare(strings.ToLower(a.Username), strings.ToLower(b.Username)) == -1
+	}},
+	{Name: "name", DefaultSorter: false, Compare: func(a, b User) bool {
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)) == -1
+	}},
+	{Name: "nickname", DefaultSorter: false, Compare: func(a, b User) bool {
+		return strings.Compare(strings.ToLower(a.Nickname), strings.ToLower(b.Nickname)) == -1
+	}},
+	{Name: "account", DefaultSorter: false, Compare: func(a, b User) bool {
+		return strings.Compare(strings.ToLower(a.AccountID), strings.ToLower(b.AccountID)) == -1
+	}},
+	{Name: "created_on", DefaultSorter: false, Compare: func(a, b User) bool {
+		return a.CreatedOn.Before(b.CreatedOn)
+	}},
+	{Name: "account_status", DefaultSorter: false, Compare: func(a, b User) bool {
+		return strings.Compare(strings.ToLower(a.AccountStatus), strings.ToLower(b.AccountStatus)) == -1
+	}},
 }
 
 // GetID gets the ID of the user
@@ -91,14 +105,18 @@ func (user User) GetRow(headers []string) []string {
 		case "id":
 			row = append(row, user.ID.String())
 		case "username":
-			row = append(row, user.Username)
+			if len(user.Username) > 0 {
+				row = append(row, user.Username)
+			} else {
+				row = append(row, user.Nickname)
+			}
 		case "name":
 			row = append(row, user.Name)
 		case "nickname":
 			row = append(row, user.Nickname)
 		case "account":
 			row = append(row, user.AccountID)
-		case "created on":
+		case "created on", "created_on":
 			if user.CreatedOn.IsZero() {
 				row = append(row, " ")
 			} else {

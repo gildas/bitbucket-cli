@@ -99,25 +99,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	log.Record("repository", pullrequestRepository).Infof("Using repository: %s", pullrequestRepository.Slug)
 
-	if len(createOptions.Reviewers.Values) > 0 {
-		if createOptions.Reviewers.Values[0] == "default" {
-			// Find the default reviewers from the repo or project settings
-			var reviewers []reviewer.Reviewer
-
-			log.Debugf("No reviewers in the repository, trying to get default reviewers from project settings")
-			reviewers, err = reviewer.GetProjectDefaultReviewers(cmd.Context(), cmd, pullrequestRepository.Workspace.Slug, pullrequestRepository.Project.Key)
-			if err != nil {
-				log.Errorf("Failed to get default reviewers", err)
-				return err
-			}
-			log.Debugf("Found %d default reviewers", len(reviewers))
-			// Replace the first reviewer with the list of default reviewers and appends the rest
-			createOptions.Reviewers.Values = append(
-				core.Map(reviewers, func(reviewer reviewer.Reviewer) string { return reviewer.User.ID.String() }),
-				createOptions.Reviewers.Values[1:]...,
-			)
-		}
-
+	if len(createOptions.Reviewers.Values) > 0 && createOptions.Reviewers.Values[0] != "default" {
 		isMember := func(member workspace.Member, id string) bool {
 			if id, err := common.ParseUUID(id); err == nil {
 				return member.User.ID == id
@@ -131,15 +113,31 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			if matches := core.Filter(members, func(member workspace.Member) bool { return isMember(member, reviewer) }); len(matches) > 0 {
 				log.Record("matches", matches).Infof("Adding reviewer: %s", matches[0].User.ID)
 				payload.Reviewers = append(payload.Reviewers, matches[0].User)
+			} else if user, err := user.GetUser(cmd.Context(), cmd, reviewer); err == nil {
+				log.Record("user", user).Infof("Adding reviewer: %s", reviewer)
+				payload.Reviewers = append(payload.Reviewers, *user)
 			} else {
-				log.Errorf("Failed to parse reviewer ID: %s", reviewer)
-				fmt.Fprintf(os.Stderr, "Failed to parse reviewer ID: %s\n", reviewer)
+				log.Errorf("Reviewer %s is not a member of the workspace", reviewer)
+				fmt.Fprintf(os.Stderr, "Reviewer %s is not a member of the workspace\n", reviewer)
 			}
 		}
+	} else {
+		var reviewers []reviewer.Reviewer
+
+		// Find the default reviewers from the repo or project settings
+		log.Debugf("No reviewers in the repository, trying to get default reviewers from project settings")
+		reviewers, err = reviewer.GetProjectDefaultReviewers(cmd.Context(), cmd, pullrequestRepository.Workspace.Slug, pullrequestRepository.Project.Key)
+		if err != nil {
+			log.Errorf("Failed to get default reviewers", err)
+			return err
+		}
+		log.Debugf("Found %d default reviewers", len(reviewers))
+		payload.Reviewers = core.Map(reviewers, func(reviewer reviewer.Reviewer) user.User { return reviewer.User })
 	}
 
 	log.Record("payload", payload).Infof("Creating pullrequest")
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating pullrequest") {
+		fmt.Printf("Dry run: reviewers: %v\n", payload.Reviewers)
 		return nil
 	}
 	var pullrequest PullRequest
