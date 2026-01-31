@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -56,21 +57,22 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return profile.Current.Print(cmd.Context(), cmd, Memberships(memberships))
 	}
 
-	uripath := "workspaces"
+	uripath := "/user/workspaces"
 	if len(listOptions.Query) > 0 {
-		uripath = uripath + "?q=" + listOptions.Query
-		uripath = fmt.Sprintf("workspaces?q=%s", url.QueryEscape(listOptions.Query))
+		uripath = fmt.Sprintf("/user/workspaces?q=%s", url.QueryEscape(listOptions.Query))
 	}
 
 	log.Infof("Listing all workspaces")
-	workspaces, err := profile.GetAll[Workspace](cmd.Context(), cmd, uripath)
+	workspaceAccesses, err := profile.GetAll[WorkspaceAccess](cmd.Context(), cmd, uripath)
 	if err != nil {
-		return err
+		return errors.Join(errors.New("failed to retrieve workspaces"), err)
 	}
-	if len(workspaces) == 0 {
+	if len(workspaceAccesses) == 0 {
 		log.Infof("No workspace found")
 		return nil
 	}
-	core.Sort(workspaces, columns.SortBy(listOptions.SortBy.Value))
-	return profile.Current.Print(cmd.Context(), cmd, Workspaces(workspaces))
+	log.Debugf("Found %d workspace accesses", len(workspaceAccesses))
+	workspaces := core.Map(workspaceAccesses, func(access WorkspaceAccess) WorkspaceBase { return access.Workspace })
+	core.Sort(workspaces, func(a, b WorkspaceBase) bool { return a.Slug < b.Slug })
+	return profile.Current.Print(cmd.Context(), cmd, WorkspaceBases(workspaces))
 }
