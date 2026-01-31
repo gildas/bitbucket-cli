@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace/permission"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -48,6 +49,10 @@ var columns = common.Columns[Workspace]{
 }
 
 var WorkspaceCache = common.NewCache[Workspace]()
+
+func init() {
+	Command.AddCommand(permission.Command)
+}
 
 // GetType gets the type of the workspace
 //
