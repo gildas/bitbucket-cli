@@ -16,15 +16,13 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Repository string
-	Columns    *flags.EnumSliceFlag
+	Columns *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.Columns = flags.NewEnumSliceFlag(columns...)
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get an issue from. Defaults to the current repository")
+	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
 }
