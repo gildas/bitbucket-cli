@@ -7,7 +7,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
-	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -20,42 +19,19 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	WithMembership bool
-	Query          string
-	Columns        *flags.EnumSliceFlag
-	SortBy         *flags.EnumFlag
-	PageLength     int
+	Query      string
+	PageLength int
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
-	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
-	listCmd.Flags().BoolVar(&listOptions.WithMembership, "membership", false, "List also the workspace memberships of the current user")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter workspaces")
-	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
-	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
-	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
-	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
-
-	if listOptions.WithMembership {
-		log.Infof("Listing all workspace memberships for current user")
-		memberships, err := profile.GetAll[Membership](cmd.Context(), cmd, "/user/workspaces")
-		if err != nil {
-			return err
-		}
-		if len(memberships) == 0 {
-			log.Infof("No workspace found")
-			return nil
-		}
-		return profile.Current.Print(cmd.Context(), cmd, Memberships(memberships))
-	}
 
 	uripath := "/user/workspaces"
 	if len(listOptions.Query) > 0 {
