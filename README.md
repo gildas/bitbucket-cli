@@ -333,6 +333,18 @@ Or, even, a specific member with the flag `--member`:
 bb workspace get myworkspace --member mymember
 ```
 
+You can get your permission in a workspace with the `bb workspace permission get` command:
+
+```bash
+bb workspace permission get myworkspace
+```
+
+You can list all user permissions in a workspace with the `bb workspace permission list` command:
+
+```bash
+bb workspace permission list myworkspace
+```
+
 ### Projects
 
 You can list projects with the `bb project list` command. If the `--workspace` flag is not provided, the default workspace of the profile is used (if the profile does not have a default workspace, the command will fail):
