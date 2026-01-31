@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>bitbucket-cli</id>
-    <version>0.17.1</version>
+    <version>0.17.2</version>
     <owners>Gildas Cherruel</owners>
     <title>bitbucket-cli (Install)</title>
     <authors>Gildas Cherruel</authors>
@@ -18,7 +18,11 @@
     <summary>Command line interface for Bitbucket</summary>
     <description>The Bitbucket Command Line Interface brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.</description>
     <releaseNotes>
-- List commands pagination can now be controlled
+- Workspace/project list commands now use the latest Bitbucket API endpoints.
+- Pull Request create command now automatically assigns reviewers based on repository settings (default reviewers).
+- Pull Request create command now allows (valid) reviewer IDs from different workspaces than the source repository.
+- Pull Request create shows the list of assigned reviewers in dry run mode.
+- Added a user me command to quickly get information about the authenticated user (flag --emails will show email addresses).
     </releaseNotes>
   </metadata>
   <files>
