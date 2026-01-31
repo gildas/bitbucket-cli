@@ -91,7 +91,11 @@ func (user User) GetRow(headers []string) []string {
 		case "id":
 			row = append(row, user.ID.String())
 		case "username":
-			row = append(row, user.Username)
+			if len(user.Username) > 0 {
+				row = append(row, user.Username)
+			} else {
+				row = append(row, user.Nickname)
+			}
 		case "name":
 			row = append(row, user.Name)
 		case "nickname":

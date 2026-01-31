@@ -42,5 +42,6 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return err
 	}
+	log.Record("user", user).Debugf("User %s retrieved", args[0])
 	return profile.Print(cmd.Context(), cmd, user)
 }

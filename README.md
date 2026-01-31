@@ -301,6 +301,26 @@ bb profile authorize myprofile
 
 You can also use the `--verbose` to get some information about the authorization process.
 
+### Users
+
+You can get the details of your user with the `bb user me` command:
+
+```bash
+bb user me
+```
+
+You can get the details of a user with the `bb user get` or `bb user show` command:
+
+```bash
+bb user get {UUID}
+```
+
+Or,
+
+```bash
+bb user get UUID
+```
+
 ### Workspaces
 
 You can list workspaces with the `bb workspace list` command:
