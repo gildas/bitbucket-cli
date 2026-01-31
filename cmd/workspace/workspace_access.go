@@ -8,7 +8,7 @@ import (
 
 // WorkspaceAccess represents a workspace access entry
 type WorkspaceAccess struct {
-	Workspace     WorkspaceBase `json:"workspace"   mapstructure:"workspace"`
+	Workspace     WorkspaceBase `json:"workspace"     mapstructure:"workspace"`
 	Administrator bool          `json:"administrator" mapstructure:"administrator"`
 }
 
