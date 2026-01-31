@@ -409,6 +409,9 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 	log.Infof("Sending %s request to %s", options.Method, options.URL)
 	result, err = request.Send(options, response)
 	if err != nil {
+		if errors.Is(err, errors.JSONUnmarshalError) {
+			return result, err
+		}
 		if result != nil {
 			var bberr *BitBucketError
 			if jerr := result.UnmarshalContentJSON(&bberr); jerr == nil {
