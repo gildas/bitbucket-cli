@@ -1,0 +1,48 @@
+version: "2"
+
+run:
+  # Process all Go files, including those in test directories
+  tests: true
+  # Set a timeout for the entire linting process (e.g., 5 minutes)
+  timeout: 5m
+
+
+linters:
+  # Disable all default linters to start with a clean slate
+  default: standard
+  # Then explicitly enable the linters you want
+  # enable:
+  #  - nilaway
+  exclusions:
+    paths:
+      - testdata
+      - tmp
+      - node_modules
+      - "[zZ]{2,}.*\\.go$"
+    rules:
+      - path: (.+)_test\.go
+        linters:
+          - nakedret
+  settings:
+    goconst: # Configuration for 'goconst' (finds repeated strings that can be constants)
+      min-len: 2
+      min-occurrences: 3
+
+    nakedret: # Configuration for 'nakedret' (limits the number of naked returns in a function)
+      max-func-lines: 30
+
+  #  custom:
+  #    nilaway:
+  #      type: module
+  #      description: Static analysis tool to detect potential nil panics in Go code.
+  #      original-url: go.uber.org/nilaway/cmd/nilaway
+  #      settings:
+  #        # Settings must be a "map from string to string" to mimic command line flags: the keys are
+  #        # flag names and the values are the values to the particular flags.
+  #        include-pkgs: "github.com/gildas/go-core"
+
+issues:
+  # Show only new issues: if there are unstaged changes or untracked files,
+  # only those changes are analyzed. Otherwise, only changes in HEAD~ are analyzed.
+  # This is useful for CI/CD pipelines to prevent new issues from being introduced.
+  new-from-rev: HEAD~1

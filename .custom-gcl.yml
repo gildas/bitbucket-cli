@@ -1,0 +1,6 @@
+version: v2.8.0
+plugins:
+  # a plugin from a Go proxy
+  - module: "go.uber.org/nilaway/cmd/nilaway"
+    import: "go.uber.org/nilaway/cmd/gclplugin"
+    version: latest
