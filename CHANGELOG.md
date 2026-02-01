@@ -1,3 +1,28 @@
+
+0.17.2
+=============
+2026-01-31
+
+* Issue #35: Updated Documentation for client credentials OAUTH configuration (d3f3380b)
+* Issue #37: By default, get the default reviewers when creating a pullrequest (ee1b2493)
+* Issue #37: if reviewer is a UUID and is not a member of the workspace, try to get it from /users API (4564c760)
+* Fixed user get column flags (d63067ff)
+* Added user me command (7d57a546)
+* Issue #37: updated error message when a reviewer is not found in the workspace members (89aec81f)
+* Issues #36, #37: Display the chosen reviewers in dry run mode (4d671def)
+* Added workspace permission get/list support (05381007)
+* Issue #35: missing slash prefix (33c7b255)
+* Issue #35: removed obsolete flags from workspace list (a37d8e50)
+* Issue #35: new struct for workspace list (44275ddd)
+* Report JSON errors early (91040648)
+* Issue #35: workspace list should use the new API (9397282b)
+
+0.17.1
+=============
+2026-01-24
+
+* Issue #33: Added support for pagination length (0d073af7)
+
 0.17.0
 =============
 2026-01-12
@@ -182,7 +207,6 @@
 * Added a changelog (5d815278)
 * Makefile: Snapcraft packaging (f8fe5f9f)
 * Documentation: new commands (d5d2329f)
-*  (ace10dbf)
 
 0.9.0
 =============

@@ -1,3 +1,123 @@
+- semver: 0.17.2
+  date: 2026-02-01T00:54:14+09:00
+  packager: Gildas Cherruel <gildas@breizh.org>
+  changes:
+    - commit: d3f3380b6b3ee64415f67d43055bb76f8028e902
+      note: 'Issue #35: Updated Documentation for client credentials OAUTH configuration'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: ee1b249370667c16eb82f07b902f87c221e98f90
+      note: 'Issue #37: By default, get the default reviewers when creating a pullrequest'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 4564c76007d19541551cdfddcd76409b557b789b
+      note: 'Issue #37: if reviewer is a UUID and is not a member of the workspace, try to get it from /users API'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: d63067ff1623828b53380568690787858ebe4d10
+      note: Fixed user get column flags
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 7d57a5462dd246264010ede866f4096554d95076
+      note: Added user me command
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 89aec81f15eed38042462fbb7ba8d194e0421c6e
+      note: 'Issue #37: updated error message when a reviewer is not found in the workspace members'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 4d671defb116e3ca761668cccffdf1000c1cadde
+      note: 'Issues #36, #37: Display the chosen reviewers in dry run mode'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 053810070adb4f7a12eb33a58ee0d07ac1120885
+      note: Added workspace permission get/list support
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 33c7b255a0b3909a731d5f33d18aeb2259f8afbc
+      note: 'Issue #35: missing slash prefix'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: a37d8e50d6e5ed67e3c79119d0767ae05a15ace8
+      note: 'Issue #35: removed obsolete flags from workspace list'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 44275ddda28c0e875028390684965a41b9042608
+      note: 'Issue #35: new struct for workspace list'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 910406483cf4ffda17606f9cd475b1046e49afe2
+      note: Report JSON errors early
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 9397282b314bd717863d7c95e83de3ae2aaeb70c
+      note: 'Issue #35: workspace list should use the new API'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+- semver: 0.17.1
+  date: 2026-01-24T23:37:38+09:00
+  packager: Gildas Cherruel <gildas@breizh.org>
+  changes:
+    - commit: 0d073af71643f4becc165ab38ca9af214d82d951
+      note: 'Issue #33: Added support for pagination length'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
 - semver: 0.17.0
   date: 2026-01-12T23:16:59.213893631+09:00
   packager: Gildas Cherruel <gildas@breizh.org>
@@ -1070,7 +1190,6 @@
       committer:
         name: Gildas Cherruel
         email: gildas@breizh.org
-    - commit: ace10dbf362bfae6ece00ec01a8e41829657a03f
 - semver: 0.9.0
   date: 2024-01-15T17:24:52Z
   packager: Gildas Cherruel <gildas@breizh.org>
