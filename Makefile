@@ -146,13 +146,13 @@ dep:; $(info $(M) Updating Modules...) @ ## Updates the GO Modules
 	$Q $(GO) mod tidy
 
 lint:;  $(info $(M) Linting application...) @ ## Lint Golang files
-	$Q $(GOLINT) run *.go
+	$Q $(GOLINT) run ./...
 
 fmt:; $(info $(M) Formatting the code...) @ ## Format the code following the go-fmt rules
-	$Q $(GO) fmt *.go
+	$Q $(GO) fmt ./...
 
 vet:; $(info $(M) Vetting application...) @ ## Run go vet
-	$Q $(GO) vet *.go
+	$Q $(GO) vet ./...
 
 run:; $(info $(M) Running application...) @  ## Execute the application
 	$Q $(GO) run . | $(LOGGER)
