@@ -112,7 +112,7 @@ else
 endif
 
 # Main Recipes
-.PHONY: all archive build dep fmt gendoc help install lint logview publish run start stop test version vet watch
+.PHONY: all archive build changelog dep fmt gendoc help install lint logview publish run start stop test version vet watch
 
 help: Makefile; ## Display this help
 	@$P "$(PROJECT) version $(VERSION) build " $(BUILD) " in $(BRANCH) branch"
@@ -144,6 +144,10 @@ install: $(BIN_DIR)/$(OSTYPE)/$(OSARCH)/$(PROJECT); @ ## Install the application
 dep:; $(info $(M) Updating Modules...) @ ## Updates the GO Modules
 	$Q $(GO) get -u ./...
 	$Q $(GO) mod tidy
+
+changelog:;  $(info $(M) Generating the changelog...) @ ## Generate the changelog from git tags
+	$Q chglog add --version $(VERSION) --input changelog.yaml --output changelog.yaml
+	$Q chglog format --input changelog.yaml --template repo > CHANGELOG.md
 
 lint:;  $(info $(M) Linting application...) @ ## Lint Golang files
 	$Q $(GOLINT) run ./...
@@ -379,6 +383,7 @@ watch: watch-tools | $(TMP_DIR); @ ## Run a command continuously: make watch run
 
 # Download recipes
 .PHONY: watch-tools coverage-tools
+$(BIN_DIR)/chglog:    PACKAGE=github.com/goreleaser/chglog/cmd/chglog@latest
 $(BIN_DIR)/yolo:      PACKAGE=github.com/azer/yolo
 $(BIN_DIR)/gocov:     PACKAGE=github.com/axw/gocov/...
 $(BIN_DIR)/gocov-xml: PACKAGE=github.com/AlekSi/gocov-xml
