@@ -125,8 +125,8 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		var reviewers []reviewer.Reviewer
 
 		// Find the default reviewers from the repo or project settings
-		log.Debugf("No reviewers in the repository, trying to get default reviewers from project settings")
-		reviewers, err = reviewer.GetProjectDefaultReviewers(cmd.Context(), cmd, pullrequestRepository.Workspace.Slug, pullrequestRepository.Project.Key)
+		log.Debugf("No reviewers in the repository, trying to get default reviewers from the repository")
+		reviewers, err = pullrequestRepository.GetEffectiveDefaultReviewers(cmd.Context(), cmd)
 		if err != nil {
 			log.Errorf("Failed to get default reviewers", err)
 			return err
