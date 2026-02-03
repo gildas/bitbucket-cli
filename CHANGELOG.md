@@ -1,4 +1,13 @@
 
+0.17.3
+=============
+2026-02-03
+
+* Issue #41: new build instructions for snap (818766c1)
+* Issue #36: Get the Effective Default Reviewers from the source repository when updating a pullrequest (7f556c00)
+* Issue #36: Get the Effective Default Reviewers from the repository when creating a pullrequest (39b66a59)
+* Added Code of Conduct (d12b5827)
+
 0.17.2
 =============
 2026-01-31
@@ -407,3 +416,5 @@
 * Cobra Skeleton (22fae567)
 * Initial Skeleton (b216ab1d)
 * Initial commit (f0cea3fc)
+
+
