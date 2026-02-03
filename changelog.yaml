@@ -1,3 +1,39 @@
+- semver: 0.17.3
+  date: 2026-02-03T09:37:07.588364526+09:00
+  packager: Gildas Cherruel <gildas@breizh.org>
+  changes:
+    - commit: 818766c1c21fb2beb6238ac647e806ed298272d8
+      note: 'Issue #41: new build instructions for snap'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 7f556c00f690d1aa9644ef52d6ee34534b7c91e4
+      note: 'Issue #36: Get the Effective Default Reviewers from the source repository when updating a pullrequest'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 39b66a594d381f08ac2cf96953ec356a91cde6a5
+      note: 'Issue #36: Get the Effective Default Reviewers from the repository when creating a pullrequest'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: d12b5827cef385c91b4260f4662836ceed4e69a1
+      note: Added Code of Conduct
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: GitHub
+        email: noreply@github.com
 - semver: 0.17.2
   date: 2026-02-01T00:54:14+09:00
   packager: Gildas Cherruel <gildas@breizh.org>
@@ -742,6 +778,7 @@
         email: gildas@breizh.org
 - semver: 0.14.0
   date: 2025-05-02T23:25:10Z
+  packager: Gildas Cherruel <gildas@breizh.org>
   changes:
     - commit: a31cceaa87fb2129cde77242b9adad7af0ac08ff
       note: Added Activity Comment

@@ -11,6 +11,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
+	"bitbucket.org/gildas_cherruel/bb/cmd/project/reviewer"
 	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
@@ -241,6 +242,11 @@ func (repository Repository) GetRow(headers []string) []string {
 		}
 	}
 	return row
+}
+
+// GetEffectiveDefaultReviewers gets the effective default reviewers for a repository
+func (repository Repository) GetEffectiveDefaultReviewers(context context.Context, cmd *cobra.Command) (reviewers []reviewer.Reviewer, err error) {
+	return profile.GetAll[reviewer.Reviewer](context, cmd, fmt.Sprintf("/repositories/%s/%s/effective-default-reviewers", repository.Workspace.Slug, repository.Slug))
 }
 
 // GetRepository gets a repository by its slug
