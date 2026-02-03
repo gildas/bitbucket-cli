@@ -14,7 +14,7 @@ contact:
   - https://github.com/gildas/bitbucket-cli
 license: MIT
 version: 0.17.2
-base: core22
+base: core24
 grade: stable
 confinement: strict
 
