@@ -204,3 +204,67 @@ func (suite *PipelineSuite) TestPipelineStateWithoutResult() {
 	suite.Assert().Equal("IN_PROGRESS", p.State.Name)
 	suite.Assert().Nil(p.State.Result)
 }
+
+func (suite *PipelineSuite) TestCanUnmarshalPRPipeline() {
+	var p pipeline.Pipeline
+	err := suite.UnmarshalData("pipeline-pr.json", &p)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(p)
+	suite.Assert().Equal("{b2c3d4e5-f6a7-8901-bcde-f12345678901}", p.ID.String())
+	suite.Assert().Equal(uint64(2808), p.BuildNumber)
+	suite.Assert().Equal("COMPLETED", p.State.Name)
+	suite.Assert().NotNil(p.State.Result)
+	suite.Assert().Equal("FAILED", p.State.Result.Name)
+	suite.Assert().Equal("pipeline_pullrequest_target", p.Target.Type)
+	// RefName should be populated from source branch for display compatibility
+	suite.Assert().Equal("frontend-develop-non-delete-key", p.Target.RefName)
+	// Source and Destination are strings (branch names)
+	suite.Assert().Equal("frontend-develop-non-delete-key", p.Target.Source)
+	suite.Assert().Equal("main", p.Target.Destination)
+	// DestinationCommit should be populated
+	suite.Require().NotNil(p.Target.DestinationCommit)
+	suite.Assert().Equal("8dc910c779d5", p.Target.DestinationCommit.Hash)
+	// Commit (source commit) should be populated
+	suite.Require().NotNil(p.Target.Commit)
+	suite.Assert().Equal("3c80cde6b371", p.Target.Commit.Hash)
+	// PullRequest should be populated
+	suite.Require().NotNil(p.Target.PullRequest)
+	suite.Assert().Equal(62, p.Target.PullRequest.ID)
+	suite.Assert().Equal("feat: add API key authentication", p.Target.PullRequest.Title)
+	// Selector should be populated (PR pipelines can have custom selectors too)
+	suite.Require().NotNil(p.Target.Selector)
+	suite.Assert().Equal("custom", p.Target.Selector.Type)
+	suite.Assert().Equal("run-tests", p.Target.Selector.Pattern)
+	suite.Assert().Equal(630*time.Second, p.Duration)
+}
+
+func (suite *PipelineSuite) TestCanUnmarshalPRPipelineGetRowBranch() {
+	var p pipeline.Pipeline
+	err := suite.UnmarshalData("pipeline-pr.json", &p)
+	suite.Require().NoError(err)
+	// GetRow with "branch" header should return the PR source branch
+	row := p.GetRow([]string{"branch"})
+	suite.Require().Len(row, 1)
+	suite.Assert().Equal("frontend-develop-non-delete-key", row[0])
+}
+
+func (suite *PipelineSuite) TestTargetUnmarshalUnknownType() {
+	payload := []byte(`{
+		"type": "pipeline_unknown_target",
+		"ref_type": "branch",
+		"ref_name": "main"
+	}`)
+	var target pipeline.Target
+	err := json.Unmarshal(payload, &target)
+	suite.Assert().Error(err)
+}
+
+func (suite *PipelineSuite) TestTargetGetTypeDefault() {
+	target := pipeline.Target{}
+	suite.Assert().Equal("pipeline_ref_target", target.GetType())
+}
+
+func (suite *PipelineSuite) TestTargetGetTypePreserved() {
+	target := pipeline.Target{Type: "pipeline_pullrequest_target"}
+	suite.Assert().Equal("pipeline_pullrequest_target", target.GetType())
+}

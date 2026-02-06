@@ -146,16 +146,46 @@ func (commit Commit) String() string {
 
 // MarshalJSON implements the json.Marshaler interface.
 func (commit Commit) MarshalJSON() (data []byte, err error) {
-	type surrogate Commit
+	var author *user.Author
+	var repo *repository.Repository
+	var parents []CommitReference
+	var date string
+
+	if commit.Author.Type != "" || commit.Author.Raw != "" {
+		author = &commit.Author
+	}
+	if commit.Repository.Name != "" || !commit.Repository.ID.IsNil() {
+		repo = &commit.Repository
+	}
+	if len(commit.Parents) > 0 {
+		parents = commit.Parents
+	}
+	if !commit.Date.IsZero() {
+		date = commit.Date.Format("2006-01-02T15:04:05.999999999-07:00")
+	}
 
 	data, err = json.Marshal(struct {
-		Type string `json:"type"`
-		surrogate
-		Date string `json:"date"`
+		Type       string                `json:"type"`
+		Hash       string                `json:"hash"`
+		Author     *user.Author          `json:"author,omitempty"`
+		Message    string                `json:"message,omitempty"`
+		Summary    *common.RenderedText  `json:"summary,omitempty"`
+		Rendered   *RenderedMessage      `json:"rendered,omitempty"`
+		Parents    []CommitReference     `json:"parents,omitempty"`
+		Date       string                `json:"date,omitempty"`
+		Repository *repository.Repository `json:"repository,omitempty"`
+		Links      common.Links          `json:"links"`
 	}{
-		Type:      commit.GetType(),
-		surrogate: surrogate(commit),
-		Date:      commit.Date.Format("2006-01-02T15:04:05.999999999-07:00"),
+		Type:       commit.GetType(),
+		Hash:       commit.Hash,
+		Author:     author,
+		Message:    commit.Message,
+		Summary:    commit.Summary,
+		Rendered:   commit.Rendered,
+		Parents:    parents,
+		Date:       date,
+		Repository: repo,
+		Links:      commit.Links,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
 }

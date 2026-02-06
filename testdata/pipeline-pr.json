@@ -1,0 +1,90 @@
+{
+  "type": "pipeline",
+  "uuid": "{b2c3d4e5-f6a7-8901-bcde-f12345678901}",
+  "build_number": 2808,
+  "state": {
+    "type": "pipeline_state_completed",
+    "name": "COMPLETED",
+    "result": {
+      "type": "pipeline_state_completed_failed",
+      "name": "FAILED"
+    }
+  },
+  "target": {
+    "type": "pipeline_pullrequest_target",
+    "source": "frontend-develop-non-delete-key",
+    "destination": "main",
+    "destination_commit": {
+      "type": "commit",
+      "hash": "8dc910c779d5"
+    },
+    "pullrequest": {
+      "type": "pullrequest",
+      "id": 62,
+      "title": "feat: add API key authentication",
+      "draft": false,
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/62"
+        },
+        "html": {
+          "href": "https://bitbucket.org/myworkspace/my-repo/pull-requests/62"
+        }
+      }
+    },
+    "selector": {
+      "type": "custom",
+      "pattern": "run-tests"
+    },
+    "commit": {
+      "type": "commit",
+      "hash": "3c80cde6b371"
+    }
+  },
+  "created_on": "2024-02-20T14:00:00+00:00",
+  "completed_on": "2024-02-20T14:10:30+00:00",
+  "duration_in_seconds": 630,
+  "creator": {
+    "type": "user",
+    "uuid": "{12345678-1234-1234-1234-123456789012}",
+    "account_id": "557058:12345678-abcd-efgh-ijkl-123456789012",
+    "display_name": "John Developer",
+    "nickname": "johnd",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/users/%7B12345678-1234-1234-1234-123456789012%7D"
+      },
+      "avatar": {
+        "href": "https://secure.gravatar.com/avatar/abc123"
+      },
+      "html": {
+        "href": "https://bitbucket.org/%7B12345678-1234-1234-1234-123456789012%7D/"
+      }
+    }
+  },
+  "repository": {
+    "type": "repository",
+    "uuid": "{repo-uuid-1234-5678-abcd}",
+    "name": "my-repo",
+    "full_name": "myworkspace/my-repo",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo"
+      },
+      "html": {
+        "href": "https://bitbucket.org/myworkspace/my-repo"
+      },
+      "avatar": {
+        "href": "https://bytebucket.org/ravatar/%7Brepo-uuid%7D"
+      }
+    }
+  },
+  "links": {
+    "self": {
+      "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pipelines/%7Bb2c3d4e5-f6a7-8901-bcde-f12345678901%7D"
+    },
+    "steps": {
+      "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pipelines/%7Bb2c3d4e5-f6a7-8901-bcde-f12345678901%7D/steps/"
+    }
+  }
+}

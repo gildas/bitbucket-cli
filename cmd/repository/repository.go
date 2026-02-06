@@ -338,11 +338,14 @@ func (repository *Repository) Validate() error {
 //
 // Implements json.Marshaler
 func (repository Repository) MarshalJSON() (data []byte, err error) {
-	type surrogate Repository
 	var owner *user.User
 	var wspace *workspace.Workspace
 	var proj *project.Project
 	var br *branch
+	var parent *Repository
+	var slug string
+	var hasIssues, hasWiki, isPrivate *bool
+	var size *int64
 	var createdOn string
 	var updatedOn string
 
@@ -358,6 +361,20 @@ func (repository Repository) MarshalJSON() (data []byte, err error) {
 	if len(repository.MainBranch) > 0 {
 		br = &branch{Type: "branch", Name: repository.MainBranch}
 	}
+	if repository.Parent != nil {
+		parent = repository.Parent
+	}
+	// Only include slug when it differs from name (Validate sets slug=name as default)
+	if repository.Slug != "" && repository.Slug != repository.Name {
+		slug = repository.Slug
+	}
+	// Only include bool/size fields for full repo representations (indicated by ForkPolicy being set)
+	if repository.ForkPolicy != "" || repository.HasIssues || repository.HasWiki || repository.IsPrivate || repository.Size > 0 {
+		hasIssues = &repository.HasIssues
+		hasWiki = &repository.HasWiki
+		isPrivate = &repository.IsPrivate
+		size = &repository.Size
+	}
 	if !repository.CreatedOn.IsZero() {
 		createdOn = repository.CreatedOn.Format("2006-01-02T15:04:05.999999999-07:00")
 	}
@@ -366,21 +383,43 @@ func (repository Repository) MarshalJSON() (data []byte, err error) {
 	}
 
 	data, err = json.Marshal(struct {
-		Type string `json:"type"`
-		surrogate
+		Type       string               `json:"type"`
+		ID         common.UUID          `json:"uuid"`
+		Name       string               `json:"name"`
+		FullName   string               `json:"full_name"`
+		Slug       string               `json:"slug,omitempty"`
 		Owner      *user.User           `json:"owner,omitempty"`
 		Workspace  *workspace.Workspace `json:"workspace,omitempty"`
 		Project    *project.Project     `json:"project,omitempty"`
+		HasIssues  *bool                `json:"has_issues,omitempty"`
+		HasWiki    *bool                `json:"has_wiki,omitempty"`
+		IsPrivate  *bool                `json:"is_private,omitempty"`
+		ForkPolicy string               `json:"fork_policy,omitempty"`
+		Size       *int64               `json:"size,omitempty"`
+		Language   string               `json:"language,omitempty"`
 		MainBranch *branch              `json:"mainbranch,omitempty"`
+		Parent     *Repository          `json:"parent,omitempty"`
+		Links      common.Links         `json:"links"`
 		CreatedOn  string               `json:"created_on,omitempty"`
 		UpdatedOn  string               `json:"updated_on,omitempty"`
 	}{
 		Type:       repository.GetType(),
-		surrogate:  surrogate(repository),
+		ID:         repository.ID,
+		Name:       repository.Name,
+		FullName:   repository.FullName,
+		Slug:       slug,
 		Owner:      owner,
 		Workspace:  wspace,
 		Project:    proj,
+		HasIssues:  hasIssues,
+		HasWiki:    hasWiki,
+		IsPrivate:  isPrivate,
+		ForkPolicy: repository.ForkPolicy,
+		Size:       size,
+		Language:   repository.Language,
 		MainBranch: br,
+		Parent:     parent,
+		Links:      repository.Links,
 		CreatedOn:  createdOn,
 		UpdatedOn:  updatedOn,
 	})

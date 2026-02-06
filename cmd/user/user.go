@@ -145,18 +145,35 @@ func (user User) String() string {
 
 // MarshalJSON implements the json.Marshaler interface.
 func (user User) MarshalJSON() (data []byte, err error) {
-	type surrogate User
 	var createdOn string
 
 	if !user.CreatedOn.IsZero() {
 		createdOn = user.CreatedOn.Format("2006-01-02T15:04:05.999999999-07:00")
 	}
 	data, err = json.Marshal(struct {
-		surrogate
-		CreatedOn string `json:"created_on,omitempty"`
+		Type          string       `json:"type,omitempty"`
+		ID            common.UUID  `json:"uuid,omitempty"`
+		AccountID     string       `json:"account_id,omitempty"`
+		Username      string       `json:"username,omitempty"`
+		Name          string       `json:"display_name,omitempty"`
+		Nickname      string       `json:"nickname,omitempty"`
+		Raw           string       `json:"raw,omitempty"`
+		Kind          string       `json:"kind,omitempty"`
+		Links         common.Links `json:"links,omitempty"`
+		CreatedOn     string       `json:"created_on,omitempty"`
+		AccountStatus string       `json:"account_status,omitempty"`
 	}{
-		surrogate: surrogate(user),
-		CreatedOn: createdOn,
+		Type:          user.Type,
+		ID:            user.ID,
+		AccountID:     user.AccountID,
+		Username:      user.Username,
+		Name:          user.Name,
+		Nickname:      user.Nickname,
+		Raw:           user.Raw,
+		Kind:          user.Kind,
+		Links:         user.Links,
+		CreatedOn:     createdOn,
+		AccountStatus: user.AccountStatus,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
 }
