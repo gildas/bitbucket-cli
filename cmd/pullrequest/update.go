@@ -13,6 +13,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -156,6 +157,14 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		if len(updateOptions.AddReviewers.Values) > 0 {
 
 			if updateOptions.AddReviewers.Values[0] == "default" {
+				// Find me
+				log.Debugf("Finding current user")
+				me, err := user.GetMe(cmd.Context(), cmd)
+				if err != nil {
+					return errors.Join(errors.New("failed to get current user"), err)
+				}
+				log.Infof("Current user: %s (%s)", me.Username, me.ID)
+
 				// Find the default reviewers from the repo or project settings
 				var reviewers []reviewer.Reviewer
 
@@ -166,6 +175,11 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 					return err
 				}
 				log.Debugf("Found %d default reviewers", len(reviewers))
+
+				// Removing myself from the reviewers since I cannot be a reviewer of my own pullrequest
+				reviewers = core.Filter(reviewers, func(reviewer reviewer.Reviewer) bool { return reviewer.User.ID != me.ID })
+				log.Debugf("Filtered reviewers to remove current user: %d reviewers remaining", len(reviewers))
+
 				// Replace the first reviewer with the list of default reviewers and appends the rest
 				updateOptions.AddReviewers.Values = append(
 					core.Map(reviewers, func(reviewer reviewer.Reviewer) string { return reviewer.User.ID.String() }),

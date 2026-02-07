@@ -124,6 +124,14 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	} else {
 		var reviewers []reviewer.Reviewer
 
+		// Find me
+		log.Debugf("Finding current user")
+		me, err := user.GetMe(cmd.Context(), cmd)
+		if err != nil {
+			return errors.Join(errors.New("failed to get current user"), err)
+		}
+		log.Infof("Current user: %s (%s)", me.Username, me.ID)
+
 		// Find the default reviewers from the repo or project settings
 		log.Debugf("No reviewers in the repository, trying to get effective default reviewers from the repository")
 		reviewers, err = pullrequestRepository.GetEffectiveDefaultReviewers(cmd.Context(), cmd)
@@ -132,6 +140,10 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			return err
 		}
 		log.Debugf("Found %d default reviewers", len(reviewers))
+
+		// Removing myself from the reviewers since I cannot be a reviewer of my own pullrequest
+		reviewers = core.Filter(reviewers, func(reviewer reviewer.Reviewer) bool { return reviewer.User.ID != me.ID })
+		log.Debugf("Filtered reviewers to remove current user: %d reviewers remaining", len(reviewers))
 		payload.Reviewers = core.Map(reviewers, func(reviewer reviewer.Reviewer) user.User { return reviewer.User })
 	}
 
