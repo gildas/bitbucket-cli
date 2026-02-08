@@ -87,21 +87,62 @@ func (suite *PipelineSuite) UnmarshalData(filename string, v any) error {
 // *****************************************************************************
 
 func (suite *PipelineSuite) TestCanUnmarshal() {
-	var pipeline pipeline.Pipeline
-	err := suite.UnmarshalData("pipeline.json", &pipeline)
+	var pl pipeline.Pipeline
+	err := suite.UnmarshalData("pipeline.json", &pl)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(pipeline)
-	suite.Assert().Equal("{a1b2c3d4-e5f6-7890-abcd-ef1234567890}", pipeline.ID.String())
-	suite.Assert().Equal(uint64(42), pipeline.BuildNumber)
-	suite.Assert().Equal("COMPLETED", pipeline.State.Name)
-	suite.Assert().NotNil(pipeline.State.Result)
-	suite.Assert().Equal("SUCCESSFUL", pipeline.State.Result.Name)
-	suite.Assert().Equal("branch", pipeline.Target.RefType)
-	suite.Assert().Equal("main", pipeline.Target.RefName)
-	suite.Assert().Equal("abc123def456", pipeline.Target.Commit.Hash)
-	suite.Assert().Equal(330*time.Second, pipeline.Duration)
-	suite.Assert().Equal("John Developer", pipeline.Creator.Name)
-	suite.Assert().Equal("myworkspace/my-repo", pipeline.Repository.FullName)
+	suite.Assert().Equal("{a1b2c3d4-e5f6-7890-abcd-ef1234567890}", pl.ID.String())
+	suite.Assert().Equal(uint64(42), pl.BuildNumber)
+	suite.Assert().Equal("COMPLETED", pl.State.Name)
+	suite.Require().NotNil(pl.State.Result)
+	suite.Assert().Equal("SUCCESSFUL", pl.State.Result.Name)
+	suite.Assert().Equal(330*time.Second, pl.Duration)
+	suite.Assert().Equal(uuid.MustParse("12345678-1234-1234-1234-123456789012"), uuid.UUID(pl.Creator.ID))
+	suite.Assert().Equal("557058:12345678-abcd-efgh-ijkl-123456789012", pl.Creator.AccountID)
+	suite.Assert().Equal("John Developer", pl.Creator.Name)
+	suite.Assert().Equal("johnd", pl.Creator.Nickname)
+	suite.Assert().Equal("myworkspace/my-repo", pl.Repository.FullName)
+
+	suite.Require().NotNil(pl.Target)
+	suite.Assert().Equal("main", pl.Target.GetDestination())
+	suite.Assert().Equal("abc123def456", pl.Target.GetCommit().Hash)
+
+	target, ok := pl.Target.(*pipeline.ReferenceTarget)
+	suite.Require().True(ok)
+	suite.Assert().Equal("branch", target.ReferenceType)
+	suite.Assert().Equal("main", target.ReferenceName)
+	suite.Assert().Equal("abc123def456", target.Commit.Hash)
+}
+
+func (suite *PipelineSuite) TestCanUnmarshalWithPullRequest() {
+	var pl pipeline.Pipeline
+	err := suite.UnmarshalData("pipeline-pullrequest.json", &pl)
+	suite.Require().NoError(err)
+	suite.Assert().Equal("{a1b2c3d4-e5f6-7890-abcd-ef1234567890}", pl.ID.String())
+	suite.Assert().Equal(uint64(42), pl.BuildNumber)
+	suite.Assert().Equal("COMPLETED", pl.State.Name)
+	suite.Require().NotNil(pl.State.Result)
+	suite.Assert().Equal("FAILED", pl.State.Result.Name)
+	suite.Assert().Equal(330*time.Second, pl.Duration)
+	suite.Assert().Equal(uuid.MustParse("12345678-1234-1234-1234-123456789012"), uuid.UUID(pl.Creator.ID))
+	suite.Assert().Equal("557058:12345678-abcd-efgh-ijkl-123456789012", pl.Creator.AccountID)
+	suite.Assert().Equal("John Developer", pl.Creator.Name)
+	suite.Assert().Equal("johnd", pl.Creator.Nickname)
+	suite.Assert().Equal("myworkspace/my-repo", pl.Repository.FullName)
+
+	suite.Require().NotNil(pl.Target)
+	suite.Assert().Equal("main", pl.Target.GetDestination())
+	suite.Assert().Equal("3c80cde6b371", pl.Target.GetCommit().Hash)
+
+	target, ok := pl.Target.(*pipeline.PullRequestReferenceTarget)
+	suite.Require().True(ok)
+	suite.Assert().Equal("main", target.Destination)
+	suite.Assert().Equal("abc123def456", target.DestinationCommit.Hash)
+	suite.Assert().Equal("custom", target.Selector.Type)
+	suite.Assert().Equal("run-tests", target.Selector.Pattern)
+	suite.Assert().Equal("3c80cde6b371", target.Commit.Hash)
+	suite.Assert().Equal(uint64(62), target.PullRequest.ID)
+	suite.Assert().Equal("feat: add API key authentication", target.PullRequest.Title)
+	suite.Assert().False(target.PullRequest.IsDraft)
 }
 
 func (suite *PipelineSuite) TestCanMarshal() {
@@ -117,16 +158,12 @@ func (suite *PipelineSuite) TestCanMarshal() {
 				Name: "SUCCESSFUL",
 			},
 		},
-		Target: pipeline.Target{
-			Type:    "pipeline_ref_target",
-			RefType: "branch",
-			RefName: "main",
-			Commit: &commit.Commit{
-				Hash: "abc123def456",
-			},
-			Selector: &pipeline.Selector{
-				Type: "default",
-			},
+		Target: pipeline.ReferenceTarget{
+			Type:          "pipeline_ref_target",
+			ReferenceType: "branch",
+			ReferenceName: "main",
+			Commit:        commit.CommitReference{Hash: "abc123def456"},
+			Selector:      &common.Selector{Type: "default"},
 		},
 		CreatedOn:   time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC),
 		CompletedOn: time.Date(2024, 1, 15, 10, 35, 30, 0, time.UTC),
@@ -145,13 +182,13 @@ func (suite *PipelineSuite) TestCanMarshal() {
 		},
 		Repository: pipeline.Repository{
 			Type:     "repository",
-			UUID:     "{repo-uuid-1234-5678-abcd}",
+			UUID:     "{12854e6a-e6f8-44ac-b006-1521931d4c0d}",
 			Name:     "my-repo",
 			FullName: "myworkspace/my-repo",
 			Links: common.Links{
 				Self:   &common.Link{HREF: url.URL{Scheme: "https", Host: "api.bitbucket.org", Path: "/2.0/repositories/myworkspace/my-repo"}},
 				HTML:   &common.Link{HREF: url.URL{Scheme: "https", Host: "bitbucket.org", Path: "/myworkspace/my-repo"}},
-				Avatar: &common.Link{HREF: url.URL{Scheme: "https", Host: "bytebucket.org", Path: "/ravatar/{repo-uuid}"}},
+				Avatar: &common.Link{HREF: url.URL{Scheme: "https", Host: "bytebucket.org", Path: "/ravatar/{12854e6a-e6f8-44ac-b006-1521931d4c0d}"}},
 			},
 		},
 		Links: common.Links{

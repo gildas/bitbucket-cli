@@ -12,6 +12,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TriggerBody represents the body for triggering a pipeline
+type TriggerBody struct {
+	Target    Target     `json:"target"`
+	Variables []Variable `json:"variables,omitempty"`
+}
+
 var triggerCmd = &cobra.Command{
 	Use:     "trigger",
 	Aliases: []string{"run", "start", "create"},
@@ -49,16 +55,16 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	// Build the target
-	target := Target{
+	target := ReferenceTarget{
 		Type: "pipeline_ref_target",
 	}
 
 	if len(triggerOptions.Tag) > 0 {
-		target.RefType = "tag"
-		target.RefName = triggerOptions.Tag
+		target.ReferenceType = "tag"
+		target.ReferenceName = triggerOptions.Tag
 	} else if len(triggerOptions.Branch) > 0 {
-		target.RefType = "branch"
-		target.RefName = triggerOptions.Branch
+		target.ReferenceType = "branch"
+		target.ReferenceName = triggerOptions.Branch
 	} else {
 		// Try to detect the current git branch
 		currentBranch, err := branch.GetCurrentBranch()
@@ -66,17 +72,17 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 			log.Errorf("Failed to retrieve the current branch", err)
 			return errors.ArgumentMissing.With("branch or tag", "use --branch or --tag to specify the target")
 		}
-		target.RefType = currentBranch.GetType()
-		target.RefName = currentBranch.Name
+		target.ReferenceType = currentBranch.GetType()
+		target.ReferenceName = currentBranch.Name
 		log.Infof("Using current branch: %s", currentBranch.Name)
 	}
 
 	if len(triggerOptions.Commit) > 0 {
-		target.Commit = &commit.Commit{Hash: triggerOptions.Commit}
+		target.Commit = commit.CommitReference{Hash: triggerOptions.Commit}
 	}
 
 	if len(triggerOptions.Pattern) > 0 {
-		target.Selector = &Selector{
+		target.Selector = &common.Selector{
 			Type:    "custom",
 			Pattern: triggerOptions.Pattern,
 		}

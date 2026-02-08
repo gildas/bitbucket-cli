@@ -53,12 +53,6 @@ type ConfigurationSource struct {
 	URI    string `json:"uri"    mapstructure:"uri"`
 }
 
-// TriggerBody represents the body for triggering a pipeline
-type TriggerBody struct {
-	Target    Target     `json:"target"`
-	Variables []Variable `json:"variables,omitempty"`
-}
-
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:     "pipeline",
@@ -84,18 +78,7 @@ var columns = common.Columns[Pipeline]{
 		return strings.Compare(strings.ToLower(a.State.Name), strings.ToLower(b.State.Name)) == -1
 	}},
 	{Name: "branch", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
-		return strings.Compare(strings.ToLower(a.Target.RefName), strings.ToLower(b.Target.RefName)) == -1
-	}},
-	{Name: "commit", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
-		aHash := ""
-		bHash := ""
-		if a.Target.Commit != nil {
-			aHash = a.Target.Commit.Hash
-		}
-		if b.Target.Commit != nil {
-			bHash = b.Target.Commit.Hash
-		}
-		return strings.Compare(strings.ToLower(aHash), strings.ToLower(bHash)) == -1
+		return strings.Compare(strings.ToLower(a.Target.GetDestination()), strings.ToLower(b.Target.GetDestination())) == -1
 	}},
 	{Name: "creator", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
 		return strings.Compare(strings.ToLower(a.Creator.Name), strings.ToLower(b.Creator.Name)) == -1
@@ -161,17 +144,7 @@ func (pipeline Pipeline) GetRow(headers []string) []string {
 		case "state":
 			row = append(row, pipeline.State.String())
 		case "branch":
-			row = append(row, pipeline.Target.RefName)
-		case "commit":
-			if pipeline.Target.Commit != nil {
-				hash := pipeline.Target.Commit.Hash
-				if len(hash) > 7 {
-					hash = hash[:7]
-				}
-				row = append(row, hash)
-			} else {
-				row = append(row, " ")
-			}
+			row = append(row, pipeline.Target.GetDestination())
 		case "creator":
 			row = append(row, pipeline.Creator.Name)
 		case "duration":
@@ -233,16 +206,17 @@ func (pipeline Pipeline) MarshalJSON() (data []byte, err error) {
 // UnmarshalJSON implements the json.Unmarshaler interface.
 //
 // implements json.Unmarshaler
-func (pipeline *Pipeline) UnmarshalJSON(data []byte) error {
+func (pipeline *Pipeline) UnmarshalJSON(data []byte) (err error) {
 	type surrogate Pipeline
 	var inner struct {
 		Type string `json:"type"`
 		surrogate
-		CreatedOn         core.Time `json:"created_on"`
-		CompletedOn       core.Time `json:"completed_on,omitempty"`
-		DurationInSeconds uint64    `json:"duration_in_seconds"`
+		Target            json.RawMessage `json:"target"`
+		CreatedOn         core.Time       `json:"created_on"`
+		CompletedOn       core.Time       `json:"completed_on,omitempty"`
+		DurationInSeconds uint64          `json:"duration_in_seconds"`
 	}
-	if err := json.Unmarshal(data, &inner); err != nil {
+	if err = json.Unmarshal(data, &inner); err != nil {
 		return errors.JSONUnmarshalError.WrapIfNotMe(err)
 	}
 	if inner.Type != pipeline.GetType() {
@@ -252,5 +226,8 @@ func (pipeline *Pipeline) UnmarshalJSON(data []byte) error {
 	pipeline.CreatedOn = time.Time(inner.CreatedOn)
 	pipeline.CompletedOn = time.Time(inner.CompletedOn)
 	pipeline.Duration = time.Duration(inner.DurationInSeconds) * time.Second
+	if pipeline.Target, err = UnmarshalTarget(inner.Target); err != nil {
+		return errors.JSONUnmarshalError.WrapIfNotMe(err)
+	}
 	return errors.JSONUnmarshalError.Wrap(pipeline.Validate())
 }

@@ -6,20 +6,39 @@
     "type": "pipeline_state_completed",
     "name": "COMPLETED",
     "result": {
-      "type": "pipeline_state_completed_successful",
-      "name": "SUCCESSFUL"
+      "type": "pipeline_state_completed_failed",
+      "name": "FAILED"
     }
   },
   "target": {
-    "type": "pipeline_ref_target",
-    "ref_type": "branch",
-    "ref_name": "main",
-    "commit": {
+    "type": "pipeline_pullrequest_target",
+    "source": "frontend-develop-non-delete-key",
+    "destination": "main",
+    "destination_commit": {
       "type": "commit",
       "hash": "abc123def456"
     },
+    "commit": {
+      "type": "commit",
+      "hash": "3c80cde6b371"
+    },
     "selector": {
-      "type": "default"
+      "type": "custom",
+      "pattern": "run-tests"
+    },
+    "pullrequest": {
+      "type": "pullrequest",
+      "id": 62,
+      "title": "feat: add API key authentication",
+      "draft": false,
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/62"
+        },
+        "html": {
+          "href": "https://bitbucket.org/myworkspace/my-repo/pull-requests/62"
+        }
+      }
     }
   },
   "created_on": "2024-01-15T10:30:00+00:00",
@@ -62,10 +81,10 @@
   },
   "links": {
     "self": {
-      "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pipelines/%7Ba1b2c3d4-e5f6-7890-abcd-ef1234567890%7D"
+      "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pipelines/%7Bb2c3d4e5-f6a7-8901-bcde-f12345678901%7D"
     },
     "steps": {
-      "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pipelines/%7Ba1b2c3d4-e5f6-7890-abcd-ef1234567890%7D/steps/"
+      "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pipelines/%7Bb2c3d4e5-f6a7-8901-bcde-f12345678901%7D/steps/"
     }
   }
 }
