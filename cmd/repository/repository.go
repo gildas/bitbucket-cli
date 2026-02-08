@@ -39,7 +39,7 @@ type Repository struct {
 	MainBranch           string              `json:"-"                  mapstructure:"-"`
 	DefaultMergeStrategy string              `json:"-"                  mapstructure:"-"`
 	BranchingModel       string              `json:"-"                  mapstructure:"-"`
-	Parent               *Repository         `json:"parent"             mapstructure:"parent"`
+	Parent               *Repository         `json:"parent,omitempty"   mapstructure:"parent"`
 	Links                common.Links        `json:"links"              mapstructure:"links"`
 	CreatedOn            time.Time           `json:"created_on"         mapstructure:"created_on"`
 	UpdatedOn            time.Time           `json:"updated_on"         mapstructure:"updated_on"`
