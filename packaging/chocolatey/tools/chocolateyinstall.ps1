@@ -7,7 +7,7 @@ $packageArgs = @{
   fileType      = 'exe'
   file64        = "$toolsDir\bitbucket-cli-0.17.4-windows-amd64.7z"
   softwareName  = 'bitbucket-cli*'
-  checksum64    = ''
+  checksum64    = '6db0423bee085ac6ff73d3d4a034cabfb4df46fe8572b15590461b1de574651c'
   checksumType64= 'sha256'
 }
 
