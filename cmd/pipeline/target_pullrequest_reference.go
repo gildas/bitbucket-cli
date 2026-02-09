@@ -8,12 +8,12 @@ import (
 
 // PullRequestReferenceTarget represents a target for a pipeline that is a pull request reference.
 type PullRequestReferenceTarget struct {
-	Source            string                           `json:"source" mapstructure:"source"`
-	Destination       string                           `json:"destination" mapstructure:"destination"`
+	Source            string                           `json:"source"             mapstructure:"source"`
+	Destination       string                           `json:"destination"        mapstructure:"destination"`
 	DestinationCommit commit.CommitReference           `json:"destination_commit" mapstructure:"destination_commit"`
-	Commit            commit.CommitReference           `json:"commit" mapstructure:"commit"`
-	Selector          *common.Selector                 `json:"selector" mapstructure:"selector"`
-	PullRequest       pullrequest.PullRequestReference `json:"pullrequest" mapstructure:"pullrequest"`
+	Commit            commit.CommitReference           `json:"commit"             mapstructure:"commit"`
+	Selector          *common.Selector                 `json:"selector,omitempty" mapstructure:"selector"`
+	PullRequest       pullrequest.PullRequestReference `json:"pullrequest"        mapstructure:"pullrequest"`
 }
 
 func init() {
@@ -22,7 +22,7 @@ func init() {
 
 // GetType returns the type of the PullRequestReferenceTarget.
 //
-// implements core.TypeCarier
+// implements core.TypeCarrier
 func (target PullRequestReferenceTarget) GetType() string {
 	return "pipeline_pullrequest_target"
 }
