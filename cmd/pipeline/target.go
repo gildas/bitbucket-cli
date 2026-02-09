@@ -21,16 +21,28 @@ var targetRegistry = core.TypeRegistry{}
 func UnmarshalTarget(payload []byte) (Target, error) {
 	target, err := targetRegistry.UnmarshalJSON(payload)
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "Missing JSON Property") {
+		errStr := err.Error()
+		
+		if strings.HasPrefix(errStr, "Missing JSON Property") {
 			return nil, errors.JSONUnmarshalError.Wrap(errors.ArgumentMissing.With("type"))
 		}
-		if strings.HasPrefix(err.Error(), "Unsupported Type") {
-			keys := make([]string, 0, len(targetRegistry))
-			for key := range targetRegistry {
-				keys = append(keys, key)
-			}
-			return nil, errors.JSONUnmarshalError.Wrap(errors.InvalidType.With(strings.TrimSuffix(strings.TrimPrefix(err.Error(), `Unsupported Type "`), `"`), strings.Join(keys, ", ")))
+		
+		// Check for "Unsupported Type" error and extract the type name
+		if strings.HasPrefix(errStr, "Unsupported Type ") {
+			// Extract the type name from the error message: 'Unsupported Type "typename"'
+			const prefix = "Unsupported Type "
+			remainder := errStr[len(prefix):]
+			// Remove surrounding quotes
+			typeName := strings.Trim(remainder, `"`)
+			
+			// Get list of supported types
+			supportedTypes := targetRegistry.SupportedTypes()
+			
+			return nil, errors.JSONUnmarshalError.Wrap(
+				errors.InvalidType.With(typeName, strings.Join(supportedTypes, ", ")),
+			)
 		}
+		
 		return nil, err
 	}
 	return target.(Target), nil

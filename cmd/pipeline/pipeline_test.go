@@ -241,3 +241,72 @@ func (suite *PipelineSuite) TestPipelineStateWithoutResult() {
 	suite.Assert().Equal("IN_PROGRESS", p.State.Name)
 	suite.Assert().Nil(p.State.Result)
 }
+
+func (suite *PipelineSuite) TestPipelineWithInvalidTargetType() {
+	payload := []byte(`{
+		"type": "pipeline",
+		"uuid": "{a1b2c3d4-e5f6-7890-abcd-ef1234567890}",
+		"build_number": 1,
+		"state": {
+			"type": "pipeline_state_in_progress",
+			"name": "IN_PROGRESS"
+		},
+		"target": {
+			"type": "invalid_target_type",
+			"ref_type": "branch",
+			"ref_name": "develop"
+		},
+		"created_on": "2024-01-15T10:30:00.000000+00:00",
+		"duration_in_seconds": 0,
+		"creator": {
+			"type": "user",
+			"display_name": "Test User"
+		},
+		"repository": {
+			"type": "repository",
+			"name": "test-repo",
+			"full_name": "workspace/test-repo"
+		},
+		"links": {}
+	}`)
+	var p pipeline.Pipeline
+	err := json.Unmarshal(payload, &p)
+	suite.Require().Error(err)
+	suite.Assert().Contains(err.Error(), "Invalid Type")
+	suite.Assert().Contains(err.Error(), "invalid_target_type")
+	suite.Assert().Contains(err.Error(), "pipeline_ref_target")
+	suite.Assert().Contains(err.Error(), "pipeline_pullrequest_target")
+}
+
+func (suite *PipelineSuite) TestPipelineWithMissingTargetType() {
+	payload := []byte(`{
+		"type": "pipeline",
+		"uuid": "{a1b2c3d4-e5f6-7890-abcd-ef1234567890}",
+		"build_number": 1,
+		"state": {
+			"type": "pipeline_state_in_progress",
+			"name": "IN_PROGRESS"
+		},
+		"target": {
+			"ref_type": "branch",
+			"ref_name": "develop"
+		},
+		"created_on": "2024-01-15T10:30:00.000000+00:00",
+		"duration_in_seconds": 0,
+		"creator": {
+			"type": "user",
+			"display_name": "Test User"
+		},
+		"repository": {
+			"type": "repository",
+			"name": "test-repo",
+			"full_name": "workspace/test-repo"
+		},
+		"links": {}
+	}`)
+	var p pipeline.Pipeline
+	err := json.Unmarshal(payload, &p)
+	suite.Require().Error(err)
+	suite.Assert().Contains(err.Error(), "Argument")
+	suite.Assert().Contains(err.Error(), "missing")
+}
