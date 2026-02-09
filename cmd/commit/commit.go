@@ -20,7 +20,7 @@ type Commit struct {
 	Message    string                `json:"message"            mapstructure:"message"`
 	Summary    *common.RenderedText  `json:"summary,omitempty"  mapstructure:"summary"`
 	Rendered   *RenderedMessage      `json:"rendered,omitempty" mapstructure:"rendered"`
-	Parents    []CommitReference     `json:"parents"            mapstructure:"parents"`
+	Parents    []CommitReference     `json:"parents,omitempty"  mapstructure:"parents"`
 	Date       time.Time             `json:"date"               mapstructure:"date"`
 	Repository repository.Repository `json:"repository"         mapstructure:"repository"`
 	Links      common.Links          `json:"links"              mapstructure:"links"`

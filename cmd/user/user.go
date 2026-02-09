@@ -164,13 +164,14 @@ func (user User) MarshalJSON() (data []byte, err error) {
 // GetMe gets the current user
 func GetMe(context context.Context, cmd *cobra.Command) (user *User, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("user", "me")
-	if user, err = UserCache.Get("me"); err == nil {
-		log.Debugf("User found in cache")
-		return
-	}
+
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
 		return nil, err
+	}
+	if user, err = UserCache.Get(profile.Name + ":me"); err == nil {
+		log.Debugf("User found in cache")
+		return
 	}
 	err = profile.Get(
 		context,
@@ -179,7 +180,7 @@ func GetMe(context context.Context, cmd *cobra.Command) (user *User, err error) 
 		&user,
 	)
 	if err == nil {
-		_ = UserCache.Set(*user, "me")
+		_ = UserCache.Set(*user, profile.Name+":me")
 	}
 	return
 }
@@ -199,7 +200,7 @@ func GetUser(context context.Context, cmd *cobra.Command, userid string) (user *
 	}
 	userUUID, err := common.ParseUUID(userid)
 	if err == nil {
-		if user, err = UserCache.Get(userUUID.String()); err != nil {
+		if user, err = UserCache.Get(profile.Name + ":" + userUUID.String()); err != nil {
 			err = profile.Get(
 				context,
 				cmd,
@@ -207,7 +208,7 @@ func GetUser(context context.Context, cmd *cobra.Command, userid string) (user *
 				&user,
 			)
 			if err == nil {
-				_ = UserCache.Set(*user)
+				_ = UserCache.Set(*user, profile.Name+":"+userUUID.String())
 			}
 		}
 	}
