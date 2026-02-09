@@ -24,7 +24,7 @@ func UnmarshalTarget(payload []byte) (Target, error) {
 		if strings.HasPrefix(err.Error(), "Missing JSON Property") {
 			return nil, errors.JSONUnmarshalError.Wrap(errors.ArgumentMissing.With("type"))
 		}
-		if strings.HasPrefix(err.Error(), "UnsupportedType") {
+		if strings.HasPrefix(err.Error(), "Unsupported Type") {
 			keys := make([]string, 0, len(targetRegistry))
 			for key := range targetRegistry {
 				keys = append(keys, key)
