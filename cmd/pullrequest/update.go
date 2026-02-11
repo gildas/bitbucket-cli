@@ -13,7 +13,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -161,9 +160,11 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 				log.Debugf("Finding current user")
 				me, err := user.GetMe(cmd.Context(), cmd)
 				if err != nil {
-					return errors.Join(errors.New("failed to get current user"), err)
+					// RAT (repo scoped tokens) do not have access to that API endpoint usually
+					log.Warnf("Failed to get current user, this may be a RAT client. Error: %s", err.Error())
+				} else {
+					log.Infof("Current user: %s (%s)", me.Username, me.ID)
 				}
-				log.Infof("Current user: %s (%s)", me.Username, me.ID)
 
 				// Find the default reviewers from the repo or project settings
 				var reviewers []reviewer.Reviewer
@@ -176,9 +177,11 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 				}
 				log.Debugf("Found %d default reviewers", len(reviewers))
 
-				// Removing myself from the reviewers since I cannot be a reviewer of my own pullrequest
-				reviewers = core.Filter(reviewers, func(reviewer reviewer.Reviewer) bool { return reviewer.User.ID != me.ID })
-				log.Debugf("Filtered reviewers to remove current user: %d reviewers remaining", len(reviewers))
+				if me != nil {
+					// Removing myself from the reviewers since I cannot be a reviewer of my own pullrequest
+					reviewers = core.Filter(reviewers, func(reviewer reviewer.Reviewer) bool { return reviewer.User.ID != me.ID })
+					log.Debugf("Filtered reviewers to remove current user: %d reviewers remaining", len(reviewers))
+				}
 
 				// Replace the first reviewer with the list of default reviewers and appends the rest
 				updateOptions.AddReviewers.Values = append(
