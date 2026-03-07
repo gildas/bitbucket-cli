@@ -140,7 +140,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		reviewers, err = pullrequestRepository.GetEffectiveDefaultReviewers(ctx, cmd)
 		if err != nil {
 			log.Errorf("Failed to get default reviewers", err)
-			return err
+			return errors.Join(errors.New("Failed to get the default reviewers"), err)
 		}
 		log.Debugf("Found %d default reviewers", len(reviewers))
 
