@@ -415,7 +415,10 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 		if result != nil {
 			var bberr *BitBucketError
 			if jerr := result.UnmarshalContentJSON(&bberr); jerr == nil {
+				log.Warnf("We have a BitBucketError: %#+v", bberr)
 				return result, bberr
+			} else {
+				log.Debugf("the Error %s is not a bitbucket error: %s", err.Error(), jerr.Error())
 			}
 		}
 	}

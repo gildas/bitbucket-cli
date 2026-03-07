@@ -7,6 +7,9 @@ import (
 	"github.com/gildas/go-errors"
 )
 
+// BitBucketError represents an error returned by the BitBucket API
+//
+// See: https://developer.atlassian.com/cloud/bitbucket/rest/intro/#standardized-error-responses
 type BitBucketError struct {
 	Type    string              `json:"type"`
 	Message string              `json:"-"`
