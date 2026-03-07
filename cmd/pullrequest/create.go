@@ -71,8 +71,9 @@ func init() {
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
+	ctx := log.ToContext(cmd.Context())
 
-	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	profile, err := profile.GetProfileFromCommand(ctx, cmd)
 	if err != nil {
 		return err
 	}
@@ -92,7 +93,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		payload.Destination = &Endpoint{Branch: Branch{Name: createOptions.Destination.Value}}
 	}
 
-	pullrequestRepository, err := repository.GetRepositoryFromGit(cmd.Context(), cmd, profile)
+	pullrequestRepository, err := repository.GetRepositoryFromGit(ctx, cmd, profile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get repository: %s\n", err)
 		os.Exit(1)
@@ -107,13 +108,13 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			return member.User.AccountID == id || strings.EqualFold(member.User.Nickname, id) || strings.EqualFold(member.User.Name, id)
 		}
 
-		members, _ := pullrequestRepository.Workspace.GetMembers(cmd.Context(), cmd)
+		members, _ := pullrequestRepository.Workspace.GetMembers(ctx, cmd)
 		payload.Reviewers = make([]user.User, 0, len(createOptions.Reviewers.Values))
 		for _, reviewer := range createOptions.Reviewers.Values {
 			if matches := core.Filter(members, func(member workspace.Member) bool { return isMember(member, reviewer) }); len(matches) > 0 {
 				log.Record("matches", matches).Infof("Adding reviewer: %s", matches[0].User.ID)
 				payload.Reviewers = append(payload.Reviewers, matches[0].User)
-			} else if user, err := user.GetUser(cmd.Context(), cmd, reviewer); err == nil {
+			} else if user, err := user.GetUser(ctx, cmd, reviewer); err == nil {
 				log.Record("user", user).Infof("Adding reviewer: %s", reviewer)
 				payload.Reviewers = append(payload.Reviewers, *user)
 			} else {
@@ -126,7 +127,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 		// Find me
 		log.Debugf("Finding current user")
-		me, err := user.GetMe(cmd.Context(), cmd)
+		me, err := user.GetMe(ctx, cmd)
 		if err != nil {
 			// RAT (repo scoped tokens) do not have access to that API endpoint usually
 			log.Warnf("Failed to get current user, this may be a RAT client. Error: %s", err.Error())
@@ -136,7 +137,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 		// Find the default reviewers from the repo or project settings
 		log.Debugf("No reviewers in the repository, trying to get effective default reviewers from the repository")
-		reviewers, err = pullrequestRepository.GetEffectiveDefaultReviewers(cmd.Context(), cmd)
+		reviewers, err = pullrequestRepository.GetEffectiveDefaultReviewers(ctx, cmd)
 		if err != nil {
 			log.Errorf("Failed to get default reviewers", err)
 			return err
