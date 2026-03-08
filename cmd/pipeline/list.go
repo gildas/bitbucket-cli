@@ -25,6 +25,7 @@ var listOptions struct {
 	Columns    *flags.EnumSliceFlag
 	SortBy     *flags.EnumFlag
 	PageLength int
+	Limit      int
 }
 
 func init() {
@@ -37,6 +38,7 @@ func init() {
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
+	listCmd.Flags().IntVar(&listOptions.Limit, "limit", 0, "Maximum total number of items to retrieve. 0 means no limit")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
@@ -48,9 +50,9 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	uripath := "pipelines"
+	uripath := "pipelines?sort=-created_on"
 	if len(listOptions.Query) > 0 {
-		uripath = fmt.Sprintf("pipelines?q=%s", url.QueryEscape(listOptions.Query))
+		uripath = fmt.Sprintf("pipelines?sort=-created_on&q=%s", url.QueryEscape(listOptions.Query))
 	}
 
 	log.Infof("Listing pipelines for repository: %s", listOptions.Repository)
