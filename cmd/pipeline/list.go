@@ -65,6 +65,8 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Println("No pipelines found")
 		return nil
 	}
-	core.Sort(pipelines, columns.SortBy(listOptions.SortBy.Value))
+	if cmd.Flag("sort").Changed {
+		core.Sort(pipelines, columns.SortBy(listOptions.SortBy.Value))
+	}
 	return profile.Current.Print(cmd.Context(), cmd, Pipelines(pipelines))
 }
