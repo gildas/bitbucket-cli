@@ -104,11 +104,16 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 		}
 	}
 
-	if !strings.Contains(uripath, "pagelen") && pageLength > 0 {
+	effectivePageLength := pageLength
+	if limit > 0 && (effectivePageLength == 0 || limit < effectivePageLength) {
+		effectivePageLength = limit
+	}
+
+	if !strings.Contains(uripath, "pagelen") && effectivePageLength > 0 {
 		if strings.Contains(uripath, "?") {
-			uripath = fmt.Sprintf("%s&pagelen=%d", uripath, pageLength)
+			uripath = fmt.Sprintf("%s&pagelen=%d", uripath, effectivePageLength)
 		} else {
-			uripath = fmt.Sprintf("%s?pagelen=%d", uripath, pageLength)
+			uripath = fmt.Sprintf("%s?pagelen=%d", uripath, effectivePageLength)
 		}
 	}
 
