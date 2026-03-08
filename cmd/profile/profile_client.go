@@ -96,6 +96,14 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 		}
 	}
 
+	limit := 0
+	if cmd != nil && cmd.Flag("limit") != nil && cmd.Flag("limit").Changed {
+		if l, err := cmd.Flags().GetInt("limit"); err == nil && l > 0 {
+			limit = l
+			log.Debugf("Using limit of %d from the command line flags", limit)
+		}
+	}
+
 	if !strings.Contains(uripath, "pagelen") && pageLength > 0 {
 		if strings.Contains(uripath, "?") {
 			uripath = fmt.Sprintf("%s&pagelen=%d", uripath, pageLength)
@@ -118,6 +126,10 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 			return nil, err
 		}
 		resources = append(resources, paginated.Values...)
+		if limit > 0 && len(resources) >= limit {
+			resources = resources[:limit]
+			break
+		}
 		log.Debugf("Got %d resources", len(paginated.Values))
 		log.Debugf("Next page:     %s", paginated.Next)
 		log.Debugf("Previous page: %s", paginated.Previous)
