@@ -36,7 +36,7 @@ func init() {
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pipelines from. Defaults to the current repository")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter pipelines")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
-	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
+	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by (applies a local sort on fetched results; server-side sort is always by creation date descending)")
 	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
 	listCmd.Flags().IntVar(&listOptions.Limit, "limit", 0, "Maximum total number of items to retrieve. 0 means no limit")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
