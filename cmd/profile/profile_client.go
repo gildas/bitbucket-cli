@@ -96,15 +96,32 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 		}
 	}
 
-	if !strings.Contains(uripath, "pagelen") && pageLength > 0 {
-		if strings.Contains(uripath, "?") {
-			uripath = fmt.Sprintf("%s&pagelen=%d", uripath, pageLength)
-		} else {
-			uripath = fmt.Sprintf("%s?pagelen=%d", uripath, pageLength)
+	limit := 0
+	if cmd != nil && cmd.Flag("limit") != nil && cmd.Flag("limit").Changed {
+		if l, err := cmd.Flags().GetInt("limit"); err == nil && l > 0 {
+			limit = l
+			log.Debugf("Using limit of %d from the command line flags", limit)
 		}
 	}
 
-	log.Infof("Getting all resources for profile %s (%d at a time)", profile.Name, pageLength)
+	effectivePageLength := pageLength
+	if limit > 0 && (effectivePageLength == 0 || limit < effectivePageLength) {
+		effectivePageLength = limit
+	}
+
+	if !strings.Contains(uripath, "pagelen") && effectivePageLength > 0 {
+		if strings.Contains(uripath, "?") {
+			uripath = fmt.Sprintf("%s&pagelen=%d", uripath, effectivePageLength)
+		} else {
+			uripath = fmt.Sprintf("%s?pagelen=%d", uripath, effectivePageLength)
+		}
+	}
+
+	if limit > 0 {
+		log.Infof("Getting up to %d resources for profile %s (%d at a time)", limit, profile.Name, effectivePageLength)
+	} else {
+		log.Infof("Getting all resources for profile %s (%d at a time)", profile.Name, effectivePageLength)
+	}
 	for {
 		var paginated PaginatedResources[T]
 
@@ -118,13 +135,30 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 			return nil, err
 		}
 		resources = append(resources, paginated.Values...)
-		log.Debugf("Got %d resources", len(paginated.Values))
+		if limit > 0 && len(resources) >= limit {
+			resources = resources[:limit]
+			break
+		}
+		log.Debugf("Got %d resources (total: %d)", len(paginated.Values), len(resources))
 		log.Debugf("Next page:     %s", paginated.Next)
 		log.Debugf("Previous page: %s", paginated.Previous)
 		if len(paginated.Next) == 0 {
 			break
 		}
 		uripath = paginated.Next
+		if limit > 0 {
+			remaining := limit - len(resources)
+			if remaining < effectivePageLength {
+				// Adjust pagelen on the next URL to only fetch what we still need
+				nextURL, parseErr := url.Parse(uripath)
+				if parseErr == nil {
+					query := nextURL.Query()
+					query.Set("pagelen", fmt.Sprintf("%d", remaining))
+					nextURL.RawQuery = query.Encode()
+					uripath = nextURL.String()
+				}
+			}
+		}
 	}
 	return resources, nil
 }
