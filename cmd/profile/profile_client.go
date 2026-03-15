@@ -104,23 +104,22 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 		}
 	}
 
-	effectivePageLength := pageLength
-	if limit > 0 && (effectivePageLength == 0 || limit < effectivePageLength) {
-		effectivePageLength = limit
+	if limit > 0 && (pageLength == 0 || limit < pageLength) {
+		pageLength = limit
 	}
 
-	if !strings.Contains(uripath, "pagelen") && effectivePageLength > 0 {
+	if !strings.Contains(uripath, "pagelen") && pageLength > 0 {
 		if strings.Contains(uripath, "?") {
-			uripath = fmt.Sprintf("%s&pagelen=%d", uripath, effectivePageLength)
+			uripath = fmt.Sprintf("%s&pagelen=%d", uripath, pageLength)
 		} else {
-			uripath = fmt.Sprintf("%s?pagelen=%d", uripath, effectivePageLength)
+			uripath = fmt.Sprintf("%s?pagelen=%d", uripath, pageLength)
 		}
 	}
 
 	if limit > 0 {
-		log.Infof("Getting up to %d resources for profile %s (%d at a time)", limit, profile.Name, effectivePageLength)
+		log.Infof("Getting up to %d resources for profile %s (%d at a time)", limit, profile.Name, pageLength)
 	} else {
-		log.Infof("Getting all resources for profile %s (%d at a time)", profile.Name, effectivePageLength)
+		log.Infof("Getting all resources for profile %s (%d at a time)", profile.Name, pageLength)
 	}
 	for {
 		var paginated PaginatedResources[T]
@@ -148,7 +147,7 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 		uripath = paginated.Next
 		if limit > 0 {
 			remaining := limit - len(resources)
-			if remaining < effectivePageLength {
+			if remaining < pageLength {
 				// Adjust pagelen on the next URL to only fetch what we still need
 				nextURL, parseErr := url.Parse(uripath)
 				if parseErr == nil {
