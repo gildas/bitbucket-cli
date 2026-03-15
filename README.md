@@ -840,6 +840,8 @@ bb pipeline list
 
 By default the current repository is used, you can specify a repository with the `--repository` flag.
 
+If there are too many pipelines and `bb pipeline list` seems to hang, you can use the `--limit` flag to set the maximum number of pipelines to retrieve. By default, the limit is set to 0, which means no limit.
+
 You can get the details of a pipeline with the `bb pipeline get` or `bb pipeline show` command:
 
 ```bash
