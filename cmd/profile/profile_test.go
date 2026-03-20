@@ -1,6 +1,7 @@
 package profile_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,9 +17,10 @@ import (
 
 type ProfileSuite struct {
 	suite.Suite
-	Name   string
-	Logger *logger.Logger
-	Start  time.Time
+	Name    string
+	Context context.Context
+	Logger  *logger.Logger
+	Start   time.Time
 }
 
 func TestProfileSuite(t *testing.T) {
@@ -39,6 +41,7 @@ func (suite *ProfileSuite) SetupSuite() {
 			FilterLevels: logger.NewLevelSet(logger.TRACE),
 		},
 	).Child("test", "test")
+	suite.Context = suite.Logger.ToContext(context.Background())
 	suite.Logger.Infof("Suite Start: %s %s", suite.Name, strings.Repeat("=", 80-14-len(suite.Name)))
 }
 
