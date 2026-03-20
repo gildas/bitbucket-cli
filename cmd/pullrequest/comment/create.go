@@ -16,10 +16,15 @@ import (
 type CommentCreator struct {
 	Content ContentCreator     `json:"content" mapstructure:"content"`
 	Anchor  *common.FileAnchor `json:"inline,omitempty" mapstructure:"inline"`
+	Parent  *ParentRef         `json:"parent,omitempty" mapstructure:"parent"`
 }
 
 type ContentCreator struct {
 	Raw string `json:"raw" mapstructure:"raw"`
+}
+
+type ParentRef struct {
+	ID int64 `json:"id" mapstructure:"id"`
 }
 
 var createCmd = &cobra.Command{
@@ -37,6 +42,7 @@ var createOptions struct {
 	File          string
 	From          int
 	To            int
+	ParentID      int64
 }
 
 func init() {
@@ -50,6 +56,7 @@ func init() {
 	createCmd.Flags().IntVar(&createOptions.From, "line", 0, "From line to comment on. Cannot be used with --to")
 	createCmd.Flags().IntVar(&createOptions.From, "from", 0, "From line to comment on. Cannot be used with --line")
 	createCmd.Flags().IntVar(&createOptions.To, "to", 0, "To line to comment on. Cannot be used with --line")
+	createCmd.Flags().Int64Var(&createOptions.ParentID, "parent", 0, "Parent comment ID to reply to")
 	createCmd.MarkFlagsMutuallyExclusive("line", "from")
 	createCmd.MarkFlagsMutuallyExclusive("line", "to")
 	_ = createCmd.MarkFlagRequired("pullrequest")
@@ -67,6 +74,10 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	payload := CommentCreator{
 		Content: ContentCreator{Raw: createOptions.Comment},
+	}
+
+	if createOptions.ParentID > 0 {
+		payload.Parent = &ParentRef{ID: createOptions.ParentID}
 	}
 
 	if createOptions.File != "" {

@@ -93,3 +93,26 @@ func (suite *PullRequestSuite) TestCanUnmarshal() {
 	suite.Require().NoError(err)
 	suite.Assert().JSONEq(string(payload), string(data))
 }
+
+func (suite *PullRequestSuite) TestCanUnmarshalWithNilDestinationRepository() {
+	payload := suite.LoadTestData("pullrequest-no-dest-repo.json")
+	var pr pullrequest.PullRequest
+	err := json.Unmarshal(payload, &pr)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(pr)
+	suite.Assert().Nil(pr.Destination.Repository)
+	suite.Assert().NotEmpty(pr.Destination.Branch.Name)
+}
+
+func (suite *PullRequestSuite) TestDestinationRepositoryIsNilAfterSettingNewDestination() {
+	payload := suite.LoadTestData("pullrequest.json")
+	var pr pullrequest.PullRequest
+	err := json.Unmarshal(payload, &pr)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(pr.Destination.Repository)
+
+	pr.Destination = pullrequest.Endpoint{Branch: pullrequest.Branch{Name: "new-branch"}}
+
+	suite.Assert().Nil(pr.Destination.Repository)
+	suite.Assert().Equal("new-branch", pr.Destination.Branch.Name)
+}

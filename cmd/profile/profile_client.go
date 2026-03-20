@@ -96,6 +96,18 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 		}
 	}
 
+	limit := 0
+	if cmd != nil && cmd.Flag("limit") != nil && cmd.Flag("limit").Changed {
+		if l, err := cmd.Flags().GetInt("limit"); err == nil && l > 0 {
+			limit = l
+			log.Debugf("Using limit of %d from the command line flags", limit)
+		}
+	}
+
+	if limit > 0 && (pageLength == 0 || limit < pageLength) {
+		pageLength = limit
+	}
+
 	if !strings.Contains(uripath, "pagelen") && pageLength > 0 {
 		if strings.Contains(uripath, "?") {
 			uripath = fmt.Sprintf("%s&pagelen=%d", uripath, pageLength)
@@ -104,7 +116,16 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 		}
 	}
 
-	log.Infof("Getting all resources for profile %s (%d at a time)", profile.Name, pageLength)
+	originalQuery := url.Values{}
+	if parsed, err := url.Parse(uripath); err == nil {
+		originalQuery = parsed.Query()
+	}
+
+	if limit > 0 {
+		log.Infof("Getting up to %d resources for profile %s (%d at a time)", limit, profile.Name, pageLength)
+	} else {
+		log.Infof("Getting all resources for profile %s (%d at a time)", profile.Name, pageLength)
+	}
 	for {
 		var paginated PaginatedResources[T]
 
@@ -118,13 +139,38 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 			return nil, err
 		}
 		resources = append(resources, paginated.Values...)
-		log.Debugf("Got %d resources", len(paginated.Values))
+		if limit > 0 && len(resources) >= limit {
+			resources = resources[:limit]
+			break
+		}
+		log.Debugf("Got %d resources (total: %d)", len(paginated.Values), len(resources))
 		log.Debugf("Next page:     %s", paginated.Next)
 		log.Debugf("Previous page: %s", paginated.Previous)
 		if len(paginated.Next) == 0 {
 			break
 		}
-		uripath = paginated.Next
+
+		nextURL, parseErr := url.Parse(paginated.Next)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		nextQuery := nextURL.Query()
+		for key, values := range originalQuery {
+			if _, exists := nextQuery[key]; !exists {
+				for _, value := range values {
+					nextQuery.Add(key, value)
+				}
+			}
+		}
+		if limit > 0 {
+			remaining := limit - len(resources)
+			if remaining < pageLength {
+				// Adjust pagelen on the next URL to only fetch what we still need
+				nextQuery.Set("pagelen", fmt.Sprintf("%d", remaining))
+			}
+		}
+		nextURL.RawQuery = nextQuery.Encode()
+		uripath = nextURL.String()
 	}
 	return resources, nil
 }
@@ -415,7 +461,10 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 		if result != nil {
 			var bberr *BitBucketError
 			if jerr := result.UnmarshalContentJSON(&bberr); jerr == nil {
+				log.Warnf("We have a BitBucketError: %#+v", bberr)
 				return result, bberr
+			} else {
+				log.Debugf("the Error %s is not a bitbucket error: %s", err.Error(), jerr.Error())
 			}
 		}
 	}

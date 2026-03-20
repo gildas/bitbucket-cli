@@ -25,6 +25,7 @@ var listOptions struct {
 	Columns    *flags.EnumSliceFlag
 	SortBy     *flags.EnumFlag
 	PageLength int
+	Limit      int
 }
 
 func init() {
@@ -35,8 +36,9 @@ func init() {
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pipelines from. Defaults to the current repository")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter pipelines")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
-	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
+	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by (applies a local sort on fetched results; server-side sort is always by creation date descending)")
 	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
+	listCmd.Flags().IntVar(&listOptions.Limit, "limit", 0, "Maximum total number of items to retrieve. 0 means no limit")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
@@ -48,9 +50,9 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	uripath := "pipelines"
+	uripath := "pipelines?sort=-created_on"
 	if len(listOptions.Query) > 0 {
-		uripath = fmt.Sprintf("pipelines?q=%s", url.QueryEscape(listOptions.Query))
+		uripath = fmt.Sprintf("pipelines?sort=-created_on&q=%s", url.QueryEscape(listOptions.Query))
 	}
 
 	log.Infof("Listing pipelines for repository: %s", listOptions.Repository)
@@ -63,6 +65,8 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		fmt.Println("No pipelines found")
 		return nil
 	}
-	core.Sort(pipelines, columns.SortBy(listOptions.SortBy.Value))
+	if cmd.Flag("sort").Changed {
+		core.Sort(pipelines, columns.SortBy(listOptions.SortBy.Value))
+	}
 	return profile.Current.Print(cmd.Context(), cmd, Pipelines(pipelines))
 }

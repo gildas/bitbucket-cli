@@ -120,7 +120,12 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		updateWanted = true
 	}
 
-	pullrequestWorkspace, err := pullrequest.Destination.Repository.FetchWorkspace(cmd.Context(), cmd, profile)
+	var pullrequestWorkspace *workspace.Workspace
+	if pullrequest.Destination.Repository != nil {
+		pullrequestWorkspace, err = pullrequest.Destination.Repository.FetchWorkspace(cmd.Context(), cmd, profile)
+	} else {
+		pullrequestWorkspace, err = workspace.GetWorkspaceFromCommandOrGit(cmd.Context(), cmd)
+	}
 	if err != nil {
 		log.Errorf("Failed to get workspace of pullrequest destination repository", err)
 		fmt.Fprintf(os.Stderr, "Failed to get workspace of pullrequest destination repository: %s\n", err)

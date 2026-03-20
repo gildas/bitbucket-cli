@@ -183,12 +183,18 @@ By default, the password or client secret is stored in the vault of the operatin
 
 Profiles support the following authentications:
 
-- [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-) with the `--client-id`, `--client-secret`, and `--callback-port` flags
-- [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-) with the `--client-id` and `--client-secret` flags
-- [App passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/) with the `--user` and `--password` flags.
+- [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-) with the `--client-id`, `--client-secret`, and `--callback-port` flags.
+- [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-) with the `--client-id` and `--client-secret` flags.
+- [API tokens](https://support.atlassian.com/bitbucket-cloud/docs/api-tokens/) with the `--user` and `--password` flags. The user is the **Atlassian account email** and the password is the API token in this case.
+- ~~[App passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/) with the `--user` and `--password` flags.~~ [App passwords are deprecated by Atlassian in favour of API tokens as of June 9, 2025 and will stop working entirely on June 9, 2026](https://www.atlassian.com/blog/bitbucket/bitbucket-cloud-transitions-to-api-tokens-enhancing-security-with-app-password-deprecation). Use API tokens instead.
 - [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags.
 
-When you use a username/password, the password is stored in the vault of the operating system (Windows Credential Manager, macOS Keychain, or Linux Secret Service). You can pass the `--no-vault` flag to disable this feature and store the password in plain text in the configuration file. This is not recommended, but can be useful for testing purposes. On Linux and macOS, you can also pass the `--vault-key` flag to set the key to use in the system keychain. By default, the key is `bitbucket-cli`. On Windows, this option is not available.
+Permission Scopes:
+
+- [OAuth 2.0 scopes](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#bitbucket-oauth-2-0-scopes)
+- [API token permissions](https://support.atlassian.com/bitbucket-cloud/docs/api-token-permissions/)
+
+When you use a user/password, the password is stored in the vault of the operating system (Windows Credential Manager, macOS Keychain, or Linux Secret Service). You can pass the `--no-vault` flag to disable this feature and store the password in plain text in the configuration file. This is not recommended, but can be useful for testing purposes. On Linux and macOS, you can also pass the `--vault-key` flag to set the key to use in the system keychain. By default, the key is `bitbucket-cli`. On Windows, this option is not available.
 
 You can also pass the `--clone-protocol` flag to set the default protocol to use when cloning repositories. The supported protocols are `https`, `git`, and `ssh`. This option can be overridden with the `--protocol` flag when using `repo clone`.
 
@@ -839,6 +845,8 @@ bb pipeline list
 ```
 
 By default the current repository is used, you can specify a repository with the `--repository` flag.
+
+If there are too many pipelines and `bb pipeline list` seems to hang, you can use the `--limit` flag to set the maximum number of pipelines to retrieve. By default, the limit is set to 0, which means no limit.
 
 You can get the details of a pipeline with the `bb pipeline get` or `bb pipeline show` command:
 
