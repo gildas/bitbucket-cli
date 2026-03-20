@@ -116,6 +116,11 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 		}
 	}
 
+	originalQuery := url.Values{}
+	if parsed, err := url.Parse(uripath); err == nil {
+		originalQuery = parsed.Query()
+	}
+
 	if limit > 0 {
 		log.Infof("Getting up to %d resources for profile %s (%d at a time)", limit, profile.Name, pageLength)
 	} else {
@@ -144,20 +149,28 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 		if len(paginated.Next) == 0 {
 			break
 		}
-		uripath = paginated.Next
+
+		nextURL, parseErr := url.Parse(paginated.Next)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		nextQuery := nextURL.Query()
+		for key, values := range originalQuery {
+			if _, exists := nextQuery[key]; !exists {
+				for _, value := range values {
+					nextQuery.Add(key, value)
+				}
+			}
+		}
 		if limit > 0 {
 			remaining := limit - len(resources)
 			if remaining < pageLength {
 				// Adjust pagelen on the next URL to only fetch what we still need
-				nextURL, parseErr := url.Parse(uripath)
-				if parseErr == nil {
-					query := nextURL.Query()
-					query.Set("pagelen", fmt.Sprintf("%d", remaining))
-					nextURL.RawQuery = query.Encode()
-					uripath = nextURL.String()
-				}
+				nextQuery.Set("pagelen", fmt.Sprintf("%d", remaining))
 			}
 		}
+		nextURL.RawQuery = nextQuery.Encode()
+		uripath = nextURL.String()
 	}
 	return resources, nil
 }
