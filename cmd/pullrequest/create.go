@@ -127,10 +127,10 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 		// Find me
 		log.Debugf("Finding current user")
-		me, err := user.GetMe(ctx, cmd)
-		if err != nil {
+		me, errMe := user.GetMe(ctx, cmd)
+		if errMe != nil {
 			// RAT (repo scoped tokens) do not have access to that API endpoint usually
-			log.Warnf("Failed to get current user, this may be a RAT client. Error: %s", err.Error())
+			log.Warnf("Failed to get current user, this may be a RAT client. Error: %s", errMe.Error())
 		} else {
 			log.Infof("Current user: %s (%s)", me.Username, me.ID)
 		}
@@ -140,7 +140,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		reviewers, err = pullrequestRepository.GetEffectiveDefaultReviewers(ctx, cmd)
 		if err != nil {
 			log.Errorf("Failed to get default reviewers", err)
-			return errors.Join(errors.New("Failed to get the default reviewers"), err)
+			return errors.Join(errors.New("Failed to get the default reviewers"), err, errMe)
 		}
 		log.Debugf("Found %d default reviewers", len(reviewers))
 
