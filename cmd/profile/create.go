@@ -2,6 +2,7 @@ package profile
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -24,6 +25,7 @@ var createCmd = &cobra.Command{
 
 var createOptions struct {
 	Profile
+	Host             string
 	DefaultWorkspace *flags.EnumFlag
 	DefaultProject   *flags.EnumFlag
 	OutputFormat     *flags.EnumFlag
@@ -45,6 +47,7 @@ func init() {
 		createCmd.Flags().StringVar(&createOptions.VaultKey, "vault-key", "bitbucket-cli", "Vault key to use for storing credentials. Default is bitbucket-cli. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
 	}
 	createCmd.Flags().BoolVar(&createOptions.NoVault, "no-vault", false, "Do not store credentials in the vault. This will store them in plain text in the configuration file.")
+	createCmd.Flags().StringVar(&createOptions.Host, "host", "", "Host of the Bitbucket API when using Bitbucket Data Center. For Bitbucket Cloud, this should be left empty.")
 	createCmd.Flags().StringVarP(&createOptions.User, "user", "u", "", "User's name of the profile")
 	createCmd.Flags().StringVar(&createOptions.Password, "password", "", "Password of the profile")
 	createCmd.Flags().StringVar(&createOptions.ClientID, "client-id", "", "Client ID of the profile")
@@ -74,6 +77,11 @@ func init() {
 func createProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
 
+	if len(createOptions.Host) > 0 {
+		createOptions.APIRoot = &url.URL{Scheme: "https", Host: createOptions.Host, Path: "/rest/1.0"}
+	} else {
+		createOptions.APIRoot = &url.URL{Scheme: "https", Host: "api.bitbucket.org", Path: "/2.0"}
+	}
 	if len(createOptions.DefaultWorkspace.String()) > 0 {
 		createOptions.Profile.DefaultWorkspace = createOptions.DefaultWorkspace.String()
 	}

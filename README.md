@@ -181,6 +181,17 @@ You can also pass the `--progress` flag to display a progress bar when upload/do
 
 By default, the password or client secret is stored in the vault of the operating system (Windows Credential Manager, macOS Keychain, or Linux Secret Service). You can pass the `--no-vault` flag to disable this feature and store the password or client secret in plain text in the configuration file. This is not recommended, but can be useful for testing purposes.
 
+To connect to a Bitbucket Data Center, you can pass the `--host` flag to set the host of the Bitbucket instance (do not provide any host when connecting to bitbucket.org). For example:
+
+```bash
+bb profile create \
+  --name myprofile \
+  --host bitbucket.mycompany.com \
+  --client-id <your-client-id> \
+  --client-secret <your-client-secret> \
+  --callback-port 8080
+```
+
 Profiles support the following authentications:
 
 - [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-) with the `--client-id`, `--client-secret`, and `--callback-port` flags.

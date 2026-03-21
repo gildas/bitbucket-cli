@@ -409,14 +409,12 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 		return nil, err
 	}
 
-	apiRoot := profile.APIRoot
-	if apiRoot == nil {
-		apiRoot = &url.URL{Scheme: "https", Host: "api.bitbucket.org"}
-	}
+	// We want a copy og the API Root URL because we will modify it with the path of the request
+	apiRoot := &url.URL{Scheme: profile.APIRoot.Scheme, Host: profile.APIRoot.Host, Path: profile.APIRoot.Path}
 
 	if strings.HasPrefix(uripath, "/") {
 		components := strings.Split(uripath, "?")
-		options.URL = apiRoot.JoinPath("2.0", components[0])
+		options.URL = apiRoot.JoinPath(components[0])
 		if len(components) > 1 {
 			options.URL.RawQuery = components[1]
 		}
@@ -427,7 +425,7 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 		}
 		log.Infof("Using repository %s", repositoryName)
 		components := strings.Split(uripath, "?")
-		options.URL = apiRoot.JoinPath("2.0", "repositories", repositoryName, components[0])
+		options.URL = apiRoot.JoinPath("repositories", repositoryName, components[0])
 		if len(components) > 1 {
 			options.URL.RawQuery = components[1]
 		}

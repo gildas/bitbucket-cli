@@ -149,7 +149,11 @@ func (profile Profile) GetRow(headers []string) []string {
 	for _, header := range headers {
 		switch strings.ToLower(header) {
 		case "apiroot":
-			row = append(row, profile.APIRoot.String())
+			if profile.APIRoot != nil {
+				row = append(row, profile.APIRoot.String())
+			} else {
+				row = append(row, " ")
+			}
 		case "name":
 			row = append(row, profile.Name)
 		case "description":
@@ -209,6 +213,10 @@ func (profile *Profile) Update(other Profile) error {
 	if len(other.Name) > 0 {
 		profile.Name = other.Name
 	}
+	if other.APIRoot != nil {
+		profile.APIRoot = other.APIRoot
+	}
+
 	if len(other.Description) > 0 {
 		profile.Description = other.Description
 	}
@@ -263,6 +271,9 @@ func (profile *Profile) Validate() error {
 
 	if len(profile.Name) == 0 {
 		merr.Append(errors.ArgumentMissing.With("name"))
+	}
+	if profile.APIRoot == nil {
+		profile.APIRoot = &url.URL{Scheme: "https", Host: "api.bitbucket.org", Path: "/2.0"}
 	}
 	// We must have either an access token, a user, or a clientID
 	// password and clientSecret are now retrieved from the vault

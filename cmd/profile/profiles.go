@@ -3,6 +3,7 @@ package profile
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
@@ -151,6 +152,9 @@ func (profiles *profiles) Load(context context.Context) error {
 
 	// Get the secret stuff from the Windows credential manager or linux/macOS keychain if not set
 	for _, profile := range *profiles {
+		if profile.APIRoot == nil {
+			profile.APIRoot = &url.URL{Scheme: "https", Host: "api.bitbucket.org", Path: "/2.0"}
+		}
 		if len(profile.ClientID) > 0 {
 			if len(profile.ClientSecret) == 0 {
 				if credential, err := profile.GetCredentialFromVault(profile.VaultKey, profile.ClientID); err == nil {

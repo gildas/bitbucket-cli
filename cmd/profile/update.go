@@ -2,6 +2,7 @@ package profile
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -25,6 +26,7 @@ var updateCmd = &cobra.Command{
 
 var updateOptions struct {
 	Profile
+	Host             string
 	DefaultWorkspace *flags.EnumFlag
 	DefaultProject   *flags.EnumFlag
 	OutputFormat     *flags.EnumFlag
@@ -44,6 +46,7 @@ func init() {
 	if runtime.GOOS != "windows" {
 		updateCmd.Flags().StringVar(&updateOptions.VaultKey, "vault-key", "bitbucket-cli", "Vault key to use for storing credentials. Default is bitbucket-cli. On Windows, the Windows Credential Manager will be used, On Linux and macOS, the system keychain will be used.")
 	}
+	updateCmd.Flags().StringVar(&updateOptions.Host, "host", "", "Host of the Bitbucket API when using Bitbucket Data Center. For Bitbucket Cloud, this should be left empty.")
 	updateCmd.Flags().StringVarP(&updateOptions.User, "user", "u", "", "User's name of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.Password, "password", "", "Password of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.ClientID, "client-id", "", "Client ID of the profile")
@@ -70,6 +73,11 @@ func init() {
 func updateProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
+	if len(updateOptions.Host) > 0 {
+		updateOptions.APIRoot = &url.URL{Scheme: "https", Host: updateOptions.Host, Path: "/rest/1.0"}
+	} else {
+		updateOptions.APIRoot = &url.URL{Scheme: "https", Host: "api.bitbucket.org", Path: "/2.0"}
+	}
 	if len(updateOptions.DefaultWorkspace.String()) > 0 {
 		updateOptions.Profile.DefaultWorkspace = updateOptions.DefaultWorkspace.String()
 	}
