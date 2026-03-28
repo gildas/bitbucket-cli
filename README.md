@@ -46,6 +46,20 @@ scoop bucket add gildas https://github.com/gildas/scoop-bucket
 scoop install bitbucket-cli
 ```
 
+### Go
+
+If you have Go installed, you can install `bb` with:
+
+```bash
+go install github.com/gildas/bitbucket-cli/cmd/bb@latest
+```
+
+This method also allows you to install `bb` from the `develop` branch with:
+
+```bash
+go install github.com/gildas/bitbucket-cli/cmd/bb@dev
+```
+
 ### Binaries
 
 You can download the latest version of `bb` from the [downloads](https://github.com/gildas/bitbucket-cli/releases) page.
