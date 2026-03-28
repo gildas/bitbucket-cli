@@ -269,7 +269,9 @@ func (profile *Profile) Validate() error {
 	if len(profile.AccessToken) == 0 && len(profile.ClientID) == 0 && len(profile.User) == 0 {
 		merr.Append(errors.ArgumentMissing.With("accessToken, user, or clientID"))
 	}
-	if len(profile.VaultKey) == 0 {
+	if len(profile.ClientSecret) > 0 || len(profile.Password) > 0 {
+		profile.VaultKey = ""
+	} else if len(profile.VaultKey) == 0 {
 		profile.VaultKey = "bitbucket-cli"
 	}
 	if len(profile.CloneProtocol) == 0 {

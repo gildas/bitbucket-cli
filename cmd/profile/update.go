@@ -29,6 +29,7 @@ var updateOptions struct {
 	DefaultProject   *flags.EnumFlag
 	OutputFormat     *flags.EnumFlag
 	CloneProtocol    *flags.EnumFlag
+	NoVault          bool
 }
 
 func init() {
@@ -49,6 +50,7 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.ClientID, "client-id", "", "Client ID of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.ClientSecret, "client-secret", "", "Client Secret of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.AccessToken, "access-token", "", "Access Token of the profile")
+	updateCmd.Flags().BoolVar(&updateOptions.NoVault, "no-vault", false, "Do not use a vault for storing credentials")
 	updateCmd.Flags().Var(updateOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
 	updateCmd.Flags().Var(updateOptions.DefaultProject, "default-project", "Default project of the profile")
 	updateCmd.Flags().Var(updateOptions.CloneProtocol, "clone-protocol", "Default protocol to use for cloning repositories. Default is git, can be https, git, or ssh")
@@ -103,12 +105,14 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		if cmd.Flag("client-id").Changed && len(updateOptions.ClientID) > 0 {
 			clientID = updateOptions.ClientID
 		}
-		if err := updateOptions.SetCredentialInVault(updateOptions.VaultKey, clientID, updateOptions.ClientSecret); err != nil {
-			log.Errorf("Failed to store client secret in the vault, the secret will be stored in plain text in the configuration file", err)
-			fmt.Fprintf(os.Stderr, "Failed to store client secret in the vault, the secret will be stored in plain text in the configuration file: %s\n", err)
-		} else {
-			log.Infof("Stored client secret in the vault for %s", clientID)
-			updateOptions.ClientSecret = "" // Clear the secret from the profile
+		if !updateOptions.NoVault {
+			if err := updateOptions.SetCredentialInVault(updateOptions.VaultKey, clientID, updateOptions.ClientSecret); err != nil {
+				log.Errorf("Failed to store client secret in the vault, the secret will be stored in plain text in the configuration file", err)
+				fmt.Fprintf(os.Stderr, "Failed to store client secret in the vault, the secret will be stored in plain text in the configuration file: %s\n", err)
+			} else {
+				log.Infof("Stored client secret in the vault for %s", clientID)
+				updateOptions.ClientSecret = "" // Clear the secret from the profile
+			}
 		}
 	}
 	if len(updateOptions.Password) > 0 {
@@ -116,12 +120,14 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		if cmd.Flag("user").Changed && len(updateOptions.User) > 0 {
 			user = updateOptions.User
 		}
-		if err := updateOptions.SetCredentialInVault(updateOptions.VaultKey, user, updateOptions.Password); err != nil {
-			log.Errorf("Failed to store user password in the vault, the password will be stored in plain text in the configuration file", err)
-			fmt.Fprintf(os.Stderr, "Failed to store user password in the vault, the password will be stored in plain text in the configuration file: %s\n", err)
-		} else {
-			log.Infof("Stored user password in the vault for %s", user)
-			updateOptions.Password = "" // Clear the password from the profile
+		if !updateOptions.NoVault {
+			if err := updateOptions.SetCredentialInVault(updateOptions.VaultKey, user, updateOptions.Password); err != nil {
+				log.Errorf("Failed to store user password in the vault, the password will be stored in plain text in the configuration file", err)
+				fmt.Fprintf(os.Stderr, "Failed to store user password in the vault, the password will be stored in plain text in the configuration file: %s\n", err)
+			} else {
+				log.Infof("Stored user password in the vault for %s", user)
+				updateOptions.Password = "" // Clear the password from the profile
+			}
 		}
 	}
 	if cmd.Flag("access-token").Changed && len(updateOptions.AccessToken) > 0 {
@@ -129,12 +135,14 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		if cmd.Flag("name").Changed && len(updateOptions.Name) > 0 {
 			name = updateOptions.Name
 		}
-		if err := updateOptions.SetCredentialInVault(updateOptions.VaultKey, name, updateOptions.AccessToken); err != nil {
-			log.Errorf("Failed to store access token in the vault, the token will be stored in plain text in the configuration file", err)
-			fmt.Fprintf(os.Stderr, "Failed to store access token in the vault, the token will be stored in plain text in the configuration file: %s\n", err)
-		} else {
-			log.Infof("Stored access token in the vault for %s", name)
-			updateOptions.AccessToken = "" // Clear the access token from the profile
+		if !updateOptions.NoVault {
+			if err := updateOptions.SetCredentialInVault(updateOptions.VaultKey, name, updateOptions.AccessToken); err != nil {
+				log.Errorf("Failed to store access token in the vault, the token will be stored in plain text in the configuration file", err)
+				fmt.Fprintf(os.Stderr, "Failed to store access token in the vault, the token will be stored in plain text in the configuration file: %s\n", err)
+			} else {
+				log.Infof("Stored access token in the vault for %s", name)
+				updateOptions.AccessToken = "" // Clear the access token from the profile
+			}
 		}
 	}
 

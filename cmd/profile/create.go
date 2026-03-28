@@ -104,7 +104,7 @@ func createProcess(cmd *cobra.Command, args []string) error {
 			return errors.ArgumentMissing.With("clientSecret", "A client secret is required when using a client ID since it is not stored in the vault.")
 		} else if len(createOptions.User) > 0 && len(createOptions.Password) == 0 {
 			return errors.ArgumentMissing.With("password", "A password is required when using a user since it is not stored in the vault.")
-		} else if len(createOptions.AccessToken) == 0 {
+		} else if len(createOptions.ClientID) == 0 && len(createOptions.User) == 0 && len(createOptions.AccessToken) == 0 {
 			return errors.ArgumentMissing.With("accessToken", "An access token is required when using a user since it is not stored in the vault")
 		}
 	} else {
