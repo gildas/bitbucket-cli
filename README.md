@@ -1051,3 +1051,7 @@ bb completion zsh > "$(brew --prefix)/share/zsh/site-functions/_bb"
 ## TODO
 
 We will add more commands in the future. If you have any suggestions, please open an issue.
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/gildas/bitbucket-cli.svg?variant=adaptive)](https://starchart.cc/gildas/bitbucket-cli)
