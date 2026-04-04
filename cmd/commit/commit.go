@@ -29,12 +29,6 @@ type Commit struct {
 	Links      common.Links          `json:"links"              mapstructure:"links"`
 }
 
-type CommitReference struct {
-	Type  string       `json:"type"  mapstructure:"type"`
-	Hash  string       `json:"hash"  mapstructure:"hash"`
-	Links common.Links `json:"links" mapstructure:"links"`
-}
-
 type RenderedMessage struct {
 	Message common.RenderedText `json:"message" mapstructure:"message"`
 }
@@ -82,17 +76,8 @@ func (commit Commit) GetType() string {
 // GetReference gets the reference string for this commit
 func (commit Commit) GetReference() *CommitReference {
 	return &CommitReference{
-		Type:  commit.GetType(),
 		Hash:  commit.Hash,
 		Links: commit.Links,
-	}
-}
-
-// AsCommit converts this CommitRef to a Commit
-func (reference CommitReference) AsCommit() *Commit {
-	return &Commit{
-		Hash:  reference.Hash,
-		Links: reference.Links,
 	}
 }
 
@@ -191,27 +176,6 @@ func (commit Commit) MarshalJSON() (data []byte, err error) {
 		Type:      commit.GetType(),
 		surrogate: surrogate(commit),
 		Date:      commit.Date.Format("2006-01-02T15:04:05.999999999-07:00"),
-	})
-	return data, errors.JSONMarshalError.Wrap(err)
-}
-
-// MarshalJSON implements the json.Marshaler interface.
-func (ref CommitReference) MarshalJSON() (data []byte, err error) {
-	type surrogate CommitReference
-	var links *common.Links
-
-	if !ref.Links.IsEmpty() {
-		links = &ref.Links
-	}
-
-	data, err = json.Marshal(struct {
-		Type string `json:"type"`
-		surrogate
-		Links *common.Links `json:"links,omitempty"`
-	}{
-		Type:      "commit",
-		surrogate: surrogate(ref),
-		Links:     links,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
 }

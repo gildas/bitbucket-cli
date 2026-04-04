@@ -93,3 +93,12 @@ func (suite *CommitSuite) TestCanUnmarshal() {
 	suite.Require().NoError(err)
 	suite.Assert().JSONEq(string(payload), string(data))
 }
+
+func (suite *CommitSuite) TestCanMarshalCommitReference() {
+	expected := `{"type": "commit", "hash": "026560720168aa12820a01e8262f6bb60f0639d1"}`
+	reference := commit.CommitReference{Hash: "026560720168aa12820a01e8262f6bb60f0639d1"}
+
+	data, err := json.Marshal(reference)
+	suite.Require().NoError(err)
+	suite.Assert().JSONEq(string(expected), string(data))
+}
