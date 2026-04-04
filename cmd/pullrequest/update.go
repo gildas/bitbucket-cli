@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project/reviewer"
@@ -39,7 +40,7 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.Destination = flags.NewEnumFlagWithFunc("", GetBranchNames)
+	updateOptions.Destination = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
 	updateOptions.AddReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(GetReviewerNicknames)
 	updateOptions.RemoveReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(GetReviewerNicknames)
 

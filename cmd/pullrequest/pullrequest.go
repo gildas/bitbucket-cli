@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -236,16 +235,4 @@ func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []st
 	nicknames = core.Map(members, func(member workspace.Member) string { return member.User.Nickname })
 	core.Sort(nicknames, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
 	return common.FilterValidArgs(nicknames, args, toComplete), nil
-}
-
-// GetBranchNames gets the branch names of a repository
-func GetBranchNames(context context.Context, cmd *cobra.Command, args []string, toComplete string) ([]string, error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "getbranches")
-	log.Infof("Getting branches for profile %v", profile.Current)
-	names, err := branch.GetBranchNames(context, cmd)
-	if err != nil {
-		cobra.CompErrorln(err.Error())
-		return []string{}, err
-	}
-	return common.FilterValidArgs(names, args, toComplete), nil
 }
