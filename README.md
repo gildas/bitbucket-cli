@@ -577,6 +577,77 @@ bb repo get myrepository \
   --forks
 ```
 
+### Branches
+
+You can list branches with the `bb branch list` command:
+
+```bash
+bb branch list
+```
+
+By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
+
+```bash
+bb branch list --repository myrepository --workspace myworkspace
+```
+
+### Commits
+
+You can list commits with the `bb commit list` command:
+
+```bash
+bb commit list
+```
+
+By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
+
+```bash
+bb commit list --repository myrepository --workspace myworkspace
+```
+
+You can get the details of a commit with the `bb commit get` or `bb commit show` command:
+
+```bash
+bb commit get 123456
+```
+
+While the completion for commit hashes works, it can be a bit slow if there are a lot of commits in the repository. If you know the first few characters of the commit hash, it will be much faster to complete. You also do not need to enter the full commit hash, the first 7 characters are usually enough to identify a commit. But less can be enough if there are not many commits in the repository.
+
+### Tags
+
+You can list tags with the `bb tag list` command:
+
+```bashbb tag list
+```
+
+By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
+
+```bash
+bb tag list --repository myrepository --workspace myworkspace
+```
+
+You can get the details of a tag with the `bb tag get` or `bb tag show` command:
+
+```bash
+bb tag get v1.0.0
+```
+
+You can create a tag with the `bb tag create` command:
+
+```bash
+bb tag create v1.0.0 \
+  --message "My tag message" \
+  --target 123456
+```
+
+By default, the target of the tag is the latest commit on the default branch.
+
+You can delete tags with the `bb tag delete` command:
+
+```bash
+bb tag delete v1.0.0
+```
+
 ### Pull Requests
 
 You can list pull requests with the `bb pullrequest list` command:
