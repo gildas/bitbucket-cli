@@ -1,9 +1,6 @@
 package commit
 
 import (
-	"fmt"
-	"net/url"
-
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
@@ -21,6 +18,8 @@ var listCmd = &cobra.Command{
 var listOptions struct {
 	Repository string
 	Query      string
+	Include    []string
+	Exclude    []string
 	Columns    *flags.EnumSliceFlag
 	SortBy     *flags.EnumFlag
 	PageLength int
@@ -33,6 +32,8 @@ func init() {
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list commits from. Defaults to the current repository")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter commits")
+	listCmd.Flags().StringSliceVar(&listOptions.Include, "include", []string{}, "List of commit hashes to include")
+	listCmd.Flags().StringSliceVar(&listOptions.Exclude, "exclude", []string{}, "List of commit hashes to exclude")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
@@ -43,18 +44,13 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
-	uripath := "commits"
-	if len(listOptions.Query) > 0 {
-		uripath = fmt.Sprintf("commits?q=%s", url.QueryEscape(listOptions.Query))
-	}
-
-	log.Infof("Listing all branches for repository: %s with profile %s", listOptions.Repository, profile.Current)
-	commits, err := profile.GetAll[Commit](log.ToContext(cmd.Context()), cmd, uripath)
+	log.Infof("Listing all commits for repository: %s with profile %s", listOptions.Repository, profile.Current)
+	commits, err := GetCommits(log.ToContext(cmd.Context()), cmd)
 	if err != nil {
 		return err
 	}
 	if len(commits) == 0 {
-		log.Infof("No branch found")
+		log.Infof("No commit found")
 		return
 	}
 	core.Sort(commits, columns.SortBy(listOptions.SortBy.Value))
