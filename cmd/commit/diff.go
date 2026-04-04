@@ -62,6 +62,10 @@ func diffProcess(cmd *cobra.Command, args []string) error {
 		spec += ".." + args[1]
 	}
 
+	log.Debugf("Displaying diff for spec: %s", spec)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing diff for %s", spec)) {
+		return nil
+	}
 	uripath := fmt.Sprintf("diff/%s", spec)
 	if diffOptions.Stat {
 		uripath = fmt.Sprintf("diffstat/%s", spec)
