@@ -69,6 +69,9 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying pipeline step %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing pipeline step %s", args[0])) {
+		return nil
+	}
 	var step Step
 
 	err = profile.Get(

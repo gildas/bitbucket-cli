@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -49,6 +50,9 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying component %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing component %s", args[0])) {
+		return nil
+	}
 	var component Component
 
 	err = profile.Get(

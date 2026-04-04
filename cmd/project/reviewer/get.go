@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
@@ -67,6 +68,9 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying reviewer %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing reviewer %s", args[0])) {
+		return nil
+	}
 	var user user.User
 
 	err = profile.Get(

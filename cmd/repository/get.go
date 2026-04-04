@@ -69,6 +69,10 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	if getOptions.ShowForks {
 		log.Infof("Displaying forks of repository %s", args[0])
+		if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing forks of repository %s", args[0])) {
+			return nil
+		}
+
 		forks, err := profile.GetAll[Repository](
 			cmd.Context(),
 			cmd,
@@ -85,6 +89,10 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying repository %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing repository %s", args[0])) {
+		return nil
+	}
+
 	repository, err := GetRepository(log.ToContext(cmd.Context()), cmd, currentProfile, getOptions.Workspace.String(), args[0])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get repository %s: %s\n", args[0], err)

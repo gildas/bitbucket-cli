@@ -1,6 +1,8 @@
 package commit
 
 import (
+	"fmt"
+
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-flags"
@@ -63,6 +65,9 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Displaying commit %s", commitName)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing commit %s", commitName)) {
+		return nil
+	}
 	var commits struct {
 		Values []Commit `json:"values" mapstructure:"values"`
 	}

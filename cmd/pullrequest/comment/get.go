@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"github.com/gildas/go-flags"
@@ -60,6 +61,10 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Displaying pullrequest comment %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing pullrequest comment %s", args[0])) {
+		return nil
+	}
+
 	var comment Comment
 
 	err = profile.Get(

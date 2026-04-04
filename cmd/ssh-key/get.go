@@ -60,6 +60,9 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Getting SSH key %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing SSH key %s", args[0])) {
+		return nil
+	}
 	var key *SSHKey
 
 	err = profile.Get(

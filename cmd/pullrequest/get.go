@@ -61,6 +61,9 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying pull request %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing pull request %s", args[0])) {
+		return nil
+	}
 	var pullrequest PullRequest
 
 	err = profile.Get(

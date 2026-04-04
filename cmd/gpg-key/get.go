@@ -60,6 +60,9 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Getting GPG key %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing GPG key %s", args[0])) {
+		return nil
+	}
 	var key *GPGKey
 
 	err = profile.Get(
