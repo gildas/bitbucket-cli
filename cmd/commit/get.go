@@ -63,11 +63,17 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Displaying commit %s", commitName)
-	var commit Commit
-
-	err = profile.Get(log.ToContext(cmd.Context()), cmd, "commits/"+commitName, &commit)
+	var commits struct {
+		Values []Commit `json:"values" mapstructure:"values"`
+	}
+	err = profile.Get(log.ToContext(cmd.Context()), cmd, "commits/"+commitName, &commits)
 	if err != nil {
 		return err
 	}
-	return profile.Print(cmd.Context(), cmd, commit)
+	if len(commits.Values) == 0 {
+		log.Infof("No commit found with hash %s", commitName)
+		return
+	}
+	log.Record("commit", commits.Values[0]).Debugf("Commit %s retrieved successfully", commitName)
+	return profile.Print(cmd.Context(), cmd, commits.Values[0])
 }

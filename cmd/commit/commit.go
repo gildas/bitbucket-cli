@@ -46,7 +46,7 @@ var Command = &cobra.Command{
 }
 
 var columns = common.Columns[Commit]{
-	{Name: "hash", DefaultSorter: true, Compare: func(a, b Commit) bool {
+	{Name: "hash", DefaultSorter: false, Compare: func(a, b Commit) bool {
 		return strings.Compare(strings.ToLower(a.Hash), strings.ToLower(b.Hash)) == -1
 	}},
 	{Name: "longhash", DefaultSorter: false, Compare: func(a, b Commit) bool {
@@ -58,7 +58,7 @@ var columns = common.Columns[Commit]{
 	{Name: "message", DefaultSorter: false, Compare: func(a, b Commit) bool {
 		return strings.Compare(strings.ToLower(a.Message), strings.ToLower(b.Message)) == -1
 	}},
-	{Name: "date", DefaultSorter: false, Compare: func(a, b Commit) bool {
+	{Name: "date", DefaultSorter: true, Compare: func(a, b Commit) bool {
 		return a.Date.Before(b.Date)
 	}},
 	{Name: "repository", DefaultSorter: false, Compare: func(a, b Commit) bool {
@@ -90,7 +90,7 @@ func (commit Commit) GetHeaders(cmd *cobra.Command) []string {
 			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
 	}
-	return []string{"Hash", "Author", "Message"}
+	return []string{"Hash", "Date", "Author", "Message"}
 }
 
 // GetRow gets the row for a table
@@ -102,7 +102,7 @@ func (commit Commit) GetRow(headers []string) []string {
 	for _, header := range headers {
 		switch strings.ToLower(header) {
 		case "hash":
-			row = append(row, commit.Hash[:7])
+			row = append(row, commit.GetShortHash())
 		case "longhash", "fullhash":
 			row = append(row, commit.Hash)
 		case "author":
