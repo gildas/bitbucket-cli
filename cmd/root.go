@@ -21,6 +21,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	sshkey "bitbucket.org/gildas_cherruel/bb/cmd/ssh-key"
+	"bitbucket.org/gildas_cherruel/bb/cmd/tag"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -101,6 +102,7 @@ func init() {
 	RootCmd.AddCommand(project.Command)
 	RootCmd.AddCommand(branch.Command)
 	RootCmd.AddCommand(commit.Command)
+	RootCmd.AddCommand(tag.Command)
 	RootCmd.AddCommand(component.Command)
 	RootCmd.AddCommand(issue.Command)
 	RootCmd.AddCommand(pipeline.Command)

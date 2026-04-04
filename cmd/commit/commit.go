@@ -1,16 +1,19 @@
 package commit
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
+	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
 )
 
@@ -128,6 +131,38 @@ func (commit Commit) GetRow(headers []string) []string {
 		}
 	}
 	return row
+}
+
+// GetShortHash gets the short hash of this commit
+func (commit Commit) GetShortHash() string {
+	if len(commit.Hash) > 7 {
+		return commit.Hash[:7]
+	}
+	return commit.Hash
+}
+
+// GetLatestCommit gets the latest commit of the repository
+func GetLatestCommit(ctx context.Context, cmd *cobra.Command) (commit *Commit, err error) {
+	repo, err := git.PlainOpenWithOptions(".", &git.PlainOpenOptions{DetectDotGit: true})
+	if err != nil {
+		return nil, err
+	}
+	head, err := repo.Head()
+	if err != nil {
+		return nil, err
+	}
+	return GetCommitByHash(ctx, cmd, head.Hash().String())
+}
+
+// GetCommitByHash gets a commit by its hash
+func GetCommitByHash(ctx context.Context, cmd *cobra.Command, hash string) (commit *Commit, err error) {
+	profile, err := profile.GetProfileFromCommand(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = profile.Get(ctx, cmd, fmt.Sprintf("commit/%s", hash), &commit)
+	return commit, err
 }
 
 // Validate validates a Commit
