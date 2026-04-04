@@ -158,7 +158,7 @@ func (branch *Branch) UnmarshalJSON(data []byte) error {
 		return errors.JSONUnmarshalError.WrapIfNotMe(err)
 	}
 	if inner.Type != branch.GetType() {
-		return errors.JSONUnmarshalError.With("invalid type: expected %s, got %s", branch.GetType(), inner.Type)
+		return errors.JSONUnmarshalError.Wrap(errors.InvalidType.With(inner.Type, branch.GetType()))
 	}
 	*branch = Branch(inner.surrogate)
 	return nil
