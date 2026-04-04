@@ -104,6 +104,7 @@ func (suite *PipelineSuite) TestCanUnmarshal() {
 
 	suite.Require().NotNil(pl.Target)
 	suite.Assert().Equal("main", pl.Target.GetDestination())
+	suite.Require().NotNil(pl.Target.GetCommit())
 	suite.Assert().Equal("abc123def456", pl.Target.GetCommit().Hash)
 
 	target, ok := pl.Target.(*pipeline.ReferenceTarget)
@@ -139,7 +140,8 @@ func (suite *PipelineSuite) TestCanUnmarshalWithPullRequest() {
 	suite.Assert().Equal("abc123def456", target.DestinationCommit.Hash)
 	suite.Assert().Equal("custom", target.Selector.Type)
 	suite.Assert().Equal("run-tests", target.Selector.Pattern)
-	suite.Assert().Equal("3c80cde6b371", target.Commit.Hash)
+	suite.Require().NotNil(pl.Target.GetCommit())
+	suite.Assert().Equal("3c80cde6b371", target.GetCommit().Hash)
 	suite.Assert().Equal(uint64(62), target.PullRequest.ID)
 	suite.Assert().Equal("feat: add API key authentication", target.PullRequest.Title)
 	suite.Assert().False(target.PullRequest.IsDraft)
@@ -162,7 +164,7 @@ func (suite *PipelineSuite) TestCanMarshal() {
 			Type:          "pipeline_ref_target",
 			ReferenceType: "branch",
 			ReferenceName: "main",
-			Commit:        commit.CommitReference{Hash: "abc123def456"},
+			Commit:        &commit.CommitReference{Hash: "abc123def456"},
 			Selector:      &common.Selector{Type: "default"},
 		},
 		CreatedOn:   time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC),

@@ -8,12 +8,12 @@ import (
 
 // PullRequestReferenceTarget represents a target for a pipeline that is a pull request reference.
 type PullRequestReferenceTarget struct {
-	Source            string                           `json:"source"             mapstructure:"source"`
-	Destination       string                           `json:"destination"        mapstructure:"destination"`
-	DestinationCommit commit.CommitReference           `json:"destination_commit" mapstructure:"destination_commit"`
-	Commit            commit.CommitReference           `json:"commit"             mapstructure:"commit"`
-	Selector          *common.Selector                 `json:"selector,omitempty" mapstructure:"selector"`
-	PullRequest       pullrequest.PullRequestReference `json:"pullrequest"        mapstructure:"pullrequest"`
+	Source            string                           `json:"source"                       mapstructure:"source"`
+	Destination       string                           `json:"destination"                  mapstructure:"destination"`
+	DestinationCommit *commit.CommitReference          `json:"destination_commit,omitempty" mapstructure:"destination_commit"`
+	Commit            *commit.CommitReference          `json:"commit,omitempty"             mapstructure:"commit"`
+	Selector          *common.Selector                 `json:"selector,omitempty"           mapstructure:"selector"`
+	PullRequest       pullrequest.PullRequestReference `json:"pullrequest"                  mapstructure:"pullrequest"`
 }
 
 func init() {
@@ -37,6 +37,6 @@ func (target PullRequestReferenceTarget) GetDestination() string {
 // GetCommit returns the commit of the PullRequestReferenceTarget.
 //
 // implements Target
-func (target PullRequestReferenceTarget) GetCommit() commit.CommitReference {
+func (target PullRequestReferenceTarget) GetCommit() *commit.CommitReference {
 	return target.Commit
 }

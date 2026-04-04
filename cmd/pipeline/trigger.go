@@ -78,7 +78,7 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if len(triggerOptions.Commit) > 0 {
-		target.Commit = commit.CommitReference{Hash: triggerOptions.Commit}
+		target.Commit = &commit.CommitReference{Hash: triggerOptions.Commit}
 	}
 
 	if len(triggerOptions.Pattern) > 0 {
