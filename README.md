@@ -631,6 +631,12 @@ If you want to get the diffstat of a commit, you can use the `--stat` flag:
 bb commit diff --stat 123456
 ```
 
+You can get the common ancestor of two commits with the `bb commit ancestor` command:
+
+```bash
+bb commit ancestor 123456 654321
+```
+
 ### Tags
 
 You can list tags with the `bb tag list` command:
