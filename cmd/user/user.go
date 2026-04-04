@@ -133,6 +133,21 @@ func (user User) GetRow(headers []string) []string {
 	return row
 }
 
+// IsEmpty checks if this User is empty
+func (user User) IsEmpty() bool {
+	return user.Type == "" &&
+		user.ID.IsNil() &&
+		user.AccountID == "" &&
+		user.Username == "" &&
+		user.Name == "" &&
+		user.Nickname == "" &&
+		user.Raw == "" &&
+		user.Kind == "" &&
+		user.Links.IsEmpty() &&
+		user.CreatedOn.IsZero() &&
+		user.AccountStatus == ""
+}
+
 // String gets the string representation of the user
 //
 // implements fmt.Stringer
