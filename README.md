@@ -1125,6 +1125,8 @@ bb completion zsh > "$(brew --prefix)/share/zsh/site-functions/_bb"
 
 We will add more commands in the future. If you have any suggestions, please open an issue.
 
+We are in the process of adding support for Bitbucket Server/Data Center. (Issue [#65](https://github.com/gildas/bitbucket-cli/issues/65), Branch [feature/Issue-#65-Datacenter](https://github.com/gildas/bitbucket-cli/tree/feature/Issue-%2365-Datacenter))
+
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/gildas/bitbucket-cli.svg?variant=adaptive)](https://starchart.cc/gildas/bitbucket-cli)
