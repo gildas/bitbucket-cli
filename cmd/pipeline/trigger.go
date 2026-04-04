@@ -8,6 +8,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -28,7 +29,7 @@ var triggerCmd = &cobra.Command{
 
 var triggerOptions struct {
 	Repository string
-	Branch     string
+	Branch     *flags.EnumFlag
 	Tag        string
 	Commit     string
 	Pattern    string
@@ -38,12 +39,15 @@ var triggerOptions struct {
 func init() {
 	Command.AddCommand(triggerCmd)
 
+	triggerOptions.Branch = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
 	triggerCmd.Flags().StringVar(&triggerOptions.Repository, "repository", "", "Repository to trigger pipeline in. Defaults to the current repository")
-	triggerCmd.Flags().StringVar(&triggerOptions.Branch, "branch", "", "Branch to run the pipeline on")
+	triggerCmd.Flags().Var(triggerOptions.Branch, "branch", "Branch to run the pipeline on")
 	triggerCmd.Flags().StringVar(&triggerOptions.Tag, "tag", "", "Tag to run the pipeline on")
 	triggerCmd.Flags().StringVar(&triggerOptions.Commit, "commit", "", "Specific commit hash to run the pipeline on")
 	triggerCmd.Flags().StringVar(&triggerOptions.Pattern, "pattern", "", "Custom pipeline pattern to run (e.g., 'deploy-to-prod')")
 	triggerCmd.Flags().StringArrayVar(&triggerOptions.Variables, "variable", []string{}, "Pipeline variable in KEY=VALUE format. Can be specified multiple times")
+
+	_ = triggerCmd.RegisterFlagCompletionFunc(triggerOptions.Branch.CompletionFunc("branch"))
 }
 
 func triggerProcess(cmd *cobra.Command, args []string) (err error) {
@@ -62,9 +66,9 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 	if len(triggerOptions.Tag) > 0 {
 		target.ReferenceType = "tag"
 		target.ReferenceName = triggerOptions.Tag
-	} else if len(triggerOptions.Branch) > 0 {
+	} else if len(triggerOptions.Branch.Value) > 0 {
 		target.ReferenceType = "branch"
-		target.ReferenceName = triggerOptions.Branch
+		target.ReferenceName = triggerOptions.Branch.Value
 	} else {
 		// Try to detect the current git branch
 		currentBranch, err := branch.GetCurrentBranch()
