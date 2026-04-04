@@ -876,6 +876,8 @@ bb pipeline trigger --branch master --variable KEY1=VALUE1 --variable KEY2=VALUE
 
 By default, the pipeline is started on the current branch. You can also specify a tag or a commit with the `--tag` or `--commit` flags instead of a branch.
 
+You can also use the `--pattern` flag to specify the pipeline definition to use when triggering the pipeline.
+
 You can stop a running pipeline with the `bb pipeline stop` command:
 
 ```bash
