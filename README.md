@@ -637,6 +637,12 @@ You can get the common ancestor of two commits with the `bb commit ancestor` com
 bb commit ancestor 123456 654321
 ```
 
+You can also get the patch between two commits with the `bb commit patch` command:
+
+```bash
+bb commit patch 123456 654321
+```
+
 ### Tags
 
 You can list tags with the `bb tag list` command:
