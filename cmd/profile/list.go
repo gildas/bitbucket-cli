@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -34,6 +35,10 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(Command.Name(), "list")
 
 	log.Infof("Listing all profiles")
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing profiles") {
+		return nil
+	}
+
 	if len(Profiles) == 0 {
 		log.Infof("No profiles found")
 		return

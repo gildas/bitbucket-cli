@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	prcommon "bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"github.com/gildas/go-core"
@@ -63,6 +64,10 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all comments from repository %s with profile %s", listOptions.Repository, profile.Current)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing comments for pullrequest %s in repository %s with profile %s", listOptions.PullRequestID.Value, listOptions.Repository, profile.Current)) {
+		return nil
+	}
+
 	comments, err := profile.GetAll[Comment](cmd.Context(), cmd, uripath)
 	if err != nil {
 		return err

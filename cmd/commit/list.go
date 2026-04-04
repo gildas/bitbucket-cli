@@ -1,6 +1,7 @@
 package commit
 
 import (
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
@@ -45,6 +46,9 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
 	log.Infof("Listing all commits for repository: %s with profile %s", listOptions.Repository, profile.Current)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing commits") {
+		return nil
+	}
 	commits, err := GetCommits(log.ToContext(cmd.Context()), cmd)
 	if err != nil {
 		return err

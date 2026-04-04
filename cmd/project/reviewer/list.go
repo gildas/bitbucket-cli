@@ -1,6 +1,9 @@
 package reviewer
 
 import (
+	"fmt"
+
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -54,6 +57,10 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all reviewers")
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing reviewers for project %s", project)) {
+		return nil
+	}
+
 	reviewers, err := GetProjectDefaultReviewers(cmd.Context(), cmd, workspace, project)
 	if err != nil {
 		return err

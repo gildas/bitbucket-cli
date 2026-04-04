@@ -1,6 +1,9 @@
 package gpgkey
 
 import (
+	"fmt"
+
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
@@ -39,6 +42,10 @@ func listProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
 	log.Infof("Listing all GPG keys for %s", listOptions.Owner)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing GPG keys for %s", listOptions.Owner)) {
+		return nil
+	}
+
 	keys, err := GetGPGKeys(cmd.Context(), cmd)
 	if err != nil {
 		return err

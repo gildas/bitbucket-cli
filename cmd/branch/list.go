@@ -1,6 +1,7 @@
 package branch
 
 import (
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
@@ -41,6 +42,10 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
 	log.Infof("Listing all branches for repository: %s", listOptions.Repository)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing branches") {
+		return nil
+	}
+
 	branches, err := GetBranches(log.ToContext(cmd.Context()), cmd)
 	if err != nil {
 		return err
