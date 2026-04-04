@@ -49,6 +49,10 @@ func ancestorProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	log.Debugf("Displaying ancestor for commit %s and %s", args[0], args[1])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing ancestor for commit %s and %s", args[0], args[1])) {
+		return nil
+	}
 	var ancestor Commit
 
 	err = profile.Get(
