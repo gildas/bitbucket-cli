@@ -613,6 +613,24 @@ bb commit get 123456
 
 While the completion for commit hashes works, it can be a bit slow if there are a lot of commits in the repository. If you know the first few characters of the commit hash, it will be much faster to complete. You also do not need to enter the full commit hash, the first 7 characters are usually enough to identify a commit. But less can be enough if there are not many commits in the repository.
 
+You can get the difference between two commits with the `bb commit diff` command:
+
+```bash
+bb commit diff 123456 654321
+```
+
+If you provide only one commit, the difference will be between that commit and its parent:
+
+```bash
+bb commit diff 123456
+```
+
+If you want to get the diffstat of a commit, you can use the `--stat` flag:
+
+```bash
+bb commit diff --stat 123456
+```
+
 ### Tags
 
 You can list tags with the `bb tag list` command:
