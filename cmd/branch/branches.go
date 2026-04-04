@@ -2,6 +2,8 @@ package branch
 
 import (
 	"context"
+	"fmt"
+	"net/url"
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
@@ -39,7 +41,15 @@ func (branches Branches) Size() int {
 
 // GetBranches gets the branches of a repository
 func GetBranches(context context.Context, cmd *cobra.Command) (branches []Branch, err error) {
-	return profile.GetAll[Branch](context, cmd, "refs/branches")
+	uripath := "refs/branches"
+	if cmd != nil && cmd.Flag("query") != nil && cmd.Flag("query").Changed {
+		query, err := cmd.Flags().GetString("query")
+		if err != nil {
+			return []Branch{}, err
+		}
+		uripath = fmt.Sprintf("%s?q=%s", uripath, url.QueryEscape(query))
+	}
+	return profile.GetAll[Branch](context, cmd, uripath)
 }
 
 // GetBranchNames gets the branch names of a repository
