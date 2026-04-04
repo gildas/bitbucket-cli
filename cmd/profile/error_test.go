@@ -14,7 +14,7 @@ func (suite *ProfileSuite) TestCanUnmarshalErrorAboutPrivileges() {
 	suite.Assert().Contains(bberr.Fields["required"], "project")
 	suite.Require().Contains(bberr.Fields, "granted")
 	suite.Assert().Contains(bberr.Fields["granted"], "account")
-	suite.T().Logf("Error string: %s", bberr.Error())
+	suite.T().Logf("Expected Error string: %s", bberr.Error())
 }
 
 func (suite *ProfileSuite) TestCanUnmarshalErrorAboutNoAPI() {
@@ -25,7 +25,7 @@ func (suite *ProfileSuite) TestCanUnmarshalErrorAboutNoAPI() {
 	suite.Assert().Equal("error", bberr.Type)
 	suite.Assert().Equal("Resource not found", bberr.Message)
 	suite.Assert().Equal("There is no API hosted at this URL", bberr.Detail)
-	suite.T().Logf("Error string: %s", bberr.Error())
+	suite.T().Logf("Expected Error string: %s", bberr.Error())
 }
 
 func (suite *ProfileSuite) TestCanUnmarshalErrorAboutBadRequest() {
@@ -38,5 +38,5 @@ func (suite *ProfileSuite) TestCanUnmarshalErrorAboutBadRequest() {
 	suite.Require().Len(bberr.Fields, 1)
 	suite.Require().Contains(bberr.Fields, "links.avatar")
 	suite.Assert().Contains(bberr.Fields["links.avatar"], "required key not provided")
-	suite.T().Logf("Error string: %s", bberr.Error())
+	suite.T().Logf("Expected Error string: %s", bberr.Error())
 }
