@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/tag"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -30,8 +31,8 @@ var triggerCmd = &cobra.Command{
 var triggerOptions struct {
 	Repository string
 	Branch     *flags.EnumFlag
-	Tag        string
-	Commit     string
+	Tag        *flags.EnumFlag
+	Commit     *flags.EnumFlag
 	Pattern    string
 	Variables  []string
 }
@@ -40,14 +41,18 @@ func init() {
 	Command.AddCommand(triggerCmd)
 
 	triggerOptions.Branch = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
+	triggerOptions.Commit = flags.NewEnumFlagWithFunc("", commit.GetCommitHashes)
+	triggerOptions.Tag = flags.NewEnumFlagWithFunc("", tag.GetTagNames)
 	triggerCmd.Flags().StringVar(&triggerOptions.Repository, "repository", "", "Repository to trigger pipeline in. Defaults to the current repository")
 	triggerCmd.Flags().Var(triggerOptions.Branch, "branch", "Branch to run the pipeline on")
-	triggerCmd.Flags().StringVar(&triggerOptions.Tag, "tag", "", "Tag to run the pipeline on")
-	triggerCmd.Flags().StringVar(&triggerOptions.Commit, "commit", "", "Specific commit hash to run the pipeline on")
+	triggerCmd.Flags().Var(triggerOptions.Tag, "tag", "Tag to run the pipeline on")
+	triggerCmd.Flags().Var(triggerOptions.Commit, "commit", "Specific commit hash to run the pipeline on")
 	triggerCmd.Flags().StringVar(&triggerOptions.Pattern, "pattern", "", "Custom pipeline pattern to run (e.g., 'deploy-to-prod')")
 	triggerCmd.Flags().StringArrayVar(&triggerOptions.Variables, "variable", []string{}, "Pipeline variable in KEY=VALUE format. Can be specified multiple times")
 
 	_ = triggerCmd.RegisterFlagCompletionFunc(triggerOptions.Branch.CompletionFunc("branch"))
+	_ = triggerCmd.RegisterFlagCompletionFunc(triggerOptions.Commit.CompletionFunc("commit"))
+	_ = triggerCmd.RegisterFlagCompletionFunc(triggerOptions.Tag.CompletionFunc("tag"))
 }
 
 func triggerProcess(cmd *cobra.Command, args []string) (err error) {
@@ -63,9 +68,9 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 		Type: "pipeline_ref_target",
 	}
 
-	if len(triggerOptions.Tag) > 0 {
+	if len(triggerOptions.Tag.Value) > 0 {
 		target.ReferenceType = "tag"
-		target.ReferenceName = triggerOptions.Tag
+		target.ReferenceName = triggerOptions.Tag.Value
 	} else if len(triggerOptions.Branch.Value) > 0 {
 		target.ReferenceType = "branch"
 		target.ReferenceName = triggerOptions.Branch.Value
@@ -81,8 +86,8 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("Using current branch: %s", currentBranch.Name)
 	}
 
-	if len(triggerOptions.Commit) > 0 {
-		target.Commit = &commit.CommitReference{Hash: triggerOptions.Commit}
+	if len(triggerOptions.Commit.Value) > 0 {
+		target.Commit = &commit.CommitReference{Hash: triggerOptions.Commit.Value}
 	}
 
 	if len(triggerOptions.Pattern) > 0 {
