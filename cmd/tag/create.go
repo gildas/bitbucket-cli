@@ -8,6 +8,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -23,17 +24,20 @@ var createOptions struct {
 	Repository string
 	Name       string
 	Message    string
-	Commit     string
+	Commit     *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(createCmd)
 
+	createOptions.Commit = flags.NewEnumFlagWithFunc("latest", commit.GetCommitHashes)
 	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create a tag into. Defaults to the current repository")
 	createCmd.Flags().StringVar(&createOptions.Name, "name", "", "Name of the tag")
 	createCmd.Flags().StringVar(&createOptions.Message, "message", "", "Message of the tag")
-	createCmd.Flags().StringVar(&createOptions.Commit, "commit", "", "Target commit hash for the tag. Defaults to the latest commit")
+	createCmd.Flags().Var(createOptions.Commit, "commit", "Target commit hash for the tag. Defaults to the latest commit")
 	_ = createCmd.MarkFlagRequired("name")
+
+	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Commit.CompletionFunc("commit"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {
@@ -49,8 +53,8 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		Message: createOptions.Message,
 	}
 
-	if len(createOptions.Commit) > 0 && strings.ToLower(createOptions.Commit) != "latest" && strings.ToLower(createOptions.Commit) != "head" {
-		payload.Commit.Hash = commit.Commit{Hash: createOptions.Commit}.GetShortHash()
+	if len(createOptions.Commit.Value) > 0 && strings.ToLower(createOptions.Commit.Value) != "latest" && strings.ToLower(createOptions.Commit.Value) != "head" {
+		payload.Commit.Hash = commit.Commit{Hash: createOptions.Commit.Value}.GetShortHash()
 	} else {
 		commit, err := commit.GetLatestCommit(log.ToContext(cmd.Context()), cmd)
 		if err != nil {

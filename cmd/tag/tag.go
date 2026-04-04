@@ -16,12 +16,12 @@ import (
 
 // Tag represents a Bitbucket tag
 type Tag struct {
-	Name    string        `json:"name"              mapstructure:"name"`
-	Message string        `json:"message,omitempty" mapstructure:"message"`
-	Author  user.Author   `json:"tagger"            mapstructure:"tagger"`
-	Commit  commit.Commit `json:"target"            mapstructure:"target"`
-	Date    time.Time     `json:"date"              mapstructure:"date"`
-	Links   common.Links  `json:"links"             mapstructure:"links"`
+	Name    string                 `json:"name"              mapstructure:"name"`
+	Message string                 `json:"message,omitempty" mapstructure:"message"`
+	Author  user.Author            `json:"tagger"            mapstructure:"tagger"`
+	Commit  commit.CommitReference `json:"target"            mapstructure:"target"`
+	Date    time.Time              `json:"date"              mapstructure:"date"`
+	Links   common.Links           `json:"links"             mapstructure:"links"`
 }
 
 type TagReference struct {
@@ -103,6 +103,43 @@ func (tag Tag) GetRow(headers []string) []string {
 		}
 	}
 	return row
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+//
+// This is required to add the "type" field to the JSON representation of this tag.
+func (tag Tag) MarshalJSON() (data []byte, err error) {
+	type surrogate Tag
+	var author *user.Author
+	var date *core.Time
+
+	if !tag.Author.IsEmpty() {
+		author = &tag.Author
+	}
+	if !tag.Date.IsZero() {
+		d := core.Time(tag.Date)
+		date = &d
+	}
+	var links *common.Links
+
+	if !tag.Links.IsEmpty() {
+		links = &tag.Links
+	}
+
+	data, err = json.Marshal(struct {
+		Type string `json:"type"`
+		surrogate
+		Date   *core.Time    `json:"date,omitempty"`
+		Author *user.Author  `json:"tagger,omitempty"`
+		Links  *common.Links `json:"links,omitempty"`
+	}{
+		Type:      "tag",
+		surrogate: surrogate(tag),
+		Date:      date,
+		Author:    author,
+		Links:     links,
+	})
+	return data, errors.JSONMarshalError.Wrap(err)
 }
 
 // UnmashalJSON unmarshals the tag from JSON
