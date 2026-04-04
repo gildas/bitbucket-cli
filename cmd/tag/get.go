@@ -1,6 +1,8 @@
 package tag
 
 import (
+	"fmt"
+
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-flags"
@@ -52,6 +54,9 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Displaying tag %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing tag %s", args[0])) {
+		return nil
+	}
 	var tag Tag
 
 	err = profile.Get(log.ToContext(cmd.Context()), cmd, "refs/tags/"+args[0], &tag)
