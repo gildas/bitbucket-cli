@@ -9,7 +9,7 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:               "get [flags] <hash>",
+	Use:               "get [flags] <commit-hash>",
 	Aliases:           []string{"show", "describe"},
 	Short:             "get a commit",
 	Args:              cobra.MaximumNArgs(1),
