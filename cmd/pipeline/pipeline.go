@@ -39,14 +39,6 @@ type Repository struct {
 	Links    common.Links `json:"links"     mapstructure:"links"`
 }
 
-// Variable represents a pipeline variable
-type Variable struct {
-	ID      common.UUID `json:"uuid"         mapstructure:"uuid"`
-	Key     string      `json:"key"              mapstructure:"key"`
-	Value   string      `json:"value"            mapstructure:"value"`
-	Secured bool        `json:"secured"          mapstructure:"secured"`
-}
-
 // ConfigurationSource represents a pipeline configuration source
 type ConfigurationSource struct {
 	Source string `json:"source" mapstructure:"source"`
