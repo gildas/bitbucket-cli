@@ -15,7 +15,16 @@ import (
 //
 // otherwise it does nothing
 func WhatIf(context context.Context, cmd *cobra.Command, format string, args ...any) (proceed bool) {
-	if cmd.Flag("dry-run").Changed {
+	dryRun := false
+	for _, name := range []string{"dry-run", "noop", "whatif"} {
+		flag := cmd.Flag(name)
+		if flag != nil && flag.Value != nil && flag.Value.String() == "true" {
+			dryRun = true
+			break
+		}
+	}
+
+	if dryRun {
 		logger.Must(logger.FromContext(context)).Infof("Dry run: "+format, args...)
 		fmt.Fprintf(os.Stderr, "Dry run: "+format+"\n", args...)
 		return false

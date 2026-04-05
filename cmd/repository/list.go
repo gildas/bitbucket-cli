@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -113,6 +114,10 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all repositories, workspace %s, role %s", listOptions.Workspace, listOptions.Role)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing repositories, workspace %s, role %s", listOptions.Workspace, listOptions.Role)) {
+		return nil
+	}
+
 	repositories, err := profile.GetAll[Repository](
 		cmd.Context(),
 		cmd,

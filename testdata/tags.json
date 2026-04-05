@@ -1,0 +1,523 @@
+{
+  "values": [
+    {
+      "name": "v1.0.0",
+      "type": "tag",
+      "message": "Release 1.0.0\n",
+      "date": "2023-11-06T14:53:55+00:00",
+      "tagger": {
+        "type": "author",
+        "raw": "Gildas Cherruel <gildas@breizh.org>",
+        "user": {
+          "display_name": "Gildas Cherruel",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/users/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D"
+            },
+            "avatar": {
+              "href": "https://secure.gravatar.com/avatar/30dbb120d3b75aaa0cec44e826c85cd7?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGC-0.png"
+            },
+            "html": {
+              "href": "https://bitbucket.org/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D/"
+            }
+          },
+          "type": "user",
+          "uuid": "{4115785a-a1b9-4887-9af2-ca401bc7f168}",
+          "account_id": "557058:ec46c4b2-f245-496e-8c11-1404869e3346",
+          "nickname": "gildas_cherruel"
+        }
+      },
+      "target": {
+        "type": "commit",
+        "hash": "171be0dd02b1fded551afeea11c9493c542e2534",
+        "date": "2023-11-06T14:53:25+00:00",
+        "author": {
+          "type": "author",
+          "raw": "gitflow <a68zt2nu4xpbg903w8cd6di7rk2px9@bots.bitbucket.org>",
+          "user": {
+            "type": "app_user",
+            "links": {
+              "avatar": {
+                "href": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/712020:9b210b18-797d-404e-a6a8-31f00569af8b/3076be80-e7af-4b62-a4b8-ed8fe3c3332e/128"
+              }
+            },
+            "created_on": "2023-10-31T08:58:32.098157+00:00",
+            "display_name": "gitflow",
+            "uuid": "{101398a7-7609-4eb5-ae20-92014abfbeb6}",
+            "account_id": "712020:9b210b18-797d-404e-a6a8-31f00569af8b",
+            "account_status": "active",
+            "kind": "repository_access_token"
+          }
+        },
+        "message": "Merged in release/1.0.0 (pull request #3)\n\nMerge release/1.0.0\n\nApproved-by: Gildas Cherruel",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/171be0dd02b1fded551afeea11c9493c542e2534"
+          },
+          "html": {
+            "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/171be0dd02b1fded551afeea11c9493c542e2534"
+          },
+          "diff": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/diff/171be0dd02b1fded551afeea11c9493c542e2534"
+          },
+          "approve": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/171be0dd02b1fded551afeea11c9493c542e2534/approve"
+          },
+          "comments": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/171be0dd02b1fded551afeea11c9493c542e2534/comments"
+          },
+          "statuses": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/171be0dd02b1fded551afeea11c9493c542e2534/statuses"
+          }
+        },
+        "parents": [
+          {
+            "hash": "67a6aa42721a5284481276d2c2878e081234c6a5",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/67a6aa42721a5284481276d2c2878e081234c6a5"
+              },
+              "html": {
+                "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/67a6aa42721a5284481276d2c2878e081234c6a5"
+              }
+            },
+            "type": "commit"
+          },
+          {
+            "hash": "03e443fe2c3c27cff3474eb75e17c9e8602cccbc",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/03e443fe2c3c27cff3474eb75e17c9e8602cccbc"
+              },
+              "html": {
+                "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/03e443fe2c3c27cff3474eb75e17c9e8602cccbc"
+              }
+            },
+            "type": "commit"
+          }
+        ],
+        "repository": {
+          "type": "repository",
+          "full_name": "gildas_cherruel/gitflow-pr-sandbox",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox"
+            },
+            "html": {
+              "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox"
+            },
+            "avatar": {
+              "href": "https://bytebucket.org/ravatar/%7Bf12769c1-7465-4a94-b265-8b1b04e07cb5%7D?ts=go"
+            }
+          },
+          "name": "gitflow-pr-sandbox",
+          "uuid": "{f12769c1-7465-4a94-b265-8b1b04e07cb5}"
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/refs/tags/v1.0.0"
+        },
+        "commits": {
+          "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commits/v1.0.0"
+        },
+        "html": {
+          "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/tag/v1.0.0"
+        }
+      }
+    },
+    {
+      "name": "v2.0.0",
+      "type": "tag",
+      "message": "Release 2.0.0\n",
+      "date": "2023-12-05T16:36:09+00:00",
+      "tagger": {
+        "type": "author",
+        "raw": "Gildas Cherruel <gildas@breizh.org>",
+        "user": {
+          "display_name": "Gildas Cherruel",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/users/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D"
+            },
+            "avatar": {
+              "href": "https://secure.gravatar.com/avatar/30dbb120d3b75aaa0cec44e826c85cd7?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGC-0.png"
+            },
+            "html": {
+              "href": "https://bitbucket.org/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D/"
+            }
+          },
+          "type": "user",
+          "uuid": "{4115785a-a1b9-4887-9af2-ca401bc7f168}",
+          "account_id": "557058:ec46c4b2-f245-496e-8c11-1404869e3346",
+          "nickname": "gildas_cherruel"
+        }
+      },
+      "target": {
+        "type": "commit",
+        "hash": "530144bf57fffae8f0e10fb1590c4200b1f1136c",
+        "date": "2023-12-05T16:35:08+00:00",
+        "author": {
+          "type": "author",
+          "raw": "Gildas Cherruel <gildas@breizh.org>",
+          "user": {
+            "display_name": "Gildas Cherruel",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/users/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D"
+              },
+              "avatar": {
+                "href": "https://secure.gravatar.com/avatar/30dbb120d3b75aaa0cec44e826c85cd7?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGC-0.png"
+              },
+              "html": {
+                "href": "https://bitbucket.org/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D/"
+              }
+            },
+            "type": "user",
+            "uuid": "{4115785a-a1b9-4887-9af2-ca401bc7f168}",
+            "account_id": "557058:ec46c4b2-f245-496e-8c11-1404869e3346",
+            "nickname": "gildas_cherruel"
+          }
+        },
+        "message": "Merged in release/2.0.0 (pull request #7)\n\nMerge release/2.0.0\n\nApproved-by: Gildas Cherruel <gildas@breizh.org>",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/530144bf57fffae8f0e10fb1590c4200b1f1136c"
+          },
+          "html": {
+            "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/530144bf57fffae8f0e10fb1590c4200b1f1136c"
+          },
+          "diff": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/diff/530144bf57fffae8f0e10fb1590c4200b1f1136c"
+          },
+          "approve": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/530144bf57fffae8f0e10fb1590c4200b1f1136c/approve"
+          },
+          "comments": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/530144bf57fffae8f0e10fb1590c4200b1f1136c/comments"
+          },
+          "statuses": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/530144bf57fffae8f0e10fb1590c4200b1f1136c/statuses"
+          }
+        },
+        "parents": [
+          {
+            "hash": "171be0dd02b1fded551afeea11c9493c542e2534",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/171be0dd02b1fded551afeea11c9493c542e2534"
+              },
+              "html": {
+                "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/171be0dd02b1fded551afeea11c9493c542e2534"
+              }
+            },
+            "type": "commit"
+          },
+          {
+            "hash": "141d42111351144b3c036c3a1000f75ba69b3bd4",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/141d42111351144b3c036c3a1000f75ba69b3bd4"
+              },
+              "html": {
+                "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/141d42111351144b3c036c3a1000f75ba69b3bd4"
+              }
+            },
+            "type": "commit"
+          }
+        ],
+        "repository": {
+          "type": "repository",
+          "full_name": "gildas_cherruel/gitflow-pr-sandbox",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox"
+            },
+            "html": {
+              "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox"
+            },
+            "avatar": {
+              "href": "https://bytebucket.org/ravatar/%7Bf12769c1-7465-4a94-b265-8b1b04e07cb5%7D?ts=go"
+            }
+          },
+          "name": "gitflow-pr-sandbox",
+          "uuid": "{f12769c1-7465-4a94-b265-8b1b04e07cb5}"
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/refs/tags/v2.0.0"
+        },
+        "commits": {
+          "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commits/v2.0.0"
+        },
+        "html": {
+          "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/tag/v2.0.0"
+        }
+      }
+    },
+    {
+      "name": "v2.0.1",
+      "type": "tag",
+      "message": "Release 2.0.1\n",
+      "date": "2023-12-13T12:15:42+00:00",
+      "tagger": {
+        "type": "author",
+        "raw": "Gildas Cherruel <gildas@breizh.org>",
+        "user": {
+          "display_name": "Gildas Cherruel",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/users/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D"
+            },
+            "avatar": {
+              "href": "https://secure.gravatar.com/avatar/30dbb120d3b75aaa0cec44e826c85cd7?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGC-0.png"
+            },
+            "html": {
+              "href": "https://bitbucket.org/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D/"
+            }
+          },
+          "type": "user",
+          "uuid": "{4115785a-a1b9-4887-9af2-ca401bc7f168}",
+          "account_id": "557058:ec46c4b2-f245-496e-8c11-1404869e3346",
+          "nickname": "gildas_cherruel"
+        }
+      },
+      "target": {
+        "type": "commit",
+        "hash": "e606acccb17782d6f536a28b6aa23b634675ccae",
+        "date": "2023-12-13T12:12:28+00:00",
+        "author": {
+          "type": "author",
+          "raw": "Gildas Cherruel <gildas@breizh.org>",
+          "user": {
+            "display_name": "Gildas Cherruel",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/users/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D"
+              },
+              "avatar": {
+                "href": "https://secure.gravatar.com/avatar/30dbb120d3b75aaa0cec44e826c85cd7?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGC-0.png"
+              },
+              "html": {
+                "href": "https://bitbucket.org/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D/"
+              }
+            },
+            "type": "user",
+            "uuid": "{4115785a-a1b9-4887-9af2-ca401bc7f168}",
+            "account_id": "557058:ec46c4b2-f245-496e-8c11-1404869e3346",
+            "nickname": "gildas_cherruel"
+          }
+        },
+        "message": "Merged in release/2.0.1 (pull request #10)\n\nMerge release/2.0.1",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/e606acccb17782d6f536a28b6aa23b634675ccae"
+          },
+          "html": {
+            "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/e606acccb17782d6f536a28b6aa23b634675ccae"
+          },
+          "diff": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/diff/e606acccb17782d6f536a28b6aa23b634675ccae"
+          },
+          "approve": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/e606acccb17782d6f536a28b6aa23b634675ccae/approve"
+          },
+          "comments": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/e606acccb17782d6f536a28b6aa23b634675ccae/comments"
+          },
+          "statuses": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/e606acccb17782d6f536a28b6aa23b634675ccae/statuses"
+          }
+        },
+        "parents": [
+          {
+            "hash": "530144bf57fffae8f0e10fb1590c4200b1f1136c",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/530144bf57fffae8f0e10fb1590c4200b1f1136c"
+              },
+              "html": {
+                "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/530144bf57fffae8f0e10fb1590c4200b1f1136c"
+              }
+            },
+            "type": "commit"
+          },
+          {
+            "hash": "2ba89db7bc5d28d7415181018c834265f22f0916",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/2ba89db7bc5d28d7415181018c834265f22f0916"
+              },
+              "html": {
+                "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/2ba89db7bc5d28d7415181018c834265f22f0916"
+              }
+            },
+            "type": "commit"
+          }
+        ],
+        "repository": {
+          "type": "repository",
+          "full_name": "gildas_cherruel/gitflow-pr-sandbox",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox"
+            },
+            "html": {
+              "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox"
+            },
+            "avatar": {
+              "href": "https://bytebucket.org/ravatar/%7Bf12769c1-7465-4a94-b265-8b1b04e07cb5%7D?ts=go"
+            }
+          },
+          "name": "gitflow-pr-sandbox",
+          "uuid": "{f12769c1-7465-4a94-b265-8b1b04e07cb5}"
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/refs/tags/v2.0.1"
+        },
+        "commits": {
+          "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commits/v2.0.1"
+        },
+        "html": {
+          "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/tag/v2.0.1"
+        }
+      }
+    },
+    {
+      "name": "v2.0.2",
+      "type": "tag",
+      "message": "Release 2.0.2\n",
+      "date": "2023-12-13T16:30:46+00:00",
+      "tagger": {
+        "type": "author",
+        "raw": "Gildas Cherruel <gildas@breizh.org>",
+        "user": {
+          "display_name": "Gildas Cherruel",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/users/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D"
+            },
+            "avatar": {
+              "href": "https://secure.gravatar.com/avatar/30dbb120d3b75aaa0cec44e826c85cd7?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGC-0.png"
+            },
+            "html": {
+              "href": "https://bitbucket.org/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D/"
+            }
+          },
+          "type": "user",
+          "uuid": "{4115785a-a1b9-4887-9af2-ca401bc7f168}",
+          "account_id": "557058:ec46c4b2-f245-496e-8c11-1404869e3346",
+          "nickname": "gildas_cherruel"
+        }
+      },
+      "target": {
+        "type": "commit",
+        "hash": "903817c5667c788fd035f9ee3cb01769a43fd1fe",
+        "date": "2023-12-13T16:30:31+00:00",
+        "author": {
+          "type": "author",
+          "raw": "Gildas Cherruel <gildas@breizh.org>",
+          "user": {
+            "display_name": "Gildas Cherruel",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/users/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D"
+              },
+              "avatar": {
+                "href": "https://secure.gravatar.com/avatar/30dbb120d3b75aaa0cec44e826c85cd7?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGC-0.png"
+              },
+              "html": {
+                "href": "https://bitbucket.org/%7B4115785a-a1b9-4887-9af2-ca401bc7f168%7D/"
+              }
+            },
+            "type": "user",
+            "uuid": "{4115785a-a1b9-4887-9af2-ca401bc7f168}",
+            "account_id": "557058:ec46c4b2-f245-496e-8c11-1404869e3346",
+            "nickname": "gildas_cherruel"
+          }
+        },
+        "message": "Merged in release/2.0.2 (pull request #12)\n\nMerge release/2.0.2",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/903817c5667c788fd035f9ee3cb01769a43fd1fe"
+          },
+          "html": {
+            "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/903817c5667c788fd035f9ee3cb01769a43fd1fe"
+          },
+          "diff": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/diff/903817c5667c788fd035f9ee3cb01769a43fd1fe"
+          },
+          "approve": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/903817c5667c788fd035f9ee3cb01769a43fd1fe/approve"
+          },
+          "comments": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/903817c5667c788fd035f9ee3cb01769a43fd1fe/comments"
+          },
+          "statuses": {
+            "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/903817c5667c788fd035f9ee3cb01769a43fd1fe/statuses"
+          }
+        },
+        "parents": [
+          {
+            "hash": "e606acccb17782d6f536a28b6aa23b634675ccae",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/e606acccb17782d6f536a28b6aa23b634675ccae"
+              },
+              "html": {
+                "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/e606acccb17782d6f536a28b6aa23b634675ccae"
+              }
+            },
+            "type": "commit"
+          },
+          {
+            "hash": "c806043a9a3617fb98d62cdc1c74ce8251e8d83b",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commit/c806043a9a3617fb98d62cdc1c74ce8251e8d83b"
+              },
+              "html": {
+                "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/c806043a9a3617fb98d62cdc1c74ce8251e8d83b"
+              }
+            },
+            "type": "commit"
+          }
+        ],
+        "repository": {
+          "type": "repository",
+          "full_name": "gildas_cherruel/gitflow-pr-sandbox",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox"
+            },
+            "html": {
+              "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox"
+            },
+            "avatar": {
+              "href": "https://bytebucket.org/ravatar/%7Bf12769c1-7465-4a94-b265-8b1b04e07cb5%7D?ts=go"
+            }
+          },
+          "name": "gitflow-pr-sandbox",
+          "uuid": "{f12769c1-7465-4a94-b265-8b1b04e07cb5}"
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/refs/tags/v2.0.2"
+        },
+        "commits": {
+          "href": "https://api.bitbucket.org/2.0/repositories/gildas_cherruel/gitflow-pr-sandbox/commits/v2.0.2"
+        },
+        "html": {
+          "href": "https://bitbucket.org/gildas_cherruel/gitflow-pr-sandbox/commits/tag/v2.0.2"
+        }
+      }
+    }
+  ],
+  "pagelen": 10,
+  "size": 4,
+  "page": 1
+}

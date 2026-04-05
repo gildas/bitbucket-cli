@@ -12,7 +12,7 @@ import (
 type Target interface {
 	core.TypeCarrier
 	GetDestination() string
-	GetCommit() commit.CommitReference
+	GetCommit() *commit.CommitReference
 }
 
 var targetRegistry = core.TypeRegistry{}

@@ -3,6 +3,7 @@ package permission
 import (
 	"fmt"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	wkcommon "bitbucket.org/gildas_cherruel/bb/cmd/workspace/common"
 	"github.com/gildas/go-errors"
@@ -54,6 +55,10 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Getting permission for workspace %s with profile %s", args[0], profile)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing permission for workspace %s", args[0])) {
+		return nil
+	}
+
 	var permission Permission
 	err = profile.Get(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("/user/workspaces/%s/permission", args[0]), &permission)
 	if err != nil {

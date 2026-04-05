@@ -1,16 +1,19 @@
 package commit
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
+	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
 )
 
@@ -24,12 +27,6 @@ type Commit struct {
 	Date       time.Time             `json:"date"               mapstructure:"date"`
 	Repository repository.Repository `json:"repository"         mapstructure:"repository"`
 	Links      common.Links          `json:"links"              mapstructure:"links"`
-}
-
-type CommitReference struct {
-	Type  string       `json:"type"  mapstructure:"type"`
-	Hash  string       `json:"hash"  mapstructure:"hash"`
-	Links common.Links `json:"links" mapstructure:"links"`
 }
 
 type RenderedMessage struct {
@@ -49,7 +46,7 @@ var Command = &cobra.Command{
 }
 
 var columns = common.Columns[Commit]{
-	{Name: "hash", DefaultSorter: true, Compare: func(a, b Commit) bool {
+	{Name: "hash", DefaultSorter: false, Compare: func(a, b Commit) bool {
 		return strings.Compare(strings.ToLower(a.Hash), strings.ToLower(b.Hash)) == -1
 	}},
 	{Name: "longhash", DefaultSorter: false, Compare: func(a, b Commit) bool {
@@ -61,7 +58,7 @@ var columns = common.Columns[Commit]{
 	{Name: "message", DefaultSorter: false, Compare: func(a, b Commit) bool {
 		return strings.Compare(strings.ToLower(a.Message), strings.ToLower(b.Message)) == -1
 	}},
-	{Name: "date", DefaultSorter: false, Compare: func(a, b Commit) bool {
+	{Name: "date", DefaultSorter: true, Compare: func(a, b Commit) bool {
 		return a.Date.Before(b.Date)
 	}},
 	{Name: "repository", DefaultSorter: false, Compare: func(a, b Commit) bool {
@@ -79,17 +76,8 @@ func (commit Commit) GetType() string {
 // GetReference gets the reference string for this commit
 func (commit Commit) GetReference() *CommitReference {
 	return &CommitReference{
-		Type:  commit.GetType(),
 		Hash:  commit.Hash,
 		Links: commit.Links,
-	}
-}
-
-// AsCommit converts this CommitRef to a Commit
-func (reference CommitReference) AsCommit() *Commit {
-	return &Commit{
-		Hash:  reference.Hash,
-		Links: reference.Links,
 	}
 }
 
@@ -102,7 +90,7 @@ func (commit Commit) GetHeaders(cmd *cobra.Command) []string {
 			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
 	}
-	return []string{"Hash", "Author", "Message"}
+	return []string{"Hash", "Date", "Author", "Message"}
 }
 
 // GetRow gets the row for a table
@@ -114,7 +102,7 @@ func (commit Commit) GetRow(headers []string) []string {
 	for _, header := range headers {
 		switch strings.ToLower(header) {
 		case "hash":
-			row = append(row, commit.Hash[:7])
+			row = append(row, commit.GetShortHash())
 		case "longhash", "fullhash":
 			row = append(row, commit.Hash)
 		case "author":
@@ -128,6 +116,38 @@ func (commit Commit) GetRow(headers []string) []string {
 		}
 	}
 	return row
+}
+
+// GetShortHash gets the short hash of this commit
+func (commit Commit) GetShortHash() string {
+	if len(commit.Hash) > 7 {
+		return commit.Hash[:7]
+	}
+	return commit.Hash
+}
+
+// GetLatestCommit gets the latest commit of the repository
+func GetLatestCommit(ctx context.Context, cmd *cobra.Command) (commit *Commit, err error) {
+	repo, err := git.PlainOpenWithOptions(".", &git.PlainOpenOptions{DetectDotGit: true})
+	if err != nil {
+		return nil, err
+	}
+	head, err := repo.Head()
+	if err != nil {
+		return nil, err
+	}
+	return GetCommitByHash(ctx, cmd, head.Hash().String())
+}
+
+// GetCommitByHash gets a commit by its hash
+func GetCommitByHash(ctx context.Context, cmd *cobra.Command, hash string) (commit *Commit, err error) {
+	profile, err := profile.GetProfileFromCommand(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = profile.Get(ctx, cmd, fmt.Sprintf("commit/%s", hash), &commit)
+	return commit, err
 }
 
 // Validate validates a Commit
@@ -156,27 +176,6 @@ func (commit Commit) MarshalJSON() (data []byte, err error) {
 		Type:      commit.GetType(),
 		surrogate: surrogate(commit),
 		Date:      commit.Date.Format("2006-01-02T15:04:05.999999999-07:00"),
-	})
-	return data, errors.JSONMarshalError.Wrap(err)
-}
-
-// MarshalJSON implements the json.Marshaler interface.
-func (ref CommitReference) MarshalJSON() (data []byte, err error) {
-	type surrogate CommitReference
-	var links *common.Links
-
-	if !ref.Links.IsEmpty() {
-		links = &ref.Links
-	}
-
-	data, err = json.Marshal(struct {
-		Type string `json:"type"`
-		surrogate
-		Links *common.Links `json:"links,omitempty"`
-	}{
-		Type:      "commit",
-		surrogate: surrogate(ref),
-		Links:     links,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
 }

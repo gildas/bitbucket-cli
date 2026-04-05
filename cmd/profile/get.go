@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -52,6 +53,10 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying profile %s (Valid names: %v)", args[0], Profiles.Names())
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing profile %s", args[0])) {
+		return nil
+	}
+
 	profile, found := Profiles.Find(args[0])
 	if !found {
 		return errors.NotFound.With("profile", args[0])

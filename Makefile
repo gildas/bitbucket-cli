@@ -42,8 +42,7 @@ ASSETS    :=
 # Testing
 TEST_TIMEOUT  ?= 30
 COVERAGE_MODE ?= count
-COVERAGE_OUT  := $(COV_DIR)/coverage.out
-COVERAGE_XML  := $(COV_DIR)/coverage.xml
+COVERAGE_OUT  := $(TMP_DIR)/coverage.out
 COVERAGE_HTML := $(COV_DIR)/index.html
 
 # Tools
@@ -53,8 +52,6 @@ LOGGER   =  bunyan -L -o short
 GOBIN    = $(BIN_DIR)
 GOLINT  ?= golangci-lint
 YOLO     = $(BIN_DIR)/yolo
-GOCOV    = $(BIN_DIR)/gocov
-GOCOVXML = $(BIN_DIR)/gocov-xml
 NFPM     = nfpm
 GOMPLATE = gomplate
 PANDOC  ?= pandoc
@@ -192,20 +189,21 @@ test-failfast: ARGS=-failfast                 ## Run the Unit Tests and stop aft
 test-race:     ARGS=-race                     ## Run the Unit Tests with race detector
 $(TEST_TARGETS): NAME=$(MAKECMDGOALS:test-%=%)
 $(TEST_TARGETS): test
-test tests: | coverage-tools; $(info $(M) Running $(NAME:%=% )tests...) @ ## Run the Unit Tests (make test what='TestSuite/TestMe')
-	$Q mkdir -p $(COV_DIR)
-	$Q $(GO) test \
-			-timeout $(TEST_TIMEOUT)s \
-			-covermode=$(COVERAGE_MODE) \
-			-coverprofile=$(COVERAGE_OUT) \
-			-v $(ARGS) $(TEST_ARG) .
-	$Q $(GO) tool cover -html=$(COVERAGE_OUT) -o $(COVERAGE_HTML)
-	$Q $(GOCOV) convert $(COVERAGE_OUT) | $(GOCOVXML) > $(COVERAGE_XML)
+test: $(COVERAGE_OUT); $(info $(M) Running $(NAME:%=% )tests...) @ ## Run the Unit Tests (make test what='TestSuite/TestMe')
 
 test-ci:; @ ## Run the unit tests continuously
 	$Q $(MAKE) --no-print-directory watch run="make test"
-test-view:; @ ## Open the Coverage results in a web browser
-	$Q xdg-open $(COV_DIR)/index.html
+test-view: $(COVERAGE_HTML); @ ## Open the Coverage results in a web browser
+	$Q xdg-open $< 2> /dev/null || open $< 2> /dev/null || start $< 2> /dev/null
+
+$(COVERAGE_OUT): $(COV_DIR) $(GOFILES) $(GOTESTS)
+	$Q $(GO) test \
+			-timeout $(TEST_TIMEOUT)s \
+			-covermode=$(COVERAGE_MODE) \
+			-coverprofile=$@ \
+			-v $(TEST_ARG) ./...
+$(COVERAGE_HTML): $(COVERAGE_OUT)
+	$Q $(GO) tool cover -html=$< -o $@
 
 # Folder recipes
 $(BIN_DIR): ; $(MKDIR)
@@ -391,7 +389,6 @@ $(BIN_DIR)/nfpm:      PACKAGE=github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
 $(BIN_DIR)/gomplate:  PACKAGE=github.com/hairyhenderson/gomplate/v4/cmd/gomplate@latest
 
 watch-tools:    | $(YOLO)
-coverage-tools: | $(GOCOV) $(GOCOVXML)
 
 $(BIN_DIR)/%: | $(BIN_DIR) ; $(info $(M) installing $(PACKAGE)...)
 	$Q tmp=$$(mktemp -d) ; \

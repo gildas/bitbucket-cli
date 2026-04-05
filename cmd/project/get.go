@@ -64,6 +64,9 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying project %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing project %s", args[0])) {
+		return nil
+	}
 	var project Project
 
 	err = profile.Get(

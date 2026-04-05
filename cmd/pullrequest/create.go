@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project/reviewer"
@@ -50,8 +51,8 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.Source = flags.NewEnumFlagWithFunc("", GetBranchNames)
-	createOptions.Destination = flags.NewEnumFlagWithFunc("", GetBranchNames)
+	createOptions.Source = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
+	createOptions.Destination = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
 	createOptions.Reviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(GetReviewerNicknames)
 
 	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create pullrequest in. Defaults to the current repository")

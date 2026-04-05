@@ -149,7 +149,11 @@ func (profile Profile) GetRow(headers []string) []string {
 	for _, header := range headers {
 		switch strings.ToLower(header) {
 		case "apiroot":
-			row = append(row, profile.APIRoot.String())
+			if profile.APIRoot != nil {
+				row = append(row, profile.APIRoot.String())
+			} else {
+				row = append(row, " ")
+			}
 		case "name":
 			row = append(row, profile.Name)
 		case "description":
@@ -269,7 +273,9 @@ func (profile *Profile) Validate() error {
 	if len(profile.AccessToken) == 0 && len(profile.ClientID) == 0 && len(profile.User) == 0 {
 		merr.Append(errors.ArgumentMissing.With("accessToken, user, or clientID"))
 	}
-	if len(profile.VaultKey) == 0 {
+	if len(profile.ClientSecret) > 0 || len(profile.Password) > 0 {
+		profile.VaultKey = ""
+	} else if len(profile.VaultKey) == 0 {
 		profile.VaultKey = "bitbucket-cli"
 	}
 	if len(profile.CloneProtocol) == 0 {
@@ -476,9 +482,11 @@ func (profile Profile) MarshalJSON() ([]byte, error) {
 	}
 	data, err := json.Marshal(struct {
 		surrogate
-		ErrorProcessing string `json:"errorProcessing,omitempty"`
+		APIRoot         *core.URL `json:"apiRoot,omitempty"`
+		ErrorProcessing string    `json:"errorProcessing,omitempty"`
 	}{
 		surrogate:       surrogate(profile),
+		APIRoot:         (*core.URL)(profile.APIRoot),
 		ErrorProcessing: errorProcessing,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
@@ -489,11 +497,15 @@ func (profile Profile) MarshalJSON() ([]byte, error) {
 // implements json.Unmarshaler
 func (profile *Profile) UnmarshalJSON(data []byte) error {
 	type surrogate Profile
-	var inner surrogate
+	var inner struct {
+		surrogate
+		APIRoot *core.URL `json:"apiRoot,omitempty"`
+	}
 	if err := json.Unmarshal(data, &inner); err != nil {
 		return errors.JSONUnmarshalError.Wrap(err)
 	}
-	*profile = Profile(inner)
+	*profile = Profile(inner.surrogate)
+	profile.APIRoot = (*url.URL)(inner.APIRoot)
 	return errors.JSONUnmarshalError.Wrap(profile.Validate())
 }
 

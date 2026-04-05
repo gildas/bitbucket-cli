@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -23,25 +22,25 @@ import (
 )
 
 type PullRequest struct {
-	Type              string              `json:"type"                   mapstructure:"type"`
-	ID                uint64              `json:"id"                     mapstructure:"id"`
-	Title             string              `json:"title"                  mapstructure:"title"`
-	Description       string              `json:"description"            mapstructure:"description"`
-	Summary           common.RenderedText `json:"summary"                mapstructure:"summary"`
-	State             string              `json:"state"                  mapstructure:"state"`
-	MergeCommit       *commit.Commit      `json:"merge_commit,omitempty" mapstructure:"merge_commit"`
-	CloseSourceBranch bool                `json:"close_source_branch"    mapstructure:"close_source_branch"`
-	ClosedBy          user.User           `json:"closed_by"              mapstructure:"closed_by"`
-	Author            user.User           `json:"author"                 mapstructure:"author"`
-	Reviewers         []user.User         `json:"reviewers,omitempty"    mapstructure:"reviewers"`
-	Reason            string              `json:"reason"                 mapstructure:"reason"`
-	Destination       Endpoint            `json:"destination"            mapstructure:"destination"`
-	Source            Endpoint            `json:"source"                 mapstructure:"source"`
-	Links             common.Links        `json:"links"                  mapstructure:"links"`
-	CommentCount      uint64              `json:"comment_count"          mapstructure:"comment_count"`
-	TaskCount         uint64              `json:"task_count"             mapstructure:"task_count"`
-	CreatedOn         time.Time           `json:"created_on"             mapstructure:"created_on"`
-	UpdatedOn         time.Time           `json:"updated_on"             mapstructure:"updated_on"`
+	Type              string                  `json:"type"                   mapstructure:"type"`
+	ID                uint64                  `json:"id"                     mapstructure:"id"`
+	Title             string                  `json:"title"                  mapstructure:"title"`
+	Description       string                  `json:"description"            mapstructure:"description"`
+	Summary           common.RenderedText     `json:"summary"                mapstructure:"summary"`
+	State             string                  `json:"state"                  mapstructure:"state"`
+	MergeCommit       *commit.CommitReference `json:"merge_commit,omitempty" mapstructure:"merge_commit"`
+	CloseSourceBranch bool                    `json:"close_source_branch"    mapstructure:"close_source_branch"`
+	ClosedBy          user.User               `json:"closed_by"              mapstructure:"closed_by"`
+	Author            user.User               `json:"author"                 mapstructure:"author"`
+	Reviewers         []user.User             `json:"reviewers,omitempty"    mapstructure:"reviewers"`
+	Reason            string                  `json:"reason"                 mapstructure:"reason"`
+	Destination       Endpoint                `json:"destination"            mapstructure:"destination"`
+	Source            Endpoint                `json:"source"                 mapstructure:"source"`
+	Links             common.Links            `json:"links"                  mapstructure:"links"`
+	CommentCount      uint64                  `json:"comment_count"          mapstructure:"comment_count"`
+	TaskCount         uint64                  `json:"task_count"             mapstructure:"task_count"`
+	CreatedOn         time.Time               `json:"created_on"             mapstructure:"created_on"`
+	UpdatedOn         time.Time               `json:"updated_on"             mapstructure:"updated_on"`
 }
 
 // Command represents this folder's command
@@ -236,16 +235,4 @@ func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []st
 	nicknames = core.Map(members, func(member workspace.Member) string { return member.User.Nickname })
 	core.Sort(nicknames, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
 	return common.FilterValidArgs(nicknames, args, toComplete), nil
-}
-
-// GetBranchNames gets the branch names of a repository
-func GetBranchNames(context context.Context, cmd *cobra.Command, args []string, toComplete string) ([]string, error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "getbranches")
-	log.Infof("Getting branches for profile %v", profile.Current)
-	names, err := branch.GetBranchNames(context, cmd)
-	if err != nil {
-		cobra.CompErrorln(err.Error())
-		return []string{}, err
-	}
-	return common.FilterValidArgs(names, args, toComplete), nil
 }

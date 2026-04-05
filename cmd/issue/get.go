@@ -67,6 +67,9 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Displaying issue %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing issue %s", args[0])) {
+		return nil
+	}
 	var issue Issue
 
 	err = profile.Get(

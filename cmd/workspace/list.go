@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
@@ -39,6 +40,10 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all workspaces")
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing workspaces") {
+		return nil
+	}
+
 	workspaceAccesses, err := profile.GetAll[WorkspaceAccess](cmd.Context(), cmd, uripath)
 	if err != nil {
 		return errors.Join(errors.New("failed to retrieve workspaces"), err)

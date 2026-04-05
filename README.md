@@ -577,6 +577,108 @@ bb repo get myrepository \
   --forks
 ```
 
+### Branches
+
+You can list branches with the `bb branch list` command:
+
+```bash
+bb branch list
+```
+
+By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
+
+```bash
+bb branch list --repository myrepository --workspace myworkspace
+```
+
+### Commits
+
+You can list commits with the `bb commit list` command:
+
+```bash
+bb commit list
+```
+
+By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
+
+```bash
+bb commit list --repository myrepository --workspace myworkspace
+```
+
+You can get the details of a commit with the `bb commit get` or `bb commit show` command:
+
+```bash
+bb commit get 123456
+```
+
+While the completion for commit hashes works, it can be a bit slow if there are a lot of commits in the repository. If you know the first few characters of the commit hash, it will be much faster to complete. You also do not need to enter the full commit hash, the first 7 characters are usually enough to identify a commit. But less can be enough if there are not many commits in the repository.
+
+You can get the difference between two commits with the `bb commit diff` command:
+
+```bash
+bb commit diff 123456 654321
+```
+
+If you provide only one commit, the difference will be between that commit and its parent:
+
+```bash
+bb commit diff 123456
+```
+
+If you want to get the diffstat of a commit, you can use the `--stat` flag:
+
+```bash
+bb commit diff --stat 123456
+```
+
+You can get the common ancestor of two commits with the `bb commit ancestor` command:
+
+```bash
+bb commit ancestor 123456 654321
+```
+
+You can also get the patch between two commits with the `bb commit patch` command:
+
+```bash
+bb commit patch 123456 654321
+```
+
+### Tags
+
+You can list tags with the `bb tag list` command:
+
+```bash
+bb tag list
+```
+
+By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
+
+```bash
+bb tag list --repository myrepository --workspace myworkspace
+```
+
+You can get the details of a tag with the `bb tag get` or `bb tag show` command:
+
+```bash
+bb tag get v1.0.0
+```
+
+You can create a tag with the `bb tag create` command:
+
+```bash
+bb tag create v1.0.0 \
+  --message "My tag message" \
+  --target 123456
+```
+
+By default, the target of the tag is the latest commit on the default branch.
+
+You can delete tags with the `bb tag delete` command:
+
+```bash
+bb tag delete v1.0.0
+```
+
 ### Pull Requests
 
 You can list pull requests with the `bb pullrequest list` command:
@@ -876,6 +978,8 @@ bb pipeline trigger --branch master --variable KEY1=VALUE1 --variable KEY2=VALUE
 
 By default, the pipeline is started on the current branch. You can also specify a tag or a commit with the `--tag` or `--commit` flags instead of a branch.
 
+You can also use the `--pattern` flag to specify the pipeline definition to use when triggering the pipeline.
+
 You can stop a running pipeline with the `bb pipeline stop` command:
 
 ```bash
@@ -1051,3 +1155,9 @@ bb completion zsh > "$(brew --prefix)/share/zsh/site-functions/_bb"
 ## TODO
 
 We will add more commands in the future. If you have any suggestions, please open an issue.
+
+We are in the process of adding support for Bitbucket Server/Data Center. (Issue [#65](https://github.com/gildas/bitbucket-cli/issues/65), Branch [feature/Issue-#65-Datacenter](https://github.com/gildas/bitbucket-cli/tree/feature/Issue-%2365-Datacenter))
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/gildas/bitbucket-cli.svg?variant=adaptive)](https://starchart.cc/gildas/bitbucket-cli)

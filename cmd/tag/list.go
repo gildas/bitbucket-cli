@@ -1,4 +1,4 @@
-package gpgkey
+package tag
 
 import (
 	"fmt"
@@ -13,13 +13,13 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "list all public GPG keys for a given user",
+	Short: "List tags",
 	Args:  cobra.NoArgs,
 	RunE:  listProcess,
 }
 
 var listOptions struct {
-	Owner      string
+	Repository string
 	Columns    *flags.EnumSliceFlag
 	SortBy     *flags.EnumFlag
 	PageLength int
@@ -30,7 +30,7 @@ func init() {
 
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
-	listCmd.Flags().StringVar(&listOptions.Owner, "user", "", "Owner of the keys")
+	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list tags from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
@@ -38,21 +38,21 @@ func init() {
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
 
-func listProcess(cmd *cobra.Command, args []string) error {
+func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
-	log.Infof("Listing all GPG keys for %s", listOptions.Owner)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing GPG keys for %s", listOptions.Owner)) {
+	log.Infof("Listing all tags for repository: %s", listOptions.Repository)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing tags")) {
 		return nil
 	}
-
-	keys, err := GetGPGKeys(cmd.Context(), cmd)
+	tags, err := GetTags(log.ToContext(cmd.Context()), cmd)
 	if err != nil {
 		return err
 	}
-	if len(keys) == 0 {
-		log.Infof("No key found")
+	if len(tags) == 0 {
+		log.Infof("No tag found")
+		return
 	}
-	core.Sort(keys, columns.SortBy(listOptions.SortBy.Value))
-	return profile.Current.Print(cmd.Context(), cmd, GPGKeys(keys))
+	core.Sort(tags, columns.SortBy(listOptions.SortBy.Value))
+	return profile.Current.Print(cmd.Context(), cmd, Tags(tags))
 }

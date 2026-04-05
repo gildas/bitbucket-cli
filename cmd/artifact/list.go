@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
@@ -49,6 +50,10 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all projects from repository %s", listOptions.Repository)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing artifacts") {
+		return nil
+	}
+
 	artifacts, err := profile.GetAll[Artifact](cmd.Context(), cmd, uripath)
 	if err != nil {
 		return err

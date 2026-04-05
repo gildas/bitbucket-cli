@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strings"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
@@ -57,6 +58,10 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing %s pull requests for repository: %s", listOptions.State, listOptions.Repository)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing %s pull requests for repository: %s", listOptions.State, listOptions.Repository)) {
+		return nil
+	}
+
 	pullrequests, err := profile.GetAll[PullRequest](log.ToContext(cmd.Context()), cmd, uripath)
 	if err != nil {
 		return err

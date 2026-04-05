@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	wkcommon "bitbucket.org/gildas_cherruel/bb/cmd/workspace/common"
 	"github.com/gildas/go-core"
@@ -71,6 +72,10 @@ func listProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Listing all permissions from workspace %s with profile %s", args[0], profile.Current)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing permissions for workspace %s with profile %s", args[0], profile.Current)) {
+		return nil
+	}
+
 	permissions, err := profile.GetAll[Permission](cmd.Context(), cmd, uripath)
 	if err != nil {
 		return err

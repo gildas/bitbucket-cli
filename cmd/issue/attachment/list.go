@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
@@ -57,12 +58,16 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all attachments from repository %s", listOptions.Repository)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing attachments for issue %s in repository %s", listOptions.IssueID.Value, listOptions.Repository)) {
+		return nil
+	}
+
 	attachments, err := profile.GetAll[Attachment](cmd.Context(), cmd, uripath)
 	if err != nil {
 		return err
 	}
 	if len(attachments) == 0 {
-		log.Infof("No issue found")
+		log.Infof("No attachment found")
 		return nil
 	}
 	core.Sort(attachments, columns.SortBy(listOptions.SortBy.Value))

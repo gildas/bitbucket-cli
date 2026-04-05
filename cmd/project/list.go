@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -65,6 +66,10 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all projects from workspace %s with profile %s", workspace, currentProfile)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing projects from workspace %s", workspace)) {
+		return nil
+	}
+
 	projects, err := profile.GetAll[Project](cmd.Context(), cmd, uripath)
 	if err != nil {
 		return err

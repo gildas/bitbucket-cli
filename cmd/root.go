@@ -21,13 +21,13 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	sshkey "bitbucket.org/gildas_cherruel/bb/cmd/ssh-key"
+	"bitbucket.org/gildas_cherruel/bb/cmd/tag"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -76,7 +76,9 @@ func init() {
 	RootCmd.PersistentFlags().StringVar(&CmdOptions.ConfigFile, "config", core.GetEnvAsString("BB_CONFIG", ""), "config file (default is .env, "+filepath.Join(configDir, "bitbucket", "config-cli.yml"))
 	RootCmd.PersistentFlags().StringVarP(&CmdOptions.ProfileName, "profile", "p", core.GetEnvAsString("BB_PROFILE", ""), "Profile to use. Overrides the default profile")
 	RootCmd.PersistentFlags().StringVarP(&CmdOptions.LogDestination, "log", "l", "", "Log destination (stdout, stderr, file, none), overrides LOG_DESTINATION environment variable")
-	RootCmd.PersistentFlags().BoolVar(&CmdOptions.DryRun, "dry-run", false, "Dry run, the command will not modify anything but tell what it would do. \nAlso known as --noop, --what-if, or --whatif")
+	RootCmd.PersistentFlags().BoolVar(&CmdOptions.DryRun, "dry-run", false, "Dry run, the command will not modify anything but tell what it would do. \nAlso known as --noop or --whatif")
+	RootCmd.PersistentFlags().BoolVar(&CmdOptions.DryRun, "noop", false, "Dry run, the command will not modify anything but tell what it would do. \nAlso known as --dry-run or --whatif")
+	RootCmd.PersistentFlags().BoolVar(&CmdOptions.DryRun, "whatif", false, "Dry run, the command will not modify anything but tell what it would do. \nAlso known as --dry-run or --noop")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.Debug, "debug", false, "logs are written at DEBUG level, overrides DEBUG environment variable")
 	RootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
 	RootCmd.PersistentFlags().VarP(&CmdOptions.OutputFormat, "output", "o", "Output format (json, yaml, table). Overrides the default output format of the profile")
@@ -88,19 +90,13 @@ func init() {
 	_ = RootCmd.MarkFlagFilename("log")
 	_ = RootCmd.RegisterFlagCompletionFunc("profile", profile.ValidProfileNames)
 	_ = RootCmd.RegisterFlagCompletionFunc(CmdOptions.OutputFormat.CompletionFunc("output"))
-	RootCmd.PersistentFlags().SetNormalizeFunc(func(f *pflag.FlagSet, name string) pflag.NormalizedName {
-		switch name {
-		case "noop", "dryrun", "whatif", "what-if":
-			name = "dry-run"
-		}
-		return pflag.NormalizedName(name)
-	})
 
 	RootCmd.AddCommand(artifact.Command)
 	RootCmd.AddCommand(profile.Command)
 	RootCmd.AddCommand(project.Command)
 	RootCmd.AddCommand(branch.Command)
 	RootCmd.AddCommand(commit.Command)
+	RootCmd.AddCommand(tag.Command)
 	RootCmd.AddCommand(component.Command)
 	RootCmd.AddCommand(issue.Command)
 	RootCmd.AddCommand(pipeline.Command)

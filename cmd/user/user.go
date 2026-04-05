@@ -21,7 +21,7 @@ type User struct {
 	AccountID     string       `json:"account_id"               mapstructure:"account_id"`
 	Username      string       `json:"username,omitempty"       mapstructure:"username"`
 	Name          string       `json:"display_name"             mapstructure:"display_name"`
-	Nickname      string       `json:"nickname"                 mapstructure:"nickname"`
+	Nickname      string       `json:"nickname,omitempty"       mapstructure:"nickname"`
 	Raw           string       `json:"raw,omitempty"            mapstructure:"raw"`
 	Kind          string       `json:"kind,omitempty"           mapstructure:"kind"`
 	Links         common.Links `json:"links"                    mapstructure:"links"`
@@ -131,6 +131,21 @@ func (user User) GetRow(headers []string) []string {
 		}
 	}
 	return row
+}
+
+// IsEmpty checks if this User is empty
+func (user User) IsEmpty() bool {
+	return user.Type == "" &&
+		user.ID.IsNil() &&
+		user.AccountID == "" &&
+		user.Username == "" &&
+		user.Name == "" &&
+		user.Nickname == "" &&
+		user.Raw == "" &&
+		user.Kind == "" &&
+		user.Links.IsEmpty() &&
+		user.CreatedOn.IsZero() &&
+		user.AccountStatus == ""
 }
 
 // String gets the string representation of the user

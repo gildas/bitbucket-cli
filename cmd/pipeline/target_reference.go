@@ -10,11 +10,11 @@ import (
 
 // ReferenceTarget represents the target of a pipeline (branch, tag, etc.)
 type ReferenceTarget struct {
-	Type          string                 `json:"type"               mapstructure:"type"`
-	ReferenceType string                 `json:"ref_type,omitempty" mapstructure:"ref_type"`
-	ReferenceName string                 `json:"ref_name,omitempty" mapstructure:"ref_name"`
-	Selector      *common.Selector       `json:"selector,omitempty" mapstructure:"selector"`
-	Commit        commit.CommitReference `json:"commit"             mapstructure:"commit"`
+	Type          string                  `json:"type"               mapstructure:"type"`
+	ReferenceType string                  `json:"ref_type,omitempty" mapstructure:"ref_type"`
+	ReferenceName string                  `json:"ref_name,omitempty" mapstructure:"ref_name"`
+	Selector      *common.Selector        `json:"selector,omitempty" mapstructure:"selector"`
+	Commit        *commit.CommitReference `json:"commit,omitempty"   mapstructure:"commit"`
 }
 
 func init() {
@@ -34,7 +34,9 @@ func (target ReferenceTarget) GetDestination() string {
 }
 
 // GetCommit return the target's commit reference
-func (target ReferenceTarget) GetCommit() commit.CommitReference {
+//
+// implements Target
+func (target ReferenceTarget) GetCommit() *commit.CommitReference {
 	return target.Commit
 }
 

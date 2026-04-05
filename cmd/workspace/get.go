@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -61,6 +62,10 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	if getOptions.WithMembers {
 		log.Infof("Displaying workspace %s members", args[0])
+		if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing workspace %s members", args[0])) {
+			return nil
+		}
+
 		members, err := Workspace{Slug: args[0]}.GetMembers(cmd.Context(), cmd)
 		if err != nil {
 			return err
@@ -74,6 +79,10 @@ func getProcess(cmd *cobra.Command, args []string) error {
 
 	if len(getOptions.Member) != 0 {
 		log.Infof("Displaying workspace %s member %s", args[0], getOptions.Member)
+		if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing workspace %s member %s", args[0], getOptions.Member)) {
+			return nil
+		}
+
 		member, err := getWorkspaceMember(cmd.Context(), cmd, profile, args[0], getOptions.Member)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get workspace member %s: %s\n", getOptions.Member, err)
@@ -83,6 +92,10 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying workspace %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing workspace %s", args[0])) {
+		return nil
+	}
+
 	workspace, err := GetWorkspace(cmd.Context(), cmd, args[0])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get workspace %s: %s\n", args[0], err)
