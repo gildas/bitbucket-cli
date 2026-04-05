@@ -21,7 +21,7 @@ type User struct {
 	AccountID     string       `json:"account_id"               mapstructure:"account_id"`
 	Username      string       `json:"username,omitempty"       mapstructure:"username"`
 	Name          string       `json:"display_name"             mapstructure:"display_name"`
-	Nickname      string       `json:"nickname"                 mapstructure:"nickname"`
+	Nickname      string       `json:"nickname,omitempty"       mapstructure:"nickname"`
 	Raw           string       `json:"raw,omitempty"            mapstructure:"raw"`
 	Kind          string       `json:"kind,omitempty"           mapstructure:"kind"`
 	Links         common.Links `json:"links"                    mapstructure:"links"`
