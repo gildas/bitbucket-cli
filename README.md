@@ -647,7 +647,8 @@ bb commit patch 123456 654321
 
 You can list tags with the `bb tag list` command:
 
-```bashbb tag list
+```bash
+bb tag list
 ```
 
 By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
