@@ -196,7 +196,7 @@ test-ci:; @ ## Run the unit tests continuously
 test-view: $(COVERAGE_HTML); @ ## Open the Coverage results in a web browser
 	$Q xdg-open $< 2> /dev/null || open $< 2> /dev/null || start $< 2> /dev/null
 
-$(COVERAGE_OUT): $(COVDIR) $(GOFILES) $(GOTESTS)
+$(COVERAGE_OUT): $(COV_DIR) $(GOFILES) $(GOTESTS)
 	$Q $(GO) test \
 			-timeout $(TEST_TIMEOUT)s \
 			-covermode=$(COVERAGE_MODE) \

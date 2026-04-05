@@ -12,7 +12,7 @@ import (
 )
 
 var patchCmd = &cobra.Command{
-	Use:               "patch <commit-hasha <commit-hash>",
+	Use:               "patch <commit-hash> <commit-hash>",
 	Short:             "show the patch between two commits",
 	Args:              cobra.ExactArgs(2),
 	ValidArgsFunction: validPatchArgs,

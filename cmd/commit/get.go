@@ -14,7 +14,7 @@ var getCmd = &cobra.Command{
 	Use:               "get [flags] <commit-hash>",
 	Aliases:           []string{"show", "describe"},
 	Short:             "get a commit",
-	Args:              cobra.MaximumNArgs(1),
+	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValiAdrgs,
 	RunE:              getProcess,
 }
@@ -28,7 +28,7 @@ func init() {
 	Command.AddCommand(getCmd)
 
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get a tag from. Defaults to the current repository")
+	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get a commit from. Defaults to the current repository")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
 }
@@ -68,6 +68,9 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing commit %s", commitName)) {
 		return nil
 	}
+	// Unlike what is mentioned in the official Bitbucket API:
+	//   https://developer.atlassian.com/cloud/bitbucket/rest/api-group-commits/#api-repositories-workspace-repo-slug-commit-commit-get
+	// the commit endpoint returns a list of commits in a struct.
 	var commits struct {
 		Values []Commit `json:"values" mapstructure:"values"`
 	}
