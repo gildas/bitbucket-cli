@@ -13,6 +13,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pipeline"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-logger"
 	"github.com/google/uuid"
@@ -200,6 +201,94 @@ func (suite *PipelineSuite) TestCanMarshal() {
 	}
 
 	data, err := json.Marshal(pipeline)
+	suite.Require().NoError(err)
+	suite.Assert().NotEmpty(data)
+	suite.Require().JSONEq(string(expected), string(data))
+}
+
+func (suite *PipelineSuite) TestCanMarshalTriggerBody() {
+	expected := `{"target":{"type":"pipeline_ref_target","ref_type":"branch","ref_name":"master"}}`
+	body := pipeline.TriggerBody{
+		Target: pipeline.ReferenceTarget{
+			Type:          "pipeline_ref_target",
+			ReferenceType: "branch",
+			ReferenceName: "master",
+		},
+	}
+
+	data, err := json.Marshal(body)
+	suite.Require().NoError(err)
+	suite.Assert().NotEmpty(data)
+	suite.Require().JSONEq(string(expected), string(data))
+}
+
+func (suite *PipelineSuite) TestCanMarshalTriggerBodyWithCommit() {
+	expected := `{"target":{"type":"pipeline_ref_target","ref_type":"branch","ref_name":"master", "commit":{"type": "commit","hash":"abc123def456"}}}`
+	body := pipeline.TriggerBody{
+		Target: pipeline.ReferenceTarget{
+			Type:          "pipeline_ref_target",
+			ReferenceType: "branch",
+			ReferenceName: "master",
+			Commit:        &commit.CommitReference{Hash: "abc123def456"},
+		},
+	}
+
+	data, err := json.Marshal(body)
+	suite.Require().NoError(err)
+	suite.Assert().NotEmpty(data)
+	suite.Require().JSONEq(string(expected), string(data))
+}
+
+func (suite *PipelineSuite) TestCanMarshalTriggerBodyWithSelector() {
+	expected := `{"target":{"type":"pipeline_ref_target","ref_type":"branch","ref_name":"master","selector":{"type":"custom","pattern":"run-tests"}}}`
+	body := pipeline.TriggerBody{
+		Target: pipeline.ReferenceTarget{
+			Type:          "pipeline_ref_target",
+			ReferenceType: "branch",
+			ReferenceName: "master",
+			Selector:      &common.Selector{Type: "custom", Pattern: "run-tests"},
+		},
+	}
+
+	data, err := json.Marshal(body)
+	suite.Require().NoError(err)
+	suite.Assert().NotEmpty(data)
+	suite.Require().JSONEq(string(expected), string(data))
+}
+
+func (suite *PipelineSuite) TestCanMarshalTriggerBodyWithVariables() {
+	expected := `{"target":{"type":"pipeline_ref_target","ref_type":"branch","ref_name":"master"}, "variables":[{"key":"env","value":"production","secured":false},{"key":"key","value":"12345","secured":true}]}`
+	body := pipeline.TriggerBody{
+		Target: pipeline.ReferenceTarget{
+			Type:          "pipeline_ref_target",
+			ReferenceType: "branch",
+			ReferenceName: "master",
+		},
+		Variables: []pipeline.Variable{
+			{Key: "env", Value: "production"},
+			{Key: "key", Value: "12345", Secured: true},
+		},
+	}
+
+	data, err := json.Marshal(body)
+	suite.Require().NoError(err)
+	suite.Assert().NotEmpty(data)
+	suite.Require().JSONEq(string(expected), string(data))
+}
+
+func (suite *PipelineSuite) TestCanMarshalTriggerBodyWithPullRequestTarget() {
+	expected := `{"target":{"type":"pipeline_pullrequest_target","source":"release","destination":"main","destination_commit":{"type":"commit","hash":"def456ghi789"},"commit":{"type":"commit","hash":"abc123def456"},"pullrequest":{"id":62}}}`
+	body := pipeline.TriggerBody{
+		Target: pipeline.PullRequestReferenceTarget{
+			Source:            "release",
+			Destination:       "main",
+			DestinationCommit: &commit.CommitReference{Hash: "def456ghi789"},
+			Commit:            &commit.CommitReference{Hash: "abc123def456"},
+			PullRequest:       pullrequest.PullRequestReference{ID: 62},
+		},
+	}
+
+	data, err := json.Marshal(body)
 	suite.Require().NoError(err)
 	suite.Assert().NotEmpty(data)
 	suite.Require().JSONEq(string(expected), string(data))
