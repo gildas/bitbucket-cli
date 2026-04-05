@@ -45,11 +45,11 @@ func (reference CommitReference) MarshalJSON() (data []byte, err error) {
 	}
 
 	data, err = json.Marshal(struct {
-		// Type string `json:"type"`
+		Type string `json:"type"`
 		surrogate
 		Links *common.Links `json:"links,omitempty"`
 	}{
-		// Type:      "commit",
+		Type:      "commit",
 		surrogate: surrogate(reference),
 		Links:     links,
 	})
