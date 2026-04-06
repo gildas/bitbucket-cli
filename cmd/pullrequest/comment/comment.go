@@ -142,7 +142,16 @@ func (comment Comment) GetRow(headers []string) []string {
 			row = append(row, fmt.Sprintf("%t", comment.IsPending))
 		case "resolution":
 			if comment.Resolution != nil {
-				row = append(row, fmt.Sprintf("resolved by %s on %s", comment.Resolution.User.Name, comment.Resolution.CreatedOn.Format("2006-01-02 15:04:05")))
+				switch {
+				case comment.Resolution.User.Name != "" && !comment.Resolution.CreatedOn.IsZero():
+					row = append(row, fmt.Sprintf("resolved by %s on %s", comment.Resolution.User.Name, comment.Resolution.CreatedOn.Format("2006-01-02 15:04:05")))
+				case comment.Resolution.User.Name != "":
+					row = append(row, fmt.Sprintf("resolved by %s", comment.Resolution.User.Name))
+				case !comment.Resolution.CreatedOn.IsZero():
+					row = append(row, fmt.Sprintf("resolved on %s", comment.Resolution.CreatedOn.Format("2006-01-02 15:04:05")))
+				default:
+					row = append(row, "resolved")
+				}
 			} else {
 				row = append(row, "unresolved")
 			}
@@ -175,12 +184,18 @@ func (comment Comment) String() string {
 func (resolution Resolution) MarshalJSON() (data []byte, err error) {
 	type surrogate Resolution
 
+	var createdOn *string
+	if !resolution.CreatedOn.IsZero() {
+		formatted := resolution.CreatedOn.Format(time.RFC3339)
+		createdOn = &formatted
+	}
+
 	data, err = json.Marshal(struct {
 		surrogate
-		CreatedOn string `json:"created_on"`
+		CreatedOn *string `json:"created_on,omitempty"`
 	}{
 		surrogate: surrogate(resolution),
-		CreatedOn: resolution.CreatedOn.Format(time.RFC3339),
+		CreatedOn: createdOn,
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
 }
