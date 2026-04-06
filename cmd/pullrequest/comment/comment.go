@@ -25,10 +25,17 @@ type Comment struct {
 	Parent      *Comment              `json:"parent,omitempty" mapstructure:"parent"`
 	CreatedOn   time.Time             `json:"created_on"       mapstructure:"created_on"`
 	UpdatedOn   time.Time             `json:"updated_on"       mapstructure:"updated_on"`
-	IsDeleted   bool                  `json:"deleted"          mapstructure:"deleted"`
-	IsPending   bool                  `json:"pending"          mapstructure:"pending"`
-	PullRequest *PullRequestReference `json:"pullrequest"      mapstructure:"pullrequest"`
-	Links       common.Links          `json:"links"            mapstructure:"links"`
+	IsDeleted   bool                  `json:"deleted"              mapstructure:"deleted"`
+	IsPending   bool                  `json:"pending"              mapstructure:"pending"`
+	Resolution  *Resolution           `json:"resolution,omitempty" mapstructure:"resolution"`
+	PullRequest *PullRequestReference `json:"pullrequest"          mapstructure:"pullrequest"`
+	Links       common.Links          `json:"links"                mapstructure:"links"`
+}
+
+type Resolution struct {
+	Type      string    `json:"type"       mapstructure:"type"`
+	User      user.User `json:"user"       mapstructure:"user"`
+	CreatedOn time.Time `json:"created_on" mapstructure:"created_on"`
 }
 
 type PullRequestReference struct {
@@ -77,6 +84,9 @@ var columns = common.Columns[Comment]{
 	}},
 	{Name: "pending", DefaultSorter: false, Compare: func(a, b Comment) bool {
 		return a.IsPending == b.IsPending
+	}},
+	{Name: "resolution", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return (a.Resolution != nil) && (b.Resolution == nil)
 	}},
 	{Name: "pullrequest", DefaultSorter: false, Compare: func(a, b Comment) bool {
 		if a.PullRequest != nil && b.PullRequest != nil {
@@ -130,6 +140,12 @@ func (comment Comment) GetRow(headers []string) []string {
 			row = append(row, fmt.Sprintf("%t", comment.IsDeleted))
 		case "pending":
 			row = append(row, fmt.Sprintf("%t", comment.IsPending))
+		case "resolution":
+			if comment.Resolution != nil {
+				row = append(row, fmt.Sprintf("resolved by %s on %s", comment.Resolution.User.Name, comment.Resolution.CreatedOn.Format("2006-01-02 15:04:05")))
+			} else {
+				row = append(row, "unresolved")
+			}
 		case "pullrequest":
 			if comment.PullRequest != nil {
 				row = append(row, fmt.Sprintf("%s (%d)", comment.PullRequest.Title, comment.PullRequest.ID))
@@ -153,6 +169,20 @@ func (comment *Comment) Validate() error {
 // implements fmt.Stringer
 func (comment Comment) String() string {
 	return comment.Content.Raw
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (resolution Resolution) MarshalJSON() (data []byte, err error) {
+	type surrogate Resolution
+
+	data, err = json.Marshal(struct {
+		surrogate
+		CreatedOn string `json:"created_on"`
+	}{
+		surrogate: surrogate(resolution),
+		CreatedOn: resolution.CreatedOn.Format(time.RFC3339),
+	})
+	return data, errors.JSONMarshalError.Wrap(err)
 }
 
 // MarshalJSON implements the json.Marshaler interface.
