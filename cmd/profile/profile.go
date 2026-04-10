@@ -192,8 +192,14 @@ func (profile Profile) GetRow(headers []string) []string {
 // implements logger.Redactable
 func (profile Profile) Redact() any {
 	redacted := profile
+	if len(redacted.ClientID) > 0 {
+		redacted.ClientID = logger.RedactWithHash(redacted.ClientID)
+	}
 	if len(redacted.ClientSecret) > 0 {
 		redacted.ClientSecret = logger.RedactWithHash(redacted.ClientSecret)
+	}
+	if len(redacted.User) > 0 {
+		redacted.User = logger.RedactWithHash(redacted.User)
 	}
 	if len(redacted.Password) > 0 {
 		redacted.Password = logger.RedactWithHash(redacted.Password)
@@ -203,6 +209,9 @@ func (profile Profile) Redact() any {
 	}
 	if len(redacted.RefreshToken) > 0 {
 		redacted.RefreshToken = logger.RedactWithHash(redacted.RefreshToken)
+	}
+	if len(redacted.CloneUser) > 0 {
+		redacted.CloneUser = logger.RedactWithHash(redacted.CloneUser)
 	}
 	redacted.TokenScopes = nil
 	return redacted
