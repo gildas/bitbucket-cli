@@ -49,7 +49,7 @@ func init() {
 	Command.AddCommand(createCmd)
 
 	createOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
-	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create a pullrequest comment into. Defaults to the current repository")
+	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create a pullrequest comment into. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	createCmd.Flags().Var(createOptions.PullRequestID, "pullrequest", "Pullrequest to create comments to")
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.File, "file", "", "File to comment on")

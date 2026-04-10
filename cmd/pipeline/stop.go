@@ -25,7 +25,7 @@ var stopOptions struct {
 func init() {
 	Command.AddCommand(stopCmd)
 
-	stopCmd.Flags().StringVar(&stopOptions.Repository, "repository", "", "Repository to stop pipeline in. Defaults to the current repository")
+	stopCmd.Flags().StringVar(&stopOptions.Repository, "repository", "", "Repository to stop pipeline in. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 }
 
 func stopProcess(cmd *cobra.Command, args []string) (err error) {

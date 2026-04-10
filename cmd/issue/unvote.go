@@ -25,7 +25,7 @@ var unvoteOptions struct {
 func init() {
 	Command.AddCommand(unvoteCmd)
 
-	unvoteCmd.Flags().StringVar(&unvoteOptions.Repository, "repository", "", "Repository to unvote an issue from. Defaults to the current repository")
+	unvoteCmd.Flags().StringVar(&unvoteOptions.Repository, "repository", "", "Repository to unvote an issue from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 }
 
 func unvoteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

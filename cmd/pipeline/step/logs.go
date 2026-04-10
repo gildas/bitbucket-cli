@@ -32,7 +32,7 @@ func init() {
 	Command.AddCommand(logCmd)
 
 	logOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
-	logCmd.Flags().StringVar(&logOptions.Repository, "repository", "", "Repository to get pipeline from. Defaults to the current repository")
+	logCmd.Flags().StringVar(&logOptions.Repository, "repository", "", "Repository to get pipeline from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	logCmd.Flags().Var(logOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	_ = logCmd.MarkFlagRequired("pipeline")
 	_ = logCmd.RegisterFlagCompletionFunc(logOptions.PipelineID.CompletionFunc("pipeline"))

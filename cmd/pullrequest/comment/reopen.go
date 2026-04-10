@@ -30,7 +30,7 @@ func init() {
 	Command.AddCommand(reopenCmd)
 
 	reopenOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
-	reopenCmd.Flags().StringVar(&reopenOptions.Repository, "repository", "", "Repository to reopen a pullrequest comment from. Defaults to the current repository")
+	reopenCmd.Flags().StringVar(&reopenOptions.Repository, "repository", "", "Repository to reopen a pullrequest comment from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	reopenCmd.Flags().Var(reopenOptions.PullRequestID, "pullrequest", "Pullrequest to reopen comments from")
 	_ = reopenCmd.MarkFlagRequired("pullrequest")
 	_ = reopenCmd.RegisterFlagCompletionFunc(reopenOptions.PullRequestID.CompletionFunc("pullrequest"))

@@ -35,7 +35,7 @@ func init() {
 	listOptions.State = flags.NewEnumFlag("all", "declined", "merged", "+open", "superseded")
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
-	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequests from. Defaults to the current repository")
+	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequests from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	listCmd.Flags().Var(listOptions.State, "state", "Pull request state to fetch. Defaults to \"open\"")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter pull requests")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")

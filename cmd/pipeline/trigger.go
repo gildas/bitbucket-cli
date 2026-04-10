@@ -43,7 +43,7 @@ func init() {
 	triggerOptions.Branch = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
 	triggerOptions.Commit = flags.NewEnumFlagWithFunc("", commit.GetCommitHashes)
 	triggerOptions.Tag = flags.NewEnumFlagWithFunc("", tag.GetTagNames)
-	triggerCmd.Flags().StringVar(&triggerOptions.Repository, "repository", "", "Repository to trigger pipeline in. Defaults to the current repository")
+	triggerCmd.Flags().StringVar(&triggerOptions.Repository, "repository", "", "Repository to trigger pipeline in. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	triggerCmd.Flags().Var(triggerOptions.Branch, "branch", "Branch to run the pipeline on")
 	triggerCmd.Flags().Var(triggerOptions.Tag, "tag", "Tag to run the pipeline on")
 	triggerCmd.Flags().Var(triggerOptions.Commit, "commit", "Specific commit hash to run the pipeline on")
