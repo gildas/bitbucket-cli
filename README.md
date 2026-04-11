@@ -54,7 +54,7 @@ If you have Go installed, you can install `bb` with:
 go install github.com/gildas/bitbucket-cli/cmd/bb@latest
 ```
 
-This method also allows you to install `bb` from the `develop` branch with:
+This method also allows you to install `bb` from the development (`dev`) branch with:
 
 ```bash
 go install github.com/gildas/bitbucket-cli/cmd/bb@dev
