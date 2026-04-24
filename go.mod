@@ -1,6 +1,6 @@
 module bitbucket.org/gildas_cherruel/bb
 
-go 1.26
+go 1.25
 
 require (
 	github.com/briandowns/spinner v1.23.2
