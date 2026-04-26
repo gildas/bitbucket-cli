@@ -47,7 +47,7 @@ func init() {
 
 	updateOptions.Kind = flags.NewEnumFlag("bug", "enhancement", "proposal", "task")
 	updateOptions.Priority = flags.NewEnumFlag("major", "trivial", "minor", "major", "critical", "blocker")
-	updateCmd.Flags().StringVar(&updateOptions.Repository, "repository", "", "Repository to update an issue from. Defaults to the current repository")
+	updateCmd.Flags().StringVar(&updateOptions.Repository, "repository", "", "Repository to update an issue from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	updateCmd.Flags().StringVar(&updateOptions.Title, "title", "", "Title of the issue")
 	updateCmd.Flags().Var(updateOptions.Kind, "kind", "Kind of the issue")
 	updateCmd.Flags().Var(updateOptions.Priority, "priority", "Priority of the issue")

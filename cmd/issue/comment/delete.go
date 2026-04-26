@@ -30,7 +30,7 @@ func init() {
 	Command.AddCommand(deleteCmd)
 
 	deleteOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
-	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete an issue comment from. Defaults to the current repository")
+	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete an issue comment from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	deleteCmd.Flags().Var(deleteOptions.IssueID, "issue", "Issue to delete comments from")
 	_ = deleteCmd.MarkFlagRequired("issue")
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.IssueID.CompletionFunc("issue"))

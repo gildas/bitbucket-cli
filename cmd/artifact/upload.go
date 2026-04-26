@@ -27,7 +27,7 @@ var uploadOptions struct {
 func init() {
 	Command.AddCommand(uploadCmd)
 
-	uploadCmd.Flags().StringVar(&uploadOptions.Repository, "repository", "", "Repository to upload artifacts to. Defaults to the current repository")
+	uploadCmd.Flags().StringVar(&uploadOptions.Repository, "repository", "", "Repository to upload artifacts to. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	uploadCmd.Flags().BoolVar(&uploadOptions.Progress, "progress", false, "Show progress")
 }
 

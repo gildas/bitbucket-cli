@@ -29,7 +29,7 @@ func init() {
 	Command.AddCommand(uploadCmd)
 
 	uploadOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
-	uploadCmd.Flags().StringVar(&uploadOptions.Repository, "repository", "", "Repository to upload issue attachments to. Defaults to the current repository")
+	uploadCmd.Flags().StringVar(&uploadOptions.Repository, "repository", "", "Repository to upload issue attachments to. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	uploadCmd.Flags().Var(uploadOptions.IssueID, "issue", "Issue to upload attachments to")
 	uploadCmd.Flags().BoolVar(&uploadOptions.Progress, "progress", false, "Show progress")
 	_ = uploadCmd.MarkFlagRequired("issue")

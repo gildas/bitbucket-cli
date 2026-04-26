@@ -34,7 +34,7 @@ func init() {
 
 	getOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pipeline from. Defaults to the current repository")
+	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pipeline from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	getCmd.Flags().Var(getOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	getCmd.Flags().BoolVar(&getOptions.ShowLogsCommand, "show-logs-command", false, "Show the command to get the logs for this step")

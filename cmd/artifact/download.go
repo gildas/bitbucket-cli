@@ -29,7 +29,7 @@ var downloadOptions struct {
 func init() {
 	Command.AddCommand(downloadCmd)
 
-	downloadCmd.Flags().StringVar(&downloadOptions.Repository, "repository", "", "Repository to download artifacts from. Defaults to the current repository")
+	downloadCmd.Flags().StringVar(&downloadOptions.Repository, "repository", "", "Repository to download artifacts from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	downloadCmd.Flags().StringVar(&downloadOptions.Destination, "destination", "", "Destination folder to download the artifact to. Defaults to the current folder")
 	downloadCmd.Flags().BoolVar(&downloadOptions.Progress, "progress", false, "Show progress")
 	_ = downloadCmd.MarkFlagDirname("destination")

@@ -31,7 +31,7 @@ func init() {
 
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
-	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list commits from. Defaults to the current repository")
+	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list commits from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter commits")
 	listCmd.Flags().StringSliceVar(&listOptions.Include, "include", []string{}, "List of commit hashes to include")
 	listCmd.Flags().StringSliceVar(&listOptions.Exclude, "exclude", []string{}, "List of commit hashes to exclude")

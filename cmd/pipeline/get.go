@@ -30,7 +30,7 @@ func init() {
 	Command.AddCommand(getCmd)
 
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pipeline from. Defaults to the current repository")
+	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pipeline from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
 }

@@ -26,7 +26,7 @@ var watchOptions struct {
 func init() {
 	Command.AddCommand(watchCmd)
 
-	watchCmd.Flags().StringVar(&watchOptions.Repository, "repository", "", "Repository to watch an issue from. Defaults to the current repository")
+	watchCmd.Flags().StringVar(&watchOptions.Repository, "repository", "", "Repository to watch an issue from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	watchCmd.Flags().BoolVar(&watchOptions.Check, "check", false, "Check if the issue is watched")
 }
 

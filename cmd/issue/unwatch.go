@@ -25,7 +25,7 @@ var unwatchOptions struct {
 func init() {
 	Command.AddCommand(unwatchCmd)
 
-	unwatchCmd.Flags().StringVar(&unwatchOptions.Repository, "repository", "", "Repository to unwatch an issue from. Defaults to the current repository")
+	unwatchCmd.Flags().StringVar(&unwatchOptions.Repository, "repository", "", "Repository to unwatch an issue from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 }
 
 func unwatchValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

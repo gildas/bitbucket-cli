@@ -55,7 +55,7 @@ func init() {
 	createOptions.Destination = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
 	createOptions.Reviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(GetReviewerNicknames)
 
-	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create pullrequest in. Defaults to the current repository")
+	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create pullrequest in. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	createCmd.Flags().StringVar(&createOptions.Title, "title", "", "Title of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the pullrequest")
 	createCmd.Flags().Var(createOptions.Source, "source", "Source branch of the pullrequest")

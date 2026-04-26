@@ -27,7 +27,7 @@ var approveOptions struct {
 func init() {
 	Command.AddCommand(approveCmd)
 
-	approveCmd.Flags().StringVar(&approveOptions.Repository, "repository", "", "Repository to approve pullrequest from. Defaults to the current repository")
+	approveCmd.Flags().StringVar(&approveOptions.Repository, "repository", "", "Repository to approve pullrequest from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 }
 
 func approveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

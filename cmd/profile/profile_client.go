@@ -482,9 +482,21 @@ func (profile Profile) getRepositoryFullname(context context.Context, cmd *cobra
 		log.Debugf("No repository name given, trying to get it from the current git repository")
 		remote, err := remote.GetRemoteFromGitConfig(context, "origin")
 		if err != nil {
-			return "", errors.Join(errors.NotFound.With("current repository"), err)
+			return "", errors.Join(
+				errors.New("Use --repository <workspace>/<repository> or <repository> with a default workspace in your profile"),
+				errors.NotFound.With("current", "repository"),
+				err,
+			)
 		}
 		fullName = remote.RepositoryName()
+	} else if !strings.Contains(fullName, "/") && len(profile.DefaultWorkspace) > 0 {
+		log.Debugf("Repository name %q has no workspace prefix, prepending default workspace %q", fullName, profile.DefaultWorkspace)
+		fullName = profile.DefaultWorkspace + "/" + fullName
+	} else if !strings.Contains(fullName, "/") {
+		return "", errors.Join(
+			errors.New("Expected <workspace>/<repository> or a default workspace must be defined in your profile"),
+			errors.ArgumentInvalid.With("repository", fullName),
+		)
 	}
 	return fullName, nil
 }

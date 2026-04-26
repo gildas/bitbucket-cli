@@ -30,7 +30,7 @@ func init() {
 	Command.AddCommand(resolveCmd)
 
 	resolveOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
-	resolveCmd.Flags().StringVar(&resolveOptions.Repository, "repository", "", "Repository to resolve a pullrequest comment from. Defaults to the current repository")
+	resolveCmd.Flags().StringVar(&resolveOptions.Repository, "repository", "", "Repository to resolve a pullrequest comment from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	resolveCmd.Flags().Var(resolveOptions.PullRequestID, "pullrequest", "Pullrequest to resolve comments from")
 	_ = resolveCmd.MarkFlagRequired("pullrequest")
 	_ = resolveCmd.RegisterFlagCompletionFunc(resolveOptions.PullRequestID.CompletionFunc("pullrequest"))

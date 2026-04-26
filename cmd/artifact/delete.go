@@ -27,7 +27,7 @@ var deleteOptions struct {
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete artifacts from. Defaults to the current repository")
+	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete artifacts from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

@@ -44,7 +44,7 @@ func init() {
 
 	createOptions.Kind = flags.NewEnumFlag("+bug", "enhancement", "proposal", "task")
 	createOptions.Priority = flags.NewEnumFlag("+major", "trivial", "minor", "major", "critical", "blocker")
-	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create an issue into. Defaults to the current repository")
+	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create an issue into. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	createCmd.Flags().StringVar(&createOptions.Title, "title", "", "Title of the issue")
 	createCmd.Flags().Var(createOptions.Kind, "kind", "Kind of the issue")
 	createCmd.Flags().Var(createOptions.Priority, "priority", "Priority of the issue")

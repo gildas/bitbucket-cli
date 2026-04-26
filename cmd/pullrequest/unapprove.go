@@ -26,7 +26,7 @@ var unapproveOptions struct {
 func init() {
 	Command.AddCommand(unapproveCmd)
 
-	unapproveCmd.Flags().StringVar(&unapproveOptions.Repository, "repository", "", "Repository to unapprove pullrequest from. Defaults to the current repository")
+	unapproveCmd.Flags().StringVar(&unapproveOptions.Repository, "repository", "", "Repository to unapprove pullrequest from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 }
 
 func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

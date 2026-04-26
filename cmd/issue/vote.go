@@ -25,7 +25,7 @@ var voteOptions struct {
 func init() {
 	Command.AddCommand(voteCmd)
 
-	voteCmd.Flags().StringVar(&voteOptions.Repository, "repository", "", "Repository to vote an issue from. Defaults to the current repository")
+	voteCmd.Flags().StringVar(&voteOptions.Repository, "repository", "", "Repository to vote an issue from. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 }
 
 func voteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

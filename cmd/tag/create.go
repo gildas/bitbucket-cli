@@ -31,7 +31,7 @@ func init() {
 	Command.AddCommand(createCmd)
 
 	createOptions.Commit = flags.NewEnumFlagWithFunc("latest", commit.GetCommitHashes)
-	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create a tag into. Defaults to the current repository")
+	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create a tag into. Defaults to the current repository.\nExpected format: <workspace>/<repository> or <repository>.\nIf only <repository> is given, the profile's default workspace is used.")
 	createCmd.Flags().StringVar(&createOptions.Name, "name", "", "Name of the tag")
 	createCmd.Flags().StringVar(&createOptions.Message, "message", "", "Message of the tag")
 	createCmd.Flags().Var(createOptions.Commit, "commit", "Target commit hash for the tag. Defaults to the latest commit")
