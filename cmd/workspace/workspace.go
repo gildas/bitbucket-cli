@@ -149,35 +149,40 @@ func GetWorkspace(ctx context.Context, cmd *cobra.Command) (workspace *Workspace
 	if err != nil {
 		return nil, err
 	}
-	return GetWorkspaceByName(ctx, cmd, workspaceName)
+	return GetWorkspaceBySlugOrID(ctx, cmd, workspaceName)
 }
 
-// GetWorkspaceByName gets the workspace by its slug name
-func GetWorkspaceByName(ctx context.Context, cmd *cobra.Command, workspaceName string) (workspace *Workspace, err error) {
-	log := logger.Must(logger.FromContext(ctx)).Child("workspace", "get", "name", workspaceName)
+// GetWorkspaceBySlugOrID gets the workspace by its slug name or ID
+func GetWorkspaceBySlugOrID(ctx context.Context, cmd *cobra.Command, slugOrID string) (workspace *Workspace, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child("workspace", "get_by_slug_or_id", "workspace", slugOrID)
 
 	currentProfile, err := profile.GetProfileFromCommand(ctx, cmd)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Infof("Retrieving workspace %s", workspaceName)
+	log.Infof("Retrieving workspace %s", slugOrID)
 
-	if workspace, err = WorkspaceCache.Get(workspaceName); err == nil {
-		log.Debugf("Workspace %s found in cache", workspaceName)
+	// In case we got a real UUID, get the Bitbucket UUID
+	if id, err := common.ParseUUID(slugOrID); err == nil {
+		slugOrID = id.String()
+	}
+
+	if workspace, err = WorkspaceCache.Get(slugOrID); err == nil {
+		log.Debugf("Workspace %s found in cache", slugOrID)
 		return workspace, nil
 	}
 
 	err = currentProfile.Get(
 		log.ToContext(ctx),
 		cmd,
-		fmt.Sprintf("/workspaces/%s", workspaceName),
+		fmt.Sprintf("/workspaces/%s", slugOrID),
 		&workspace,
 	)
 	if err == nil {
-		_ = WorkspaceCache.Set(*workspace, workspaceName)
+		_ = WorkspaceCache.Set(*workspace, slugOrID)
 	}
-	return nil, errors.Join(errors.Errorf("Failed to get workspace %s", workspaceName), err)
+	return workspace, errors.Join(errors.Errorf("Failed to get workspace %s", slugOrID), err)
 }
 
 // GetMember gets the workspace member by its username
@@ -229,18 +234,47 @@ func (workspace Workspace) MarshalJSON() ([]byte, error) {
 func (workspace *Workspace) UnmarshalJSON(data []byte) error {
 	type surrogate Workspace
 
-	var inner struct {
+	var typeholder struct {
 		Type string `json:"type"`
-		surrogate
 	}
-
-	if err := json.Unmarshal(data, &inner); err != nil {
+	if err := json.Unmarshal(data, &typeholder); err != nil {
 		return errors.JSONUnmarshalError.WrapIfNotMe(err)
 	}
-	if inner.Type != workspace.GetType() && inner.Type != "workspace_access" {
-		return errors.JSONUnmarshalError.Wrap(errors.InvalidType.With(inner.Type, workspace.GetType()))
+	switch typeholder.Type {
+	case "workspace_access":
+		var inner struct {
+			Type          string `json:"type"`
+			Administrator bool   `json:"administrator"`
+			Workspace     struct {
+				Type string `json:"type"`
+				surrogate
+			} `json:"workspace"`
+		}
+		if err := json.Unmarshal(data, &inner); err != nil {
+			return errors.JSONUnmarshalError.WrapIfNotMe(err)
+		}
+		if inner.Workspace.Type != "workspace_base" {
+			return errors.JSONUnmarshalError.Wrap(errors.InvalidType.With(inner.Workspace.Type, "workspace_base"))
+		}
+
+		*workspace = Workspace(inner.Workspace.surrogate)
+		workspace.Administrator = inner.Administrator
+	case "workspace":
+		var inner struct {
+			Type string `json:"type"`
+			surrogate
+		}
+		if err := json.Unmarshal(data, &inner); err != nil {
+			return errors.JSONUnmarshalError.WrapIfNotMe(err)
+		}
+		if inner.Type != workspace.GetType() {
+			return errors.JSONUnmarshalError.Wrap(errors.InvalidType.With(inner.Type, workspace.GetType()))
+		}
+
+		*workspace = Workspace(inner.surrogate)
+	default:
+		return errors.JSONUnmarshalError.Wrap(errors.InvalidType.With(typeholder.Type, strings.Join([]string{Workspace{}.GetType(), "workspace_access"}, ", ")))
 	}
 
-	*workspace = Workspace(inner.surrogate)
 	return nil
 }

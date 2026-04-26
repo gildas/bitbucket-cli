@@ -123,7 +123,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 
 	var pullrequestWorkspace *workspace.Workspace
 	if pullrequest.Destination.Repository != nil {
-		pullrequestWorkspace, err = workspace.GetWorkspaceByName(cmd.Context(), cmd, pullrequest.Destination.Repository.Workspace.Slug)
+		pullrequestWorkspace, err = workspace.GetWorkspaceBySlugOrID(cmd.Context(), cmd, pullrequest.Destination.Repository.Workspace.Slug)
 	} else {
 		pullrequestWorkspace, err = workspace.GetWorkspace(cmd.Context(), cmd)
 	}

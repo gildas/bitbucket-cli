@@ -239,7 +239,7 @@ func (repository *Repository) FetchWorkspaceX(context context.Context, cmd *cobr
 		return &repository.Workspace, nil
 	}
 	workspacename := strings.Split(repository.FullName, "/")[0]
-	workspace, err := workspace.GetWorkspaceByName(context, cmd, workspacename)
+	workspace, err := workspace.GetWorkspaceBySlugOrID(context, cmd, workspacename)
 	if err == nil {
 		repository.Workspace = *workspace
 	}
@@ -265,36 +265,41 @@ func GetRepository(ctx context.Context, cmd *cobra.Command) (repository *Reposit
 	if err != nil {
 		return nil, err
 	}
-	return GetRepositoryByName(ctx, cmd, name)
+	return GetRepositoryBySlugOrID(ctx, cmd, name)
 }
 
-// GetRepositoryByName gets a repository by its slug name
+// GetRepositoryBySlugOrID gets a repository by its slug name
 //
 // If the slug is in the format "workspace/repository", the workspace is used to get the repository.
 //
 // Otherwise, the workspace is determined by the git config or the default workspace in the profile.
-func GetRepositoryByName(ctx context.Context, cmd *cobra.Command, slug string) (repository *Repository, err error) {
-	log := logger.Must(logger.FromContext(ctx)).Child("repository", "get_by_name", "repository", slug)
+func GetRepositoryBySlugOrID(ctx context.Context, cmd *cobra.Command, slugOrID string) (repository *Repository, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child("repository", "get_by_slug_or_id", "repository", slugOrID)
 	var ws *workspace.Workspace
 
-	if components := strings.Split(slug, "/"); len(components) == 2 {
-		log.Debugf("Repository slug %s contains a workspace, extracting workspace and repository name", slug)
-		slug = components[1]
-		ws, err = workspace.GetWorkspaceByName(ctx, cmd, components[0])
+	if components := strings.Split(slugOrID, "/"); len(components) == 2 {
+		log.Debugf("Repository slug %s contains a workspace, extracting workspace and repository name", slugOrID)
+		slugOrID = components[1]
+		ws, err = workspace.GetWorkspaceBySlugOrID(ctx, cmd, components[0])
 	} else {
-		log.Debugf("Repository slug %s does not contain a workspace, using git config or default workspace", slug)
+		log.Debugf("Repository slug %s does not contain a workspace, using git config or default workspace", slugOrID)
 		ws, err = workspace.GetWorkspace(ctx, cmd)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	if repository, err = RepositoryCache.Get(fmt.Sprintf("%s/%s", ws.Slug, slug)); err == nil {
-		log.Debugf("Repository %s/%s found in cache", ws.Slug, slug)
+	// In case we got a real UUID, get the Bitbucket UUID
+	if id, err := common.ParseUUID(slugOrID); err == nil {
+		slugOrID = id.String()
+	}
+
+	if repository, err = RepositoryCache.Get(fmt.Sprintf("%s/%s", ws.Slug, slugOrID)); err == nil {
+		log.Debugf("Repository %s/%s found in cache", ws.Slug, slugOrID)
 		return
 	}
 
-	log.Infof("Getting repository %s in workspace %s", slug, ws.Slug)
+	log.Infof("Getting repository %s in workspace %s", slugOrID, ws.Slug)
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
 		return nil, err
@@ -303,11 +308,11 @@ func GetRepositoryByName(ctx context.Context, cmd *cobra.Command, slug string) (
 	err = profile.Get(
 		ctx,
 		cmd,
-		fmt.Sprintf("/repositories/%s/%s", ws.Slug, slug),
+		fmt.Sprintf("/repositories/%s/%s", ws.Slug, slugOrID),
 		&repository,
 	)
 	if err == nil {
-		_ = RepositoryCache.Set(*repository, fmt.Sprintf("%s/%s", ws.Slug, slug))
+		_ = RepositoryCache.Set(*repository, fmt.Sprintf("%s/%s", ws.Slug, slugOrID))
 	}
 	return
 }

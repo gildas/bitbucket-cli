@@ -84,7 +84,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	repository, err := GetRepositoryByName(cmd.Context(), cmd, args[0])
+	repository, err := GetRepositoryBySlugOrID(cmd.Context(), cmd, args[0])
 	if err != nil {
 		return errors.Join(
 			errors.Errorf("failed to get repository: %s", args[0]),

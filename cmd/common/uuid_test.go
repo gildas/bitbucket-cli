@@ -32,6 +32,12 @@ func (suite *CommonSuite) TestCanUnmarshalUUID() {
 	suite.False(uuid.IsNil())
 	suite.Equal(expected, uuid.String())
 
+	err = json.Unmarshal([]byte(`"`+expected[1:len(expected)-1]+`"`), &uuid)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(uuid)
+	suite.False(uuid.IsNil())
+	suite.Equal(expected, uuid.String())
+
 	err = json.Unmarshal([]byte(`""`), &uuid)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(uuid)

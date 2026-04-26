@@ -64,7 +64,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 	var merr errors.MultiError
 	for _, repositorySlug := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting repository %s", repositorySlug) {
-			repository, err := GetRepositoryByName(cmd.Context(), cmd, repositorySlug)
+			repository, err := GetRepositoryBySlugOrID(cmd.Context(), cmd, repositorySlug)
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
 					return errors.Join(

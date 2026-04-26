@@ -68,7 +68,7 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 			)
 		}
 	} else {
-		if workspace, err = GetWorkspaceByName(cmd.Context(), cmd, args[0]); err != nil {
+		if workspace, err = GetWorkspaceBySlugOrID(cmd.Context(), cmd, args[0]); err != nil {
 			return errors.Join(
 				errors.Errorf("Failed to get workspace %s", args[0]),
 				err,

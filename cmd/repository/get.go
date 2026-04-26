@@ -69,7 +69,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			)
 		}
 	} else {
-		if repository, err = GetRepositoryByName(cmd.Context(), cmd, args[0]); err != nil {
+		if repository, err = GetRepositoryBySlugOrID(cmd.Context(), cmd, args[0]); err != nil {
 			return errors.Join(
 				errors.Errorf("failed to get repository: %s", args[0]),
 				err,
