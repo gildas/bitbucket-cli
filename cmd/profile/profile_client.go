@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -420,17 +419,6 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 		if len(components) > 1 {
 			options.URL.RawQuery = components[1]
 		}
-	} else if !strings.HasPrefix(uripath, "http") {
-		repositoryName, err := profile.getRepositoryFullname(context, cmd)
-		if err != nil {
-			return nil, err
-		}
-		log.Infof("Using repository %s", repositoryName)
-		components := strings.Split(uripath, "?")
-		options.URL = apiRoot.JoinPath("2.0", "repositories", repositoryName, components[0])
-		if len(components) > 1 {
-			options.URL.RawQuery = components[1]
-		}
 	} else {
 		if options.URL, err = url.Parse(uripath); err != nil {
 			return nil, err
@@ -469,22 +457,4 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 		}
 	}
 	return
-}
-
-func (profile Profile) getRepositoryFullname(context context.Context, cmd *cobra.Command) (string, error) {
-	log := logger.Must(logger.FromContext(context)).Child("profile", "getrepositoryname")
-
-	fullName := ""
-	if cmd != nil && cmd.Flag("repository") != nil {
-		fullName = cmd.Flag("repository").Value.String()
-	}
-	if len(fullName) == 0 {
-		log.Debugf("No repository name given, trying to get it from the current git repository")
-		remote, err := remote.GetRemoteFromGitConfig(context, "origin")
-		if err != nil {
-			return "", errors.Join(errors.NotFound.With("current repository"), err)
-		}
-		fullName = remote.RepositoryName()
-	}
-	return fullName, nil
 }
