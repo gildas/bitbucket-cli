@@ -17,7 +17,12 @@ type Workspaces []Workspace
 //
 // implements common.Tableables
 func (workspaces Workspaces) GetHeaders(cmd *cobra.Command) []string {
-	return Workspace{}.GetHeaders(cmd)
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
+	return []string{"ID", "Slug"}
 }
 
 // GetRowAt gets the row for a table
