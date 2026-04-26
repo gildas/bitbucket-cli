@@ -29,7 +29,7 @@ var addOptions struct {
 func init() {
 	Command.AddCommand(addCmd)
 
-	addOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	addOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	addOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
 	addCmd.Flags().Var(addOptions.Workspace, "workspace", "Workspace to add reviewers to")
 	addCmd.Flags().Var(addOptions.Project, "project", "Project Key to add reviewers to")
@@ -45,7 +45,12 @@ func addProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	workspace, project, err := GetWorkspaceAndProject(cmd, profile)
+	workspace, err := workspace.GetWorkspaceName(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	project, err := GetProjectName(cmd, profile)
 	if err != nil {
 		return err
 	}

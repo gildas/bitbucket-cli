@@ -3,7 +3,6 @@ package repository
 import (
 	"fmt"
 	"net/url"
-	"path"
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
@@ -42,7 +41,7 @@ func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.Role = flags.NewEnumFlag("all", "+owner", "admin", "contributor", "member")
-	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.Role, "role", "Role of the user in the repository (all, owner, admin, contributor, member), Default: owner")
@@ -108,21 +107,12 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		query.Add("role", listOptions.Role.Value)
 	}
 
-	uripath := path.Join("/repositories", listOptions.Workspace.Value)
-	if len(query) > 0 {
-		uripath += "?" + query.Encode()
-	}
-
 	log.Infof("Listing all repositories, workspace %s, role %s", listOptions.Workspace, listOptions.Role)
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing repositories, workspace %s, role %s", listOptions.Workspace, listOptions.Role)) {
 		return nil
 	}
 
-	repositories, err := profile.GetAll[Repository](
-		cmd.Context(),
-		cmd,
-		uripath,
-	)
+	repositories, err := GetRepositoriesWithQuery(cmd.Context(), cmd, query)
 	if err != nil {
 		return err
 	}

@@ -29,7 +29,7 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	listOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
@@ -51,7 +51,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	workspace, project, err := GetWorkspaceAndProject(cmd, currentProfile)
+	project, err := GetProjectName(cmd, currentProfile)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	}
 
-	reviewers, err := GetProjectDefaultReviewers(cmd.Context(), cmd, workspace, project)
+	reviewers, err := GetProjectDefaultReviewers(cmd.Context(), cmd, project)
 	if err != nil {
 		return err
 	}

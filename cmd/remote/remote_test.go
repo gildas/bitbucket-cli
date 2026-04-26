@@ -29,12 +29,12 @@ func TestCanGetRepositoryNameWithGitAt(t *testing.T) {
 	remote = origin
 	merge = refs/heads/dev
 	`
-	r, err := remote.Get(context.Background(), strings.NewReader(payload), "origin")
+	r, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
 
-	r, err = remote.Get(context.Background(), strings.NewReader(payload), "alternate")
+	r, err = remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
@@ -60,12 +60,12 @@ func TestCanGetRepositoryNameWithHTTPS(t *testing.T) {
 	remote = origin
 	merge = refs/heads/dev
 	`
-	r, err := remote.Get(context.Background(), strings.NewReader(payload), "origin")
+	r, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
 
-	r, err = remote.Get(context.Background(), strings.NewReader(payload), "alternate")
+	r, err = remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
@@ -91,12 +91,12 @@ func TestCanGetWorkspaceNameWithGitAt(t *testing.T) {
 	remote = origin
 	merge = refs/heads/dev
 	`
-	r, err := remote.Get(context.Background(), strings.NewReader(payload), "origin")
+	r, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())
 
-	r, err = remote.Get(context.Background(), strings.NewReader(payload), "alternate")
+	r, err = remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())
@@ -122,12 +122,12 @@ func TestCanGetWorkspaceNameWithHTTPS(t *testing.T) {
 	remote = origin
 	merge = refs/heads/dev
 	`
-	r, err := remote.Get(context.Background(), strings.NewReader(payload), "origin")
+	r, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())
 
-	r, err = remote.Get(context.Background(), strings.NewReader(payload), "alternate")
+	r, err = remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())

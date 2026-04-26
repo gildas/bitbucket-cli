@@ -45,7 +45,7 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	createOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	createCmd.Flags().Var(createOptions.Workspace, "workspace", "Workspace to create projects from")
 	createCmd.Flags().StringVar(&createOptions.Name, "name", "", "Name of the project")
 	createCmd.Flags().StringVar(&createOptions.Key, "key", "", "Key of the project")
@@ -68,7 +68,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	workspace, err := GetWorkspace(cmd, profile)
+	workspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}

@@ -1,9 +1,7 @@
 package workspace
 
 import (
-	"context"
 	"fmt"
-	"os"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
@@ -16,9 +14,9 @@ import (
 var getCmd = &cobra.Command{
 	Use:               "get [flags] <workspace-slug-or-id>",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get a workspace by its <workspace-slug-or-id>. With the --members flag, it will display the members of the workspace. With the --member flag, it will display workspaces for the given user.",
-	Args:              cobra.ExactArgs(1),
-	ValidArgsFunction: getVAlidArgs,
+	Short:             "get a workspace by its <workspace-slug-or-id> or the current workspace by default. With the --members flag, it ill display the members of the workspace. With the --member flag, it will display workspaces for the given user.",
+	Args:              cobra.RangeArgs(0, 1),
+	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
 }
 
@@ -39,20 +37,20 @@ func init() {
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
 }
 
-func getVAlidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	slugs, err := GetWorkspaceSlugs(cmd.Context(), cmd, args, toComplete)
+	slugs, err := GetWorkspaceSlugs(cmd.Context(), cmd)
 	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	return slugs, cobra.ShellCompDirectiveNoFileComp
+	return common.FilterValidArgs(slugs, args, toComplete), cobra.ShellCompDirectiveNoFileComp
 }
 
-func getProcess(cmd *cobra.Command, args []string) error {
+func getProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
@@ -60,15 +58,35 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	var workspace *Workspace
+
+	if len(args) == 0 {
+		if workspace, err = GetWorkspace(cmd.Context(), cmd); err != nil {
+			return errors.Join(
+				errors.Errorf("Failed to get current workspace"),
+				err,
+			)
+		}
+	} else {
+		if workspace, err = GetWorkspaceByName(cmd.Context(), cmd, args[0]); err != nil {
+			return errors.Join(
+				errors.Errorf("Failed to get workspace %s", args[0]),
+				err,
+			)
+		}
+	}
+
 	if getOptions.WithMembers {
-		log.Infof("Displaying workspace %s members", args[0])
-		if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing workspace %s members", args[0])) {
+		log.Infof("Displaying workspace %s members", workspace.Slug)
+		if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing workspace %s members", workspace.Slug)) {
 			return nil
 		}
-
-		members, err := Workspace{Slug: args[0]}.GetMembers(cmd.Context(), cmd)
+		members, err := workspace.GetMembers(cmd.Context(), cmd)
 		if err != nil {
-			return err
+			return errors.Join(
+				errors.Errorf("Failed to get members of workspace %s", workspace.Slug),
+				err,
+			)
 		}
 		if len(members) == 0 {
 			log.Infof("No member found")
@@ -78,51 +96,23 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(getOptions.Member) != 0 {
-		log.Infof("Displaying workspace %s member %s", args[0], getOptions.Member)
-		if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing workspace %s member %s", args[0], getOptions.Member)) {
+		log.Infof("Displaying workspace %s member %s", workspace.Slug, getOptions.Member)
+		if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing workspace %s member %s", workspace.Slug, getOptions.Member)) {
 			return nil
 		}
-
-		member, err := getWorkspaceMember(cmd.Context(), cmd, profile, args[0], getOptions.Member)
+		member, err := workspace.GetMember(cmd.Context(), cmd, profile, getOptions.Member)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to get workspace member %s: %s\n", getOptions.Member, err)
-			os.Exit(1)
+			return errors.Join(
+				errors.Errorf("Failed to get workspace member %s of workspace %s", getOptions.Member, workspace.Slug),
+				err,
+			)
 		}
 		return profile.Print(cmd.Context(), cmd, member)
 	}
 
-	log.Infof("Displaying workspace %s", args[0])
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing workspace %s", args[0])) {
+	log.Infof("Displaying workspace %s", workspace.Slug)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing workspace %s", workspace.Slug)) {
 		return nil
 	}
-
-	workspace, err := GetWorkspace(cmd.Context(), cmd, args[0])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get workspace %s: %s\n", args[0], err)
-		os.Exit(1)
-	}
 	return profile.Print(cmd.Context(), cmd, workspace)
-}
-
-func getWorkspaceMember(context context.Context, cmd *cobra.Command, profile *profile.Profile, workspace string, member string) (*Member, error) {
-	log := logger.Must(logger.FromContext(context)).Child("workspace", "get")
-
-	if profile == nil {
-		return nil, errors.ArgumentMissing.With("profile")
-	}
-
-	log.Infof("Displaying workspace %s member %s", workspace, member)
-	var result Member
-
-	err := profile.Get(
-		log.ToContext(context),
-		cmd,
-		fmt.Sprintf("/workspaces/%s/members/%s", workspace, member),
-		&result,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return &result, nil
 }

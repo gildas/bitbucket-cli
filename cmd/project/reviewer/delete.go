@@ -30,7 +30,7 @@ var deleteOptions struct {
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	deleteOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	deleteOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
 	deleteCmd.Flags().Var(deleteOptions.Workspace, "workspace", "Workspace to delete reviewers from")
 	deleteCmd.Flags().Var(deleteOptions.Project, "project", "Project Key to delete reviewers from")
@@ -58,7 +58,12 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	workspace, project, err := GetWorkspaceAndProject(cmd, profile)
+	workspace, err := workspace.GetWorkspaceName(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	project, err := GetProjectName(cmd, profile)
 	if err != nil {
 		return err
 	}

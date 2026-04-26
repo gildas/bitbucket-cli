@@ -29,7 +29,7 @@ var deleteOptions struct {
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	deleteOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	deleteCmd.Flags().Var(deleteOptions.Workspace, "workspace", "Workspace to delete repositories from")
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.Workspace.CompletionFunc("workspace"))
 }
@@ -38,7 +38,7 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	slugs, err := GetRepositorySlugs(cmd.Context(), cmd, deleteOptions.Workspace.String())
+	slugs, err := GetRepositorySlugs(cmd.Context(), cmd)
 	if err != nil {
 		cobra.CompErrorln(err.Error())
 		return []string{}, cobra.ShellCompDirectiveError
@@ -64,10 +64,21 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 	var merr errors.MultiError
 	for _, repositorySlug := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting repository %s", repositorySlug) {
-			err := profile.Delete(
+			repository, err := GetRepositoryByName(cmd.Context(), cmd, repositorySlug)
+			if err != nil {
+				if profile.ShouldStopOnError(cmd) {
+					return errors.Join(
+						errors.Errorf("failed to get repository: %s", repositorySlug),
+						err,
+					)
+				}
+				merr.Append(err)
+				continue
+			}
+			err = profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
-				fmt.Sprintf("/repositories/%s/%s", deleteOptions.Workspace, repositorySlug),
+				fmt.Sprintf("/repositories/%s/%s", repository.Workspace.Slug, repository.Slug),
 				nil,
 			)
 			if err != nil {

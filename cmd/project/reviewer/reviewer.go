@@ -8,6 +8,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -83,20 +84,29 @@ func (reviewer *Reviewer) Validate() error {
 }
 
 // GetWorkspaceAndProject gets the workspace and project from the command
-func GetWorkspaceAndProject(cmd *cobra.Command, profile *profile.Profile) (workspace, project string, err error) {
-	workspace = cmd.Flag("workspace").Value.String()
-	if len(workspace) == 0 {
-		workspace = profile.DefaultWorkspace
-		if len(workspace) == 0 {
-			return "", "", errors.ArgumentMissing.With("workspace")
-		}
+func GetWorkspaceAndProject(cmd *cobra.Command, profile *profile.Profile) (workspaceName, projectName string, err error) {
+	workspaceName, err = workspace.GetWorkspaceName(cmd.Context(), cmd)
+	if err != nil {
+		return "", "", err
 	}
 
-	project = cmd.Flag("project").Value.String()
-	if len(project) == 0 {
-		project = profile.DefaultProject
-		if len(project) == 0 {
+	projectName = cmd.Flag("project").Value.String()
+	if len(projectName) == 0 {
+		projectName = profile.DefaultProject
+		if len(projectName) == 0 {
 			return "", "", errors.ArgumentMissing.With("project")
+		}
+	}
+	return
+}
+
+// GetProjectName gets the project name from the command or profile
+func GetProjectName(cmd *cobra.Command, profile *profile.Profile) (projectName string, err error) {
+	projectName = cmd.Flag("project").Value.String()
+	if len(projectName) == 0 {
+		projectName = profile.DefaultProject
+		if len(projectName) == 0 {
+			return "", errors.ArgumentMissing.With("project")
 		}
 	}
 	return
@@ -106,27 +116,18 @@ func GetWorkspaceAndProject(cmd *cobra.Command, profile *profile.Profile) (works
 func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string, toComplete string) (keys []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 
-	currentProfile, err := profile.GetProfileFromCommand(context, cmd)
+	workspaceName, err := workspace.GetWorkspaceName(cmd.Context(), cmd)
 	if err != nil {
-		log.Errorf("Failed to get profile.", err)
-		return nil, err
-	}
-
-	workspace := cmd.Flag("workspace").Value.String()
-	if len(workspace) == 0 {
-		workspace = currentProfile.DefaultWorkspace
-		if len(workspace) == 0 {
-			log.Warnf("No workspace given")
-			return
-		}
+		log.Warnf("No workspace given")
+		return
 	}
 
 	type Project struct {
 		Key string `json:"key" mapstructure:"key"`
 	}
 
-	log.Infof("Getting all projects from workspace %s", workspace)
-	projects, err := profile.GetAll[Project](context, cmd, fmt.Sprintf("/workspaces/%s/projects", workspace))
+	log.Infof("Getting all projects from workspace %s", workspaceName)
+	projects, err := profile.GetAll[Project](context, cmd, fmt.Sprintf("/workspaces/%s/projects", workspaceName))
 	if err != nil {
 		log.Errorf("Failed to get projects", err)
 		return
@@ -140,19 +141,11 @@ func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string, 
 func GetReviewerUserIDs(context context.Context, cmd *cobra.Command, project string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("reviewer", "getids")
 
-	currentProfile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	workspaceName, err := workspace.GetWorkspaceName(cmd.Context(), cmd)
 	if err != nil {
 		return []string{}, err
 	}
-
-	workspace := deleteOptions.Workspace.Value
-	if len(workspace) == 0 {
-		workspace = currentProfile.DefaultWorkspace
-		if len(workspace) == 0 {
-			return []string{}, errors.ArgumentMissing.With("workspace")
-		}
-	}
-	reviewers, err := profile.GetAll[Reviewer](context, cmd, fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspace, project))
+	reviewers, err := profile.GetAll[Reviewer](context, cmd, fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspaceName, project))
 	if err != nil {
 		log.Errorf("Failed to get reviewers", err)
 		return
@@ -163,6 +156,10 @@ func GetReviewerUserIDs(context context.Context, cmd *cobra.Command, project str
 }
 
 // GetProjectDefaultReviewers gets the reviewers in the given workspace and project
-func GetProjectDefaultReviewers(context context.Context, cmd *cobra.Command, workspace, project string) (reviewers []Reviewer, err error) {
-	return profile.GetAll[Reviewer](context, cmd, fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspace, project))
+func GetProjectDefaultReviewers(context context.Context, cmd *cobra.Command, project string) (reviewers []Reviewer, err error) {
+	workspaceName, err := workspace.GetWorkspaceName(cmd.Context(), cmd)
+	if err != nil {
+		return []Reviewer{}, err
+	}
+	return profile.GetAll[Reviewer](context, cmd, fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspaceName, project))
 }

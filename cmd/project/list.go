@@ -31,7 +31,7 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list projects from")
@@ -52,7 +52,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	workspace, err := GetWorkspace(cmd, currentProfile)
+	workspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}

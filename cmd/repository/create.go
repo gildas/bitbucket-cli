@@ -46,7 +46,7 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	createOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	createOptions.Project = flags.NewEnumFlagWithFunc("", project.GetProjectKeys)
 	createOptions.ForkPolicy = flags.NewEnumFlag("allow_forks", "+no_public_forks", "no_forks")
 	createCmd.Flags().Var(createOptions.Workspace, "workspace", "Workspace to create repositories from")

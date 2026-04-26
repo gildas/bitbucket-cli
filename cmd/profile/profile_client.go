@@ -480,7 +480,7 @@ func (profile Profile) getRepositoryFullname(context context.Context, cmd *cobra
 	}
 	if len(fullName) == 0 {
 		log.Debugf("No repository name given, trying to get it from the current git repository")
-		remote, err := remote.GetFromGitConfig(context, "origin")
+		remote, err := remote.GetRemoteFromGitConfig(context, "origin")
 		if err != nil {
 			return "", errors.Join(errors.NotFound.With("current repository"), err)
 		}

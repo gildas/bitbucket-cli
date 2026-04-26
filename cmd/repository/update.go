@@ -25,10 +25,11 @@ type RepositoryUpdator struct {
 }
 
 var updateCmd = &cobra.Command{
-	Use:   "update [flags] <slug>",
-	Short: "update a repository in a project and a workspace. The project <slug> must be unique in the workspace.",
-	Args:  cobra.ExactArgs(1),
-	RunE:  updateProcess,
+	Use:               "update [flags] <slug>",
+	Short:             "update a repository in a project and a workspace. The project <slug> must be unique in the workspace.",
+	Args:              cobra.ExactArgs(1),
+	ValidArgsFunction: updateValidArgs,
+	RunE:              updateProcess,
 }
 
 var updateOptions struct {
@@ -46,7 +47,7 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	updateOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	updateOptions.Project = flags.NewEnumFlagWithFunc("", project.GetProjectKeys)
 	updateOptions.ForkPolicy = flags.NewEnumFlag("allow_forks", "+no_public_forks", "no_forks")
 	updateCmd.Flags().Var(updateOptions.Workspace, "workspace", "Workspace to update repositories from")
@@ -63,6 +64,18 @@ func init() {
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.Project.CompletionFunc("project"))
 }
 
+func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) != 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	slugs, err := GetRepositorySlugs(cmd.Context(), cmd)
+	if err != nil {
+		cobra.CompErrorln(err.Error())
+		return []string{}, cobra.ShellCompDirectiveError
+	}
+	return common.FilterValidArgs(slugs, args, toComplete), cobra.ShellCompDirectiveNoFileComp
+}
+
 func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
@@ -71,11 +84,12 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if len(updateOptions.Workspace.Value) == 0 {
-		updateOptions.Workspace.Value = profile.DefaultWorkspace
-		if len(updateOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
+	repository, err := GetRepositoryByName(cmd.Context(), cmd, args[0])
+	if err != nil {
+		return errors.Join(
+			errors.Errorf("failed to get repository: %s", args[0]),
+			err,
+		)
 	}
 
 	var private *bool
@@ -100,22 +114,22 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		payload.Project = project.NewReference(updateOptions.Project.Value)
 	}
 
-	log.Record("payload", payload).Infof("Updating repository %s/%s in project %s", updateOptions.Workspace, updateOptions.Name, updateOptions.Project)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating repository %s/%s in project %s", updateOptions.Workspace, updateOptions.Name, updateOptions.Project) {
+	log.Record("payload", payload).Infof("Updating repository %s/%s in project %s", repository.Workspace.Slug, repository.Slug, updateOptions.Project)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating repository %s/%s in project %s", repository.Workspace.Slug, repository.Slug, updateOptions.Project) {
 		return nil
 	}
-	var repository Repository
+	var updated Repository
 
 	err = profile.Put(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("/repositories/%s/%s", updateOptions.Workspace, args[0]),
+		fmt.Sprintf("/repositories/%s/%s", repository.Workspace.Slug, repository.Slug),
 		payload,
-		&repository,
+		&updated,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to update repository %s/%s: %s\n", updateOptions.Workspace, args[0], err)
+		fmt.Fprintf(os.Stderr, "Failed to update repository %s/%s: %s\n", repository.Workspace.Slug, repository.Slug, err)
 		os.Exit(1)
 	}
-	return profile.Print(cmd.Context(), cmd, repository)
+	return profile.Print(cmd.Context(), cmd, updated)
 }

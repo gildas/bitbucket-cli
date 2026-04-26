@@ -31,7 +31,7 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	getOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get reviewers from")
@@ -62,7 +62,12 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	workspace, project, err := GetWorkspaceAndProject(cmd, profile)
+	workspace, err := workspace.GetWorkspaceName(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	project, err := GetProjectName(cmd, profile)
 	if err != nil {
 		return err
 	}

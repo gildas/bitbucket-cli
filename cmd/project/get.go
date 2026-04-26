@@ -29,7 +29,7 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get projects from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
@@ -58,7 +58,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	workspace, err := GetWorkspace(cmd, profile)
+	workspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}

@@ -18,10 +18,11 @@ import (
 )
 
 type Workspace struct {
-	ID    common.UUID  `json:"uuid"  mapstructure:"uuid"`
-	Name  string       `json:"name"  mapstructure:"name"`
-	Slug  string       `json:"slug"  mapstructure:"slug"`
-	Links common.Links `json:"links" mapstructure:"links"`
+	ID            common.UUID  `json:"uuid"  mapstructure:"uuid"`
+	Name          string       `json:"name"  mapstructure:"name"`
+	Slug          string       `json:"slug"  mapstructure:"slug"`
+	Administrator bool         `json:"administrator" mapstructure:"administrator"`
+	Links         common.Links `json:"links" mapstructure:"links"`
 }
 
 // Command represents this folder's command
@@ -116,11 +117,46 @@ func (workspace Workspace) String() string {
 	return workspace.Name
 }
 
-// GetWorkspace gets the workspace by its slug
-func GetWorkspace(context context.Context, cmd *cobra.Command, workspaceName string) (workspace *Workspace, err error) {
-	log := logger.Must(logger.FromContext(context)).Child("workspace", "get")
+// GetWorkspaceName gets the workspace name from the command flag or git config
+//
+// The workspace is determined by the following order:
+//  1. The workspace flag in the command
+//  2. The git config
+//  3. The default workspace in the profile
+func GetWorkspaceName(context context.Context, cmd *cobra.Command) (workspaceName string, err error) {
+	if cmd.Flag("workspace") != nil {
+		if workspaceName = cmd.Flag("workspace").Value.String(); len(workspaceName) > 0 {
+			return
+		}
+	}
+	if remote, err := remote.GetRemote(context, cmd); err == nil {
+		return remote.WorkspaceName(), nil
+	}
+	if profile.Current != nil && len(profile.Current.DefaultWorkspace) > 0 {
+		return profile.Current.DefaultWorkspace, nil
+	}
+	return "", errors.ArgumentMissing.With("workspace")
+}
 
-	currentProfile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+// GetWorkspace gets the current workspace
+//
+// The workspace is determined by the following order:
+// 1. The workspace flag in the command
+// 2. The git config
+// 3. The default workspace in the profile
+func GetWorkspace(ctx context.Context, cmd *cobra.Command) (workspace *Workspace, err error) {
+	workspaceName, err := GetWorkspaceName(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+	return GetWorkspaceByName(ctx, cmd, workspaceName)
+}
+
+// GetWorkspaceByName gets the workspace by its slug name
+func GetWorkspaceByName(ctx context.Context, cmd *cobra.Command, workspaceName string) (workspace *Workspace, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child("workspace", "get", "name", workspaceName)
+
+	currentProfile, err := profile.GetProfileFromCommand(ctx, cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +169,7 @@ func GetWorkspace(context context.Context, cmd *cobra.Command, workspaceName str
 	}
 
 	err = currentProfile.Get(
-		log.ToContext(context),
+		log.ToContext(ctx),
 		cmd,
 		fmt.Sprintf("/workspaces/%s", workspaceName),
 		&workspace,
@@ -141,27 +177,21 @@ func GetWorkspace(context context.Context, cmd *cobra.Command, workspaceName str
 	if err == nil {
 		_ = WorkspaceCache.Set(*workspace, workspaceName)
 	}
+	return nil, errors.Join(errors.Errorf("Failed to get workspace %s", workspaceName), err)
+}
 
+// GetMember gets the workspace member by its username
+func (workspace Workspace) GetMember(ctx context.Context, cmd *cobra.Command, profile *profile.Profile, username string) (member *Member, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child("workspace", "get", "member", username)
+
+	log.Infof("Retrieving workspace %s member %s", workspace.Slug, username)
+	err = profile.Get(
+		log.ToContext(ctx),
+		cmd,
+		fmt.Sprintf("/workspaces/%s/members/%s", workspace.Slug, username),
+		&member,
+	)
 	return
-}
-
-// GetWorkspaceFromGit gets the workspace from the git config
-func GetWorkspaceFromGit(context context.Context, cmd *cobra.Command) (workspace *Workspace, err error) {
-	remote, err := remote.GetFromGitConfig(context, "origin")
-	if err != nil {
-		return nil, err
-	}
-	return GetWorkspace(context, cmd, remote.WorkspaceName())
-}
-
-// GetWorkspaceFromCommandOrGit gets the workspace from the command flag or git config
-func GetWorkspaceFromCommandOrGit(context context.Context, cmd *cobra.Command) (workspace *Workspace, err error) {
-	if cmd.Flag("workspace") != nil {
-		if workspaceName := cmd.Flag("workspace").Value.String(); len(workspaceName) > 0 {
-			return GetWorkspace(context, cmd, workspaceName)
-		}
-	}
-	return GetWorkspaceFromGit(context, cmd)
 }
 
 // GetMembers gets the members of the workspace
@@ -175,21 +205,6 @@ func (workspace Workspace) GetMembers(context context.Context, cmd *cobra.Comman
 		return []Member{}, err
 	}
 	return
-}
-
-// GetWorkspaceSlugs gets the slugs of all workspaces
-func GetWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (slugs []string, err error) {
-	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
-
-	log.Debugf("Getting all workspaces")
-	workspaces, err := profile.GetAll[Workspace](context, cmd, "/workspaces")
-	if err != nil {
-		log.Errorf("Failed to get workspaces", err)
-		return
-	}
-	return core.Map(workspaces, func(workspace Workspace) string {
-		return workspace.Slug
-	}), nil
 }
 
 // MarshalJSON marshals the workspace to JSON
@@ -222,7 +237,7 @@ func (workspace *Workspace) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &inner); err != nil {
 		return errors.JSONUnmarshalError.WrapIfNotMe(err)
 	}
-	if inner.Type != workspace.GetType() {
+	if inner.Type != workspace.GetType() && inner.Type != "workspace_access" {
 		return errors.JSONUnmarshalError.Wrap(errors.InvalidType.With(inner.Type, workspace.GetType()))
 	}
 

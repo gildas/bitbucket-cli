@@ -46,7 +46,7 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	updateOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	updateCmd.Flags().Var(updateOptions.Workspace, "workspace", "Workspace to update projects from")
 	updateCmd.Flags().StringVar(&updateOptions.Name, "name", "", "Name of the project")
 	updateCmd.Flags().StringVar(&updateOptions.Key, "key", "", "Key of the project")
@@ -79,7 +79,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	workspace, err := GetWorkspace(cmd, profile)
+	workspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}

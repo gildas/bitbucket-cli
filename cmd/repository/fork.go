@@ -46,7 +46,7 @@ var forkOptions struct {
 func init() {
 	Command.AddCommand(forkCmd)
 
-	forkOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
+	forkOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	forkOptions.Project = flags.NewEnumFlagWithFunc("", project.GetProjectKeys)
 	forkOptions.ForkPolicy = flags.NewEnumFlag("allow_forks", "+no_public_forks", "no_forks")
 	forkCmd.Flags().Var(forkOptions.Workspace, "workspace", "Workspace to fork repositories from")
@@ -67,7 +67,7 @@ func forkValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]stri
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	slugs, err := GetRepositorySlugs(cmd.Context(), cmd, forkOptions.Workspace.String())
+	slugs, err := GetRepositorySlugs(cmd.Context(), cmd)
 	if err != nil {
 		cobra.CompErrorln(err.Error())
 		return []string{}, cobra.ShellCompDirectiveError
@@ -83,11 +83,12 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if len(forkOptions.Workspace.Value) == 0 {
-		forkOptions.Workspace.Value = profile.DefaultWorkspace
-		if len(forkOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
+	repository, err := GetRepositoryByName(cmd.Context(), cmd, args[0])
+	if err != nil {
+		return errors.Join(
+			errors.Errorf("failed to get repository: %s", args[0]),
+			err,
+		)
 	}
 
 	payload := RepositoryForkCreator{
@@ -104,7 +105,7 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 		payload.Project = project.NewReference(forkOptions.Project.Value)
 	}
 
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Forking repository %s/%s", forkOptions.Workspace, args[0]) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Forking repository %s/%s", repository.Workspace.Slug, repository.Slug) {
 		return nil
 	}
 	var forked Repository
@@ -112,7 +113,7 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("/repositories/%s/%s/forks", forkOptions.Workspace, args[0]),
+		fmt.Sprintf("/repositories/%s/%s/forks", repository.Workspace.Slug, repository.Slug),
 		payload,
 		&forked,
 	)

@@ -199,6 +199,28 @@ func (pullrequest PullRequest) String() string {
 	return pullrequest.Title
 }
 
+// GetReviewerNicknames gets the reviewer nicknames for the current Workspace
+func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string, toComplete string) (nicknames []string, err error) {
+	log := logger.Must(logger.FromContext(context)).Child(nil, "getreviewers")
+
+	if cmd == nil {
+		fmt.Fprintln(os.Stderr, "cmd is nil")
+		return []string{}, errors.ArgumentMissing.With("cmd")
+	}
+
+	log.Infof("Getting reviewer nicknames for profile %s", profile.Current)
+	pullrequestWorkspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
+	if err != nil {
+		log.Errorf("Failed to get repository: %s", err)
+		return []string{}, err
+	}
+	log.Infof("Getting members of workspace %s", pullrequestWorkspace)
+	members, _ := pullrequestWorkspace.GetMembers(context, cmd)
+	nicknames = core.Map(members, func(member workspace.Member) string { return member.User.Nickname })
+	core.Sort(nicknames, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return common.FilterValidArgs(nicknames, args, toComplete), nil
+}
+
 // MarshalJSON implements the json.Marshaler interface.
 func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 	type surrogate PullRequest
@@ -213,26 +235,4 @@ func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 		UpdatedOn: pullrequest.UpdatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
-}
-
-// GetReviewerNicknames gets the reviewer nicknames for the current Workspace
-func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string, toComplete string) (nicknames []string, err error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "getreviewers")
-
-	if cmd == nil {
-		fmt.Fprintln(os.Stderr, "cmd is nil")
-		return []string{}, errors.ArgumentMissing.With("cmd")
-	}
-
-	log.Infof("Getting reviewer nicknames for profile %s", profile.Current)
-	pullrequestWorkspace, err := workspace.GetWorkspaceFromCommandOrGit(cmd.Context(), cmd)
-	if err != nil {
-		log.Errorf("Failed to get repository: %s", err)
-		return []string{}, err
-	}
-	log.Infof("Getting members of workspace %s", pullrequestWorkspace)
-	members, _ := pullrequestWorkspace.GetMembers(context, cmd)
-	nicknames = core.Map(members, func(member workspace.Member) string { return member.User.Nickname })
-	core.Sort(nicknames, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
-	return common.FilterValidArgs(nicknames, args, toComplete), nil
 }

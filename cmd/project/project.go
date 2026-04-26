@@ -191,18 +191,6 @@ func (project Project) MarshalJSON() (data []byte, err error) {
 	return data, errors.JSONMarshalError.Wrap(err)
 }
 
-// GetWorkspace gets the workspace from the command
-func GetWorkspace(cmd *cobra.Command, profile *profile.Profile) (workspace string, err error) {
-	workspace = cmd.Flag("workspace").Value.String()
-	if len(workspace) == 0 {
-		workspace = profile.DefaultWorkspace
-		if len(workspace) == 0 {
-			return "", errors.ArgumentMissing.With("workspace")
-		}
-	}
-	return
-}
-
 // GetProjectKeys gets the keys of the projects in the workspace given in the command
 func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string, toComplete string) (keys []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")

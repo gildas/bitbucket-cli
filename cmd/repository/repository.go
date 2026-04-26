@@ -157,22 +157,6 @@ func (repository Repository) GetName() string {
 	return repository.Name
 }
 
-// FetchWorkspace fetches the workspace of the repository
-func (repository *Repository) FetchWorkspace(context context.Context, cmd *cobra.Command, profile *profile.Profile) (*workspace.Workspace, error) {
-	if repository == nil {
-		return nil, errors.ArgumentMissing.With("repository")
-	}
-	if !repository.Workspace.ID.IsNil() {
-		return &repository.Workspace, nil
-	}
-	workspacename := strings.Split(repository.FullName, "/")[0]
-	workspace, err := workspace.GetWorkspace(context, cmd, workspacename)
-	if err == nil {
-		repository.Workspace = *workspace
-	}
-	return workspace, err
-}
-
 // GetHeaders gets the header for a table
 //
 // implements common.Tableable
@@ -244,36 +228,119 @@ func (repository Repository) GetRow(headers []string) []string {
 	return row
 }
 
-// GetEffectiveDefaultReviewers gets the effective default reviewers for a repository
-func (repository Repository) GetEffectiveDefaultReviewers(context context.Context, cmd *cobra.Command) (reviewers []reviewer.Reviewer, err error) {
-	return profile.GetAll[reviewer.Reviewer](context, cmd, fmt.Sprintf("/repositories/%s/%s/effective-default-reviewers", repository.Workspace.Slug, repository.Slug))
+// FetchWorkspace fetches the workspace of the repository
+//
+// Deprecated
+func (repository *Repository) FetchWorkspaceX(context context.Context, cmd *cobra.Command, profile *profile.Profile) (*workspace.Workspace, error) {
+	if repository == nil {
+		return nil, errors.ArgumentMissing.With("repository")
+	}
+	if !repository.Workspace.ID.IsNil() {
+		return &repository.Workspace, nil
+	}
+	workspacename := strings.Split(repository.FullName, "/")[0]
+	workspace, err := workspace.GetWorkspaceByName(context, cmd, workspacename)
+	if err == nil {
+		repository.Workspace = *workspace
+	}
+	return workspace, err
+}
+
+// GetRepositoryName gets the name of the repository from the command line or from the git config
+func GetRepositoryName(context context.Context, cmd *cobra.Command) (repositoryName string, err error) {
+	if cmd.Flag("repository") != nil {
+		if repositoryName = cmd.Flag("repository").Value.String(); len(repositoryName) > 0 {
+			return
+		}
+	}
+	if remote, err := remote.GetRemote(context, cmd); err == nil {
+		return remote.RepositoryName(), nil
+	}
+	return "", errors.ArgumentMissing.With("repository")
 }
 
 // GetRepository gets a repository by its slug
-func GetRepository(context context.Context, cmd *cobra.Command, profile *profile.Profile, workspace, slug string) (repository *Repository, err error) {
-	log := logger.Must(logger.FromContext(context)).Child("repository", "get")
+func GetRepository(ctx context.Context, cmd *cobra.Command) (repository *Repository, err error) {
+	name, err := GetRepositoryName(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+	return GetRepositoryByName(ctx, cmd, name)
+}
 
-	if repository, err = RepositoryCache.Get(fmt.Sprintf("%s/%s", workspace, slug)); err == nil {
-		log.Debugf("Repository %s/%s found in cache", workspace, slug)
+// GetRepositoryByName gets a repository by its slug name
+//
+// If the slug is in the format "workspace/repository", the workspace is used to get the repository.
+//
+// Otherwise, the workspace is determined by the git config or the default workspace in the profile.
+func GetRepositoryByName(ctx context.Context, cmd *cobra.Command, slug string) (repository *Repository, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child("repository", "get_by_name", "repository", slug)
+	var ws *workspace.Workspace
+
+	if components := strings.Split(slug, "/"); len(components) == 2 {
+		log.Debugf("Repository slug %s contains a workspace, extracting workspace and repository name", slug)
+		slug = components[1]
+		ws, err = workspace.GetWorkspaceByName(ctx, cmd, components[0])
+	} else {
+		log.Debugf("Repository slug %s does not contain a workspace, using git config or default workspace", slug)
+		ws, err = workspace.GetWorkspace(ctx, cmd)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if repository, err = RepositoryCache.Get(fmt.Sprintf("%s/%s", ws.Slug, slug)); err == nil {
+		log.Debugf("Repository %s/%s found in cache", ws.Slug, slug)
 		return
 	}
+
+	log.Infof("Getting repository %s in workspace %s", slug, ws.Slug)
+	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return nil, err
+	}
+
 	err = profile.Get(
-		context,
+		ctx,
 		cmd,
-		fmt.Sprintf("/repositories/%s/%s", workspace, slug),
+		fmt.Sprintf("/repositories/%s/%s", ws.Slug, slug),
 		&repository,
 	)
 	if err == nil {
-		_ = RepositoryCache.Set(*repository, fmt.Sprintf("%s/%s", workspace, slug))
+		_ = RepositoryCache.Set(*repository, fmt.Sprintf("%s/%s", ws.Slug, slug))
 	}
 	return
+}
+
+// GetForks gets the forks of the repository
+func (repository Repository) GetForks(ctx context.Context, cmd *cobra.Command) (forks []Repository, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child("repository", "forks")
+
+	log.Infof("Getting forks of repository %s/%s", repository.Workspace.Slug, repository.Slug)
+	return profile.GetAll[Repository](
+		ctx,
+		cmd,
+		fmt.Sprintf("/repositories/%s/%s/forks", repository.Workspace.Slug, repository.Slug),
+	)
+}
+
+// GetEffectiveDefaultReviewers gets the effective default reviewers for a repository
+func (repository Repository) GetEffectiveDefaultReviewers(ctx context.Context, cmd *cobra.Command) (reviewers []reviewer.Reviewer, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child("repository", "effective-default-reviewers")
+
+	log.Infof("Getting effective default reviewers of repository %s/%s", repository.Workspace.Slug, repository.Slug)
+	return profile.GetAll[reviewer.Reviewer](
+		ctx,
+		cmd,
+		fmt.Sprintf("/repositories/%s/%s/effective-default-reviewers", repository.Workspace.Slug, repository.Slug),
+	)
 }
 
 // GetRepositoryFromGit gets a repository from a git origin
 func GetRepositoryFromGit(context context.Context, cmd *cobra.Command, profile *profile.Profile) (repository *Repository, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("repository", "fromgit")
 
-	remote, err := remote.GetFromGitConfig(context, "origin")
+	remote, err := remote.GetRemoteFromGitConfig(context, "origin")
 	if err != nil {
 		return nil, err
 	}
@@ -298,20 +365,6 @@ func GetRepositoryFromGit(context context.Context, cmd *cobra.Command, profile *
 // implements fmt.Stringer
 func (repository Repository) String() string {
 	return repository.FullName
-}
-
-// GetRepositorySlugs gets the slugs of all repositories
-func GetRepositorySlugs(context context.Context, cmd *cobra.Command, workspace string) (slugs []string, err error) {
-	log := logger.Must(logger.FromContext(context)).Child("repository", "slugs")
-
-	repositories, err := profile.GetAll[Repository](context, cmd, fmt.Sprintf("/repositories/%s", workspace))
-	if err != nil {
-		log.Errorf("Failed to get repositories", err)
-		return
-	}
-	slugs = core.Map(repositories, func(repository Repository) string { return repository.Slug })
-	core.Sort(slugs, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
-	return slugs, nil
 }
 
 // Validate validates a Repository
