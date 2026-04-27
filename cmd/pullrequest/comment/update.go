@@ -17,6 +17,7 @@ import (
 type CommentUpdator struct {
 	Content ContentUpdator     `json:"content" mapstructure:"content"`
 	Anchor  *common.FileAnchor `json:"inline,omitempty" mapstructure:"inline"`
+	Parent  *ParentReference   `json:"parent,omitempty" mapstructure:"parent"`
 }
 
 type ContentUpdator struct {
@@ -38,6 +39,7 @@ var updateOptions struct {
 	File          string
 	From          int
 	To            int
+	ParentID      int64
 }
 
 func init() {
@@ -50,6 +52,7 @@ func init() {
 	updateCmd.Flags().IntVar(&updateOptions.From, "line", 0, "From line to comment on. Cannot be used with --to")
 	updateCmd.Flags().IntVar(&updateOptions.From, "from", 0, "From line to comment on. Cannot be used with --line")
 	updateCmd.Flags().IntVar(&updateOptions.To, "to", 0, "To line to comment on. Cannot be used with --line")
+	updateCmd.Flags().Int64Var(&updateOptions.ParentID, "parent", 0, "Parent comment ID to reply to")
 	updateCmd.MarkFlagsMutuallyExclusive("line", "from")
 	updateCmd.MarkFlagsMutuallyExclusive("line", "to")
 	_ = updateCmd.MarkFlagRequired("pullrequest")
@@ -98,6 +101,10 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		}
 	} else if updateOptions.From > 0 || updateOptions.To > 0 {
 		return errors.RuntimeError.With("Cannot specify from/to without a file")
+	}
+
+	if updateOptions.ParentID > 0 {
+		payload.Parent = &ParentReference{ID: updateOptions.ParentID}
 	}
 
 	log.Record("payload", payload).Infof("Updating pullrequest comment")

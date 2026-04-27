@@ -17,15 +17,11 @@ import (
 type CommentCreator struct {
 	Content ContentCreator     `json:"content" mapstructure:"content"`
 	Anchor  *common.FileAnchor `json:"inline,omitempty" mapstructure:"inline"`
-	Parent  *ParentRef         `json:"parent,omitempty" mapstructure:"parent"`
+	Parent  *ParentReference   `json:"parent,omitempty" mapstructure:"parent"`
 }
 
 type ContentCreator struct {
 	Raw string `json:"raw" mapstructure:"raw"`
-}
-
-type ParentRef struct {
-	ID int64 `json:"id" mapstructure:"id"`
 }
 
 var createCmd = &cobra.Command{
@@ -81,7 +77,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if createOptions.ParentID > 0 {
-		payload.Parent = &ParentRef{ID: createOptions.ParentID}
+		payload.Parent = &ParentReference{ID: createOptions.ParentID}
 	}
 
 	if createOptions.File != "" {

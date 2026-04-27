@@ -71,7 +71,7 @@ func (suite *CommentCreateSuite) AfterTest(suiteName, testName string) {
 func (suite *CommentCreateSuite) TestCanMarshalCommentCreatorWithParent() {
 	creator := comment.CommentCreator{
 		Content: comment.ContentCreator{Raw: "This is a reply"},
-		Parent:  &comment.ParentRef{ID: 759578390},
+		Parent:  &comment.ParentReference{ID: 759578390},
 	}
 
 	data, err := json.Marshal(creator)
@@ -113,7 +113,7 @@ func (suite *CommentCreateSuite) TestCanMarshalCommentCreatorWithoutParent() {
 func (suite *CommentCreateSuite) TestCommentCreatorJSONMatchesBitbucketAPIFormat() {
 	creator := comment.CommentCreator{
 		Content: comment.ContentCreator{Raw: "Done!"},
-		Parent:  &comment.ParentRef{ID: 759578390},
+		Parent:  &comment.ParentReference{ID: 759578390},
 	}
 
 	data, err := json.Marshal(creator)

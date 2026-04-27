@@ -46,6 +46,10 @@ type PullRequestReference struct {
 	Links common.Links `json:"links" mapstructure:"links"`
 }
 
+type ParentReference struct {
+	ID int64 `json:"id" mapstructure:"id"`
+}
+
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "comment",
