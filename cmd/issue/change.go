@@ -9,6 +9,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/spf13/cobra"
 )
@@ -122,9 +123,9 @@ func (change IssueChange) MarshalJSON() (data []byte, err error) {
 
 // GetIssueChanges gets the changes for an issue
 func GetIssueChanges(context context.Context, cmd *cobra.Command, issueID string) (changes IssueChanges, err error) {
-	return profile.GetAll[IssueChange](
-		cmd.Context(),
-		cmd,
-		fmt.Sprintf("issues/%s/changes", issueID),
-	)
+	repository, err := repository.GetRepository(context, cmd)
+	if err != nil {
+		return changes, err
+	}
+	return profile.GetAll[IssueChange](cmd.Context(), cmd, repository.GetPath("issues", issueID, "changes"))
 }

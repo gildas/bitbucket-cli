@@ -8,6 +8,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -41,7 +42,12 @@ func (branches Branches) Size() int {
 
 // GetBranches gets the branches of a repository
 func GetBranches(context context.Context, cmd *cobra.Command) (branches []Branch, err error) {
-	uripath := "refs/branches"
+	repository, err := repository.GetRepository(context, cmd)
+	if err != nil {
+		return []Branch{}, err
+	}
+
+	uripath := repository.GetPath("refs/branches")
 	if cmd != nil && cmd.Flag("query") != nil && cmd.Flag("query").Changed {
 		query, err := cmd.Flags().GetString("query")
 		if err != nil {

@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -20,14 +21,8 @@ var declineCmd = &cobra.Command{
 	RunE:              declineProcess,
 }
 
-var declineOptions struct {
-	Repository string
-}
-
 func init() {
 	Command.AddCommand(declineCmd)
-
-	declineCmd.Flags().StringVar(&declineOptions.Repository, "repository", "", "Repository to decline pullrequest from. Defaults to the current repository")
 }
 
 func declineValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -55,6 +50,11 @@ func declineProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Declining pullrequest %s", args[0]) {
 		return nil
 	}
@@ -63,7 +63,7 @@ func declineProcess(cmd *cobra.Command, args []string) (err error) {
 	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s/decline", args[0]),
+		repository.GetPath("pullrequests", args[0], "decline"),
 		nil,
 		&participant,
 	)

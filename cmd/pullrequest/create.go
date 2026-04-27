@@ -38,7 +38,6 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
-	Repository        string
 	Title             string
 	Description       string
 	Source            *flags.EnumFlag
@@ -55,7 +54,6 @@ func init() {
 	createOptions.Destination = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
 	createOptions.Reviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(GetReviewerNicknames)
 
-	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create pullrequest in. Defaults to the current repository")
 	createCmd.Flags().StringVar(&createOptions.Title, "title", "", "Title of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the pullrequest")
 	createCmd.Flags().Var(createOptions.Source, "source", "Source branch of the pullrequest")
@@ -79,6 +77,11 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	if len(createOptions.Title) == 0 {
 		return errors.ArgumentMissing.With("title")
 	}
@@ -94,12 +97,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		payload.Destination = &Endpoint{Branch: Branch{Name: createOptions.Destination.Value}}
 	}
 
-	pullrequestRepository, err := repository.GetRepositoryFromGit(ctx, cmd, profile)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get repository: %s\n", err)
-		os.Exit(1)
-	}
-	log.Record("repository", pullrequestRepository).Infof("Using repository: %s", pullrequestRepository.Slug)
+	log.Record("repository", repository).Infof("Using repository: %s", repository)
 
 	if len(createOptions.Reviewers.Values) > 0 && createOptions.Reviewers.Values[0] != "default" {
 		isMember := func(member workspace.Member, id string) bool {
@@ -109,7 +107,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			return member.User.AccountID == id || strings.EqualFold(member.User.Nickname, id) || strings.EqualFold(member.User.Name, id)
 		}
 
-		members, _ := pullrequestRepository.Workspace.GetMembers(ctx, cmd)
+		members, _ := repository.Workspace.GetMembers(ctx, cmd)
 		payload.Reviewers = make([]user.User, 0, len(createOptions.Reviewers.Values))
 		for _, reviewer := range createOptions.Reviewers.Values {
 			if matches := core.Filter(members, func(member workspace.Member) bool { return isMember(member, reviewer) }); len(matches) > 0 {
@@ -138,7 +136,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 		// Find the default reviewers from the repo or project settings
 		log.Debugf("No reviewers in the repository, trying to get effective default reviewers from the repository")
-		reviewers, err = pullrequestRepository.GetEffectiveDefaultReviewers(ctx, cmd)
+		reviewers, err = repository.GetEffectiveDefaultReviewers(ctx, cmd)
 		if err != nil {
 			log.Errorf("Failed to get default reviewers", err)
 			return errors.Join(errors.New("Failed to get the default reviewers"), err, errMe)

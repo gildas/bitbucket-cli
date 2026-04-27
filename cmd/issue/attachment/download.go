@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -22,7 +23,6 @@ var downloadCmd = &cobra.Command{
 
 var downloadOptions struct {
 	IssueID     *flags.EnumFlag
-	Repository  string
 	Destination string
 	Progress    bool
 }
@@ -31,7 +31,6 @@ func init() {
 	Command.AddCommand(downloadCmd)
 
 	downloadOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
-	downloadCmd.Flags().StringVar(&downloadOptions.Repository, "repository", "", "Repository to get an issue attachment from. Defaults to the current repository")
 	downloadCmd.Flags().Var(downloadOptions.IssueID, "issue", "Issue to get attachments from")
 	downloadCmd.Flags().StringVar(&downloadOptions.Destination, "destination", "", "Destination folder to download the attachment to. Defaults to the current folder")
 	downloadCmd.Flags().BoolVar(&downloadOptions.Progress, "progress", false, "Show progress")
@@ -60,12 +59,16 @@ func downloadProcess(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
 
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Downloading attachment %s from issue %s to %s", args[0], downloadOptions.IssueID, downloadOptions.Destination) {
 		err := profile.Download(
 			log.ToContext(cmd.Context()),
 			cmd,
-			fmt.Sprintf("issues/%s/attachments/%s", downloadOptions.IssueID.Value, args[0]),
+			repository.GetPath("issues", downloadOptions.IssueID.Value, "attachments", args[0]),
 			downloadOptions.Destination,
 		)
 		if err != nil {

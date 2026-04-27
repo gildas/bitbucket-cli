@@ -14,11 +14,14 @@ var useCmd = &cobra.Command{
 	Short:             "set the default profile by its <profile-name>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: ValidProfileNames,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              useProcess,
 }
 
 func init() {
 	Command.AddCommand(useCmd)
+
+	useCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func useProcess(cmd *cobra.Command, args []string) error {

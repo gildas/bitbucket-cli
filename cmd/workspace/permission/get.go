@@ -18,6 +18,7 @@ var getCmd = &cobra.Command{
 	Short:             "get user permission on a workspace.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              getProcess,
 }
 
@@ -31,6 +32,7 @@ func init() {
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
+	getCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

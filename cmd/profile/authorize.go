@@ -20,11 +20,13 @@ var authorizeCmd = &cobra.Command{
 	Use:               "authorize",
 	Short:             "authorize an Authorization Code Grant profile",
 	ValidArgsFunction: ValidProfileNames,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              authorizeProcess,
 }
 
 func init() {
 	Command.AddCommand(authorizeCmd)
+	authorizeCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func authorizeProcess(cmd *cobra.Command, args []string) error {

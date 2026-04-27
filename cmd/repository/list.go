@@ -7,7 +7,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -16,15 +15,15 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "list all public repositories",
-	Args:  cobra.NoArgs,
-	RunE:  listProcess,
+	Use:     "list",
+	Short:   "list all public repositories",
+	Args:    cobra.NoArgs,
+	PreRunE: disableUnsupportedFlags,
+	RunE:    listProcess,
 }
 
 var listOptions struct {
 	Role       *flags.EnumFlag
-	Workspace  *flags.EnumFlag
 	MainBranch string
 	Project    string
 	ProjectKey string
@@ -41,11 +40,9 @@ func init() {
 	Command.AddCommand(listCmd)
 
 	listOptions.Role = flags.NewEnumFlag("all", "+owner", "admin", "contributor", "member")
-	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.Role, "role", "Role of the user in the repository (all, owner, admin, contributor, member), Default: owner")
-	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list repositories from")
 	listCmd.Flags().StringVar(&listOptions.Project, "project", "", "Project to list repositories from (optional)")
 	listCmd.Flags().StringVar(&listOptions.ProjectKey, "project-key", "", "Project key to list repositories from (optional)")
 	listCmd.Flags().BoolVar(&listOptions.HasIssues, "has-issues", false, "Filter repositories that have issues enabled (optional)")
@@ -56,10 +53,10 @@ func init() {
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
-	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Workspace.CompletionFunc("workspace"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Role.CompletionFunc("role"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
+	listCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
@@ -107,8 +104,8 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		query.Add("role", listOptions.Role.Value)
 	}
 
-	log.Infof("Listing all repositories, workspace %s, role %s", listOptions.Workspace, listOptions.Role)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing repositories, workspace %s, role %s", listOptions.Workspace, listOptions.Role)) {
+	log.Infof("Listing all repositories with role %s", listOptions.Role)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing repositories with role %s", listOptions.Role)) {
 		return nil
 	}
 

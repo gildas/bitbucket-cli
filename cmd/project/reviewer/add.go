@@ -18,23 +18,21 @@ var addCmd = &cobra.Command{
 	Aliases: []string{"append"},
 	Short:   "add a reviewer",
 	Args:    cobra.ExactArgs(1),
+	PreRunE: disableUnsupportedFlags,
 	RunE:    addProcess,
 }
 
 var addOptions struct {
-	Workspace *flags.EnumFlag
-	Project   *flags.EnumFlag
+	Project *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(addCmd)
 
-	addOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	addOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
-	addCmd.Flags().Var(addOptions.Workspace, "workspace", "Workspace to add reviewers to")
 	addCmd.Flags().Var(addOptions.Project, "project", "Project Key to add reviewers to")
-	_ = addCmd.RegisterFlagCompletionFunc(addOptions.Workspace.CompletionFunc("workspace"))
-	_ = getCmd.RegisterFlagCompletionFunc(addOptions.Project.CompletionFunc("project"))
+	_ = addCmd.RegisterFlagCompletionFunc(addOptions.Project.CompletionFunc("project"))
+	addCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func addProcess(cmd *cobra.Command, args []string) error {
@@ -45,7 +43,7 @@ func addProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	workspace, err := workspace.GetWorkspaceName(cmd.Context(), cmd)
+	workspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}

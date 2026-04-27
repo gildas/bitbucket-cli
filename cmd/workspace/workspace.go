@@ -212,6 +212,24 @@ func (workspace Workspace) GetMembers(context context.Context, cmd *cobra.Comman
 	return
 }
 
+// disableUnsupportedFlags disables the flags that are not supported by the workspace command
+func disableUnsupportedFlags(cmd *cobra.Command, args []string) error {
+	if cmd.Flags().Changed("repository") {
+		return fmt.Errorf("the --repository flag is not supported by the workspace command")
+	}
+	if cmd.Flags().Changed("workspace") {
+		return fmt.Errorf("the --workspace flag is not supported by the workspace command")
+	}
+	return nil
+}
+
+// hideUnsupportedFlags hides the flags that are not supported by the workspace command
+func hideUnsupportedFlags(cmd *cobra.Command, args []string) {
+	cmd.Flags().MarkHidden("repository")
+	cmd.Flags().MarkHidden("workspace")
+	cmd.Parent().HelpFunc()(cmd, args)
+}
+
 // MarshalJSON marshals the workspace to JSON
 //
 // implements json.Marshaler

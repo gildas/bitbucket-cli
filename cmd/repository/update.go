@@ -7,7 +7,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -29,11 +28,11 @@ var updateCmd = &cobra.Command{
 	Short:             "update a repository in a project and a workspace. The project <slug> must be unique in the workspace.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: updateValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              updateProcess,
 }
 
 var updateOptions struct {
-	Workspace   *flags.EnumFlag
 	Project     *flags.EnumFlag
 	Name        string
 	Description string
@@ -47,10 +46,8 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	updateOptions.Project = flags.NewEnumFlagWithFunc("", project.GetProjectKeys)
 	updateOptions.ForkPolicy = flags.NewEnumFlag("allow_forks", "+no_public_forks", "no_forks")
-	updateCmd.Flags().Var(updateOptions.Workspace, "workspace", "Workspace to update repositories from")
 	updateCmd.Flags().Var(updateOptions.Project, "project", "Project to update repositories from")
 	updateCmd.Flags().StringVar(&updateOptions.Name, "name", "", "Name of the repository")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the repository")
@@ -60,8 +57,12 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.MainBranch, "main-branch", "", "Main branch of the repository")
 	updateCmd.Flags().Var(updateOptions.ForkPolicy, "fork-policy", "Fork policy of the repository. Default: no_public_forks")
 	updateCmd.MarkFlagsMutuallyExclusive("private", "public")
-	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.Workspace.CompletionFunc("workspace"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.Project.CompletionFunc("project"))
+	updateCmd.Flags().MarkHidden("repository")
+	createCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		cmd.Flags().MarkHidden("repository")
+		cmd.Parent().HelpFunc()(cmd, args)
+	})
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -114,19 +115,13 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		payload.Project = project.NewReference(updateOptions.Project.Value)
 	}
 
-	log.Record("payload", payload).Infof("Updating repository %s/%s in project %s", repository.Workspace.Slug, repository.Slug, updateOptions.Project)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating repository %s/%s in project %s", repository.Workspace.Slug, repository.Slug, updateOptions.Project) {
+	log.Record("payload", payload).Infof("Updating repository %s in project %s", repository.GetPath(), updateOptions.Project)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating repository %s in project %s", repository.GetPath(), updateOptions.Project) {
 		return nil
 	}
 	var updated Repository
 
-	err = profile.Put(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("/repositories/%s/%s", repository.Workspace.Slug, repository.Slug),
-		payload,
-		&updated,
-	)
+	err = profile.Put(log.ToContext(cmd.Context()), cmd, repository.GetPath(), payload, &updated)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to update repository %s/%s: %s\n", repository.Workspace.Slug, repository.Slug, err)
 		os.Exit(1)

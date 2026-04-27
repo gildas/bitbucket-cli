@@ -90,6 +90,17 @@ All commands that would modify something on Bitbucket now allow you to preview t
 bb repo delete myrepository3 --dry-run
 ```
 
+Most commands will support the `--workspace` and `--repository` flags to specify the workspace and repository to use. If not provided, the workspace and repository will be determined from the git configuration or the profile configuration (in that order). The workspace and repository can be combined in the `--repository` flag in the form `workspace/repository`. For example:
+
+```bash
+bb repo list --workspace myworkspace
+bb pullrequest list --repository myrepository
+bb pullrequest list --workspace myworkspace --repository myrepository
+bb pullrequest list --repository myworkspace/myrepository
+```
+
+The `--workspace` flag is also dynamically auto-completed with the workspaces you have access to.
+
 `get` and `list` commands support the `--columns` flag to specify which columns to display in the output. You can pass a comma-separated list of columns, repeat the flag, or use `all` to display all columns. If you do not provide this flag, the default columns are displayed.
 
 ```bash
@@ -387,18 +398,16 @@ bb workspace permission list myworkspace
 
 ### Projects
 
-You can list projects with the `bb project list` command. If the `--workspace` flag is not provided, the default workspace of the profile is used (if the profile does not have a default workspace, the command will fail):
+You can list projects with the `bb project list` command:
 
 ```bash
-bb project list --workspace myworkspace
+bb project list
 ```
-
-The `--workspace` flag is also dynamically auto-completed with the workspaces you have access to.
 
 You can also get the details of a project with the `bb project get` or `bb project show` command:
 
 ```bash
-bb project get myproject --workspace myworkspace
+bb project get myproject
 ```
 
 You can create a project with the `bb project create` command:
@@ -424,10 +433,12 @@ bb project delete myproject
 
 #### Project Default Reviewers
 
-You can list the default reviewers of a project with the `bb project reviewer list` command. In addition to the `--workspace`, if the `--project` flag is not provided, the default project of the workspace is used (if the workspace does not have a default project, the command will fail):
+You can list the default reviewers of a project with the `bb project reviewer list` command. Similarly to the `--workspace`, if the `--project` flag is not provided, the default project of the workspace is used (if the workspace does not have a default project, the command will fail):
 
 ```bash
 bb project reviewer list --workspace myworkspace --project myproject
+bb project reviewer list --project myproject
+bb project reviewer list
 ```
 
 You can add a default reviewer to a project with the `bb project reviewer add` command:
@@ -447,10 +458,7 @@ bb project reviewer remove userUUID
  You can get the details of a default reviewer with the `bb project reviewer get` or `bb project reviewer show` command:
 
 ```bash
-bb project reviewer get \
-  --workspace myworkspace \
-  --project myproject \
-  userUUID
+bb project reviewer get --project myproject userUUID
 ```
 
 ### Repositories
@@ -466,7 +474,8 @@ If you do not provide a workspace, the command will attempt to list all reposito
 You can narrow down the list of repositories with the `--role`, `--project`, `--project-key`, `--has-issues`, `--has-wiki`, `--is-private`, `--language`, and `--main-branch` flags:
 
 ```bash
-bb repo list --workspace myworkspace \
+bb repo list \
+  --workspace myworkspace \
   --role        owner \
   --project     myproject \
   --has-issues  true \
@@ -478,10 +487,10 @@ bb repo list --workspace myworkspace \
 
 All filterers are optional and combined with an AND operator.
 
-You can also get the details of a repository with the `bb repo get` or `bb repo show` command. If the `--workspace` flag is not provided, the default workspace of the profile is used (if the profile does not have a default workspace, the command will fail):
+You can also get the details of a repository with the `bb repo get` or `bb repo show` command:
 
 ```bash
-bb repo get --workspace myworkspace myrepository
+bb repo get myrepository
 ```
 
 You can clone a repository with the `bb repo clone` command:
@@ -549,7 +558,7 @@ If the `--project` flag is not provided, the repository will be created in the d
 You can update a repository with the `bb repo update` command:
 
 ```bash
-bb repo update --workspace myworkspace myrepository \
+bb repo update myrepository \
   --private \
   --fork-policy no_public_forks
 ```
@@ -557,7 +566,7 @@ bb repo update --workspace myworkspace myrepository \
 You can delete a repository with the `bb repo delete` command:
 
 ```bash
-bb repo delete --workspace myworkspace myrepository
+bb repo delete myrepository
 ```
 
 You can fork a repository with the `bb repo fork` command:
@@ -572,9 +581,7 @@ bb repo fork myrepository \
 You can list the forks of a repository with the `bb repo get --forks` command:
 
 ```bash
-bb repo get myrepository \
-  --workspace myworkspace \
-  --forks
+bb repo get myrepository --forks
 ```
 
 ### Branches
@@ -585,24 +592,12 @@ You can list branches with the `bb branch list` command:
 bb branch list
 ```
 
-By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
-
-```bash
-bb branch list --repository myrepository --workspace myworkspace
-```
-
 ### Commits
 
 You can list commits with the `bb commit list` command:
 
 ```bash
 bb commit list
-```
-
-By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
-
-```bash
-bb commit list --repository myrepository --workspace myworkspace
 ```
 
 You can get the details of a commit with the `bb commit get` or `bb commit show` command:
@@ -649,12 +644,6 @@ You can list tags with the `bb tag list` command:
 
 ```bash
 bb tag list
-```
-
-By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
-
-```bash
-bb tag list --repository myrepository --workspace myworkspace
 ```
 
 You can get the details of a tag with the `bb tag get` or `bb tag show` command:

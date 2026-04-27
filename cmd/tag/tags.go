@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -39,7 +40,12 @@ func (tags Tags) Size() int {
 
 // GetTags gets the tags of a repository
 func GetTags(context context.Context, cmd *cobra.Command) (tags []Tag, err error) {
-	return profile.GetAll[Tag](context, cmd, "refs/tags")
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return profile.GetAll[Tag](context, cmd, repository.GetPath("refs", "tags"))
 }
 
 // GetTagNames gets the tag names of a repository

@@ -11,7 +11,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
-	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -29,11 +28,11 @@ var createCmd = &cobra.Command{
 	Aliases: []string{"add", "new"},
 	Short:   "create a project",
 	Args:    cobra.NoArgs,
+	PreRunE: disableUnsupportedFlags,
 	RunE:    createProcess,
 }
 
 var createOptions struct {
-	Workspace   *flags.EnumFlag
 	Name        string
 	Key         string
 	Description string
@@ -45,8 +44,6 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
-	createCmd.Flags().Var(createOptions.Workspace, "workspace", "Workspace to create projects from")
 	createCmd.Flags().StringVar(&createOptions.Name, "name", "", "Name of the project")
 	createCmd.Flags().StringVar(&createOptions.Key, "key", "", "Key of the project")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the project")
@@ -57,7 +54,7 @@ func init() {
 	_ = createCmd.MarkFlagRequired("key")
 	_ = createCmd.MarkFlagFilename("avatar-file")
 	createCmd.MarkFlagsMutuallyExclusive("avatar-url", "avatar-file")
-	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Workspace.CompletionFunc("workspace"))
+	createCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {

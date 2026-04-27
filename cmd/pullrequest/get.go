@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -22,15 +23,13 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Repository string
-	Columns    *flags.EnumSliceFlag
+	Columns *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pullrequest from. Defaults to the current repository")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
 }
@@ -60,6 +59,11 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	log.Infof("Displaying pull request %s", args[0])
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing pull request %s", args[0])) {
 		return nil
@@ -69,7 +73,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s", args[0]),
+		repository.GetPath("pullrequests", args[0]),
 		&pullrequest,
 	)
 	if err != nil {

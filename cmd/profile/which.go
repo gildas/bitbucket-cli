@@ -6,14 +6,17 @@ import (
 )
 
 var whichCmd = &cobra.Command{
-	Use:   "which",
-	Short: "display the current profile name",
-	Args:  cobra.NoArgs,
-	RunE:  whichProcess,
+	Use:     "which",
+	Short:   "display the current profile name",
+	Args:    cobra.NoArgs,
+	PreRunE: disableUnsupportedFlags,
+	RunE:    whichProcess,
 }
 
 func init() {
 	Command.AddCommand(whichCmd)
+
+	whichCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func whichProcess(cmd *cobra.Command, args []string) error {

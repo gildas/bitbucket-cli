@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -18,14 +19,8 @@ var unvoteCmd = &cobra.Command{
 	RunE:              unvoteProcess,
 }
 
-var unvoteOptions struct {
-	Repository string
-}
-
 func init() {
 	Command.AddCommand(unvoteCmd)
-
-	unvoteCmd.Flags().StringVar(&unvoteOptions.Repository, "repository", "", "Repository to unvote an issue from. Defaults to the current repository")
 }
 
 func unvoteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -48,13 +43,13 @@ func unvoteProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Unvoting from issue %s", args[0]) {
-		err = profile.Delete(
-			log.ToContext(cmd.Context()),
-			cmd,
-			fmt.Sprintf("issues/%s/vote", args[0]),
-			nil,
-		)
+		err = profile.Delete(log.ToContext(cmd.Context()), cmd, repository.GetPath("issues", args[0], "vote"), nil)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to unvote issue %s: %s\n", args[0], err)
 			os.Exit(1)

@@ -5,7 +5,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -13,34 +12,32 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "list all reviewers",
-	Args:  cobra.NoArgs,
-	RunE:  listProcess,
+	Use:     "list",
+	Short:   "list all reviewers",
+	Args:    cobra.NoArgs,
+	PreRunE: disableUnsupportedFlags,
+	RunE:    listProcess,
 }
 
 var listOptions struct {
-	Workspace *flags.EnumFlag
-	Project   *flags.EnumFlag
-	Columns   *flags.EnumSliceFlag
-	SortBy    *flags.EnumFlag
+	Project *flags.EnumFlag
+	Columns *flags.EnumSliceFlag
+	SortBy  *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	listOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
-	listCmd.Flags().Var(listOptions.Workspace, "workspace", "Workspace to list reviewers from")
 	listCmd.Flags().Var(listOptions.Project, "project", "Project Key to list reviewers from")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
-	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Workspace.CompletionFunc("workspace"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Project.CompletionFunc("project"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
+	listCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

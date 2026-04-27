@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -33,7 +34,6 @@ var updateCmd = &cobra.Command{
 }
 
 var updateOptions struct {
-	Repository  string
 	Title       string
 	Kind        *flags.EnumFlag
 	Priority    *flags.EnumFlag
@@ -47,7 +47,6 @@ func init() {
 
 	updateOptions.Kind = flags.NewEnumFlag("bug", "enhancement", "proposal", "task")
 	updateOptions.Priority = flags.NewEnumFlag("major", "trivial", "minor", "major", "critical", "blocker")
-	updateCmd.Flags().StringVar(&updateOptions.Repository, "repository", "", "Repository to update an issue from. Defaults to the current repository")
 	updateCmd.Flags().StringVar(&updateOptions.Title, "title", "", "Title of the issue")
 	updateCmd.Flags().Var(updateOptions.Kind, "kind", "Kind of the issue")
 	updateCmd.Flags().Var(updateOptions.Priority, "priority", "Priority of the issue")
@@ -74,6 +73,11 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}
@@ -111,13 +115,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	var issue Issue
 
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating issue %s", args[0]) {
-		err = profile.Put(
-			log.ToContext(cmd.Context()),
-			cmd,
-			fmt.Sprintf("issues/%s", args[0]),
-			payload,
-			&issue,
-		)
+		err = profile.Put(log.ToContext(cmd.Context()), cmd, repository.GetPath("issues", args[0]), payload, &issue)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to update issue %s: %s\n", args[0], err)
 			os.Exit(1)

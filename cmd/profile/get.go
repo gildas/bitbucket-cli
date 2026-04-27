@@ -16,6 +16,7 @@ var getCmd = &cobra.Command{
 	Aliases:           []string{"show", "info", "display"},
 	Short:             "get a profile by its <profile-name>.",
 	ValidArgsFunction: ValidProfileNames,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              getProcess,
 }
 
@@ -31,6 +32,7 @@ func init() {
 	getCmd.Flags().BoolVar(&getOptions.Current, "current", false, "Get the current profile")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
+	getCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func getProcess(cmd *cobra.Command, args []string) error {

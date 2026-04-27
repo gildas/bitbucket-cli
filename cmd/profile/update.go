@@ -20,6 +20,7 @@ var updateCmd = &cobra.Command{
 	Short:             "update a profile by its <profile-name>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: ValidProfileNames,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              updateProcess,
 }
 
@@ -67,6 +68,7 @@ func init() {
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.CloneProtocol.CompletionFunc("clone-protocol"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.OutputFormat.CompletionFunc("output"))
 	_ = updateCmd.RegisterFlagCompletionFunc("error-processing", updateOptions.ErrorProcessing.CompletionFunc())
+	updateCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func updateProcess(cmd *cobra.Command, args []string) error {

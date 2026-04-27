@@ -17,6 +17,7 @@ var getCmd = &cobra.Command{
 	Short:             "get a workspace by its <workspace-slug-or-id> or the current workspace by default. With the --members flag, it ill display the members of the workspace. With the --member flag, it will display workspaces for the given user.",
 	Args:              cobra.RangeArgs(0, 1),
 	ValidArgsFunction: getValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              getProcess,
 }
 
@@ -35,6 +36,7 @@ func init() {
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	getCmd.MarkFlagsMutuallyExclusive("member", "members")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
+	getCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

@@ -5,6 +5,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -55,10 +56,14 @@ func ancestorProcess(cmd *cobra.Command, args []string) error {
 	}
 	var ancestor Commit
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
 	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("merge-base/%s..%s", args[0], args[1]),
+		repository.GetPath("merge-base", fmt.Sprintf("%s..%s", args[0], args[1])),
 		&ancestor,
 	)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -21,7 +22,6 @@ var downloadCmd = &cobra.Command{
 }
 
 var downloadOptions struct {
-	Repository  string
 	Destination string
 	Progress    bool
 }
@@ -29,7 +29,6 @@ var downloadOptions struct {
 func init() {
 	Command.AddCommand(downloadCmd)
 
-	downloadCmd.Flags().StringVar(&downloadOptions.Repository, "repository", "", "Repository to download artifacts from. Defaults to the current repository")
 	downloadCmd.Flags().StringVar(&downloadOptions.Destination, "destination", "", "Destination folder to download the artifact to. Defaults to the current folder")
 	downloadCmd.Flags().BoolVar(&downloadOptions.Progress, "progress", false, "Show progress")
 	_ = downloadCmd.MarkFlagDirname("destination")
@@ -55,13 +54,18 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	repository, err := repository.GetRepository(log.ToContext(cmd.Context()), cmd)
+	if err != nil {
+		return err
+	}
+
 	var merr errors.MultiError
 	for _, artifactName := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Downloading artifact %s to %s", artifactName, downloadOptions.Destination) {
 			err := profile.Download(
 				log.ToContext(cmd.Context()),
 				cmd,
-				fmt.Sprintf("downloads/%s", artifactName),
+				repository.GetPath("downloads", artifactName),
 				downloadOptions.Destination,
 			)
 			if err != nil {

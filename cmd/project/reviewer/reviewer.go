@@ -116,7 +116,7 @@ func GetProjectName(cmd *cobra.Command, profile *profile.Profile) (projectName s
 func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string, toComplete string) (keys []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 
-	workspaceName, err := workspace.GetWorkspaceName(cmd.Context(), cmd)
+	workspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
 	if err != nil {
 		log.Warnf("No workspace given")
 		return
@@ -126,8 +126,8 @@ func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string, 
 		Key string `json:"key" mapstructure:"key"`
 	}
 
-	log.Infof("Getting all projects from workspace %s", workspaceName)
-	projects, err := profile.GetAll[Project](context, cmd, fmt.Sprintf("/workspaces/%s/projects", workspaceName))
+	log.Infof("Getting all projects from workspace %s", workspace)
+	projects, err := profile.GetAll[Project](context, cmd, fmt.Sprintf("/workspaces/%s/projects", workspace))
 	if err != nil {
 		log.Errorf("Failed to get projects", err)
 		return
@@ -141,11 +141,11 @@ func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string, 
 func GetReviewerUserIDs(context context.Context, cmd *cobra.Command, project string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("reviewer", "getids")
 
-	workspaceName, err := workspace.GetWorkspaceName(cmd.Context(), cmd)
+	workspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
 	if err != nil {
 		return []string{}, err
 	}
-	reviewers, err := profile.GetAll[Reviewer](context, cmd, fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspaceName, project))
+	reviewers, err := profile.GetAll[Reviewer](context, cmd, fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspace, project))
 	if err != nil {
 		log.Errorf("Failed to get reviewers", err)
 		return
@@ -157,9 +157,23 @@ func GetReviewerUserIDs(context context.Context, cmd *cobra.Command, project str
 
 // GetProjectDefaultReviewers gets the reviewers in the given workspace and project
 func GetProjectDefaultReviewers(context context.Context, cmd *cobra.Command, project string) (reviewers []Reviewer, err error) {
-	workspaceName, err := workspace.GetWorkspaceName(cmd.Context(), cmd)
+	workspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
 	if err != nil {
 		return []Reviewer{}, err
 	}
-	return profile.GetAll[Reviewer](context, cmd, fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspaceName, project))
+	return profile.GetAll[Reviewer](context, cmd, fmt.Sprintf("/workspaces/%s/projects/%s/default-reviewers", workspace, project))
+}
+
+// disableUnsupportedFlags disables the flags that are not supported by the project reviewer command
+func disableUnsupportedFlags(cmd *cobra.Command, args []string) error {
+	if cmd.Flags().Changed("repository") {
+		return fmt.Errorf("the --repository flag is not supported by the project reviewer command")
+	}
+	return nil
+}
+
+// hideUnsupportedFlags hides the flags that are not supported by the repository command
+func hideUnsupportedFlags(cmd *cobra.Command, args []string) {
+	cmd.Flags().MarkHidden("repository")
+	cmd.Parent().HelpFunc()(cmd, args)
 }

@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	plcommon "bitbucket.org/gildas_cherruel/bb/cmd/pipeline/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -22,7 +23,6 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Repository      string
 	PipelineID      *flags.EnumFlag
 	Columns         *flags.EnumSliceFlag
 	SortBy          *flags.EnumFlag
@@ -36,7 +36,6 @@ func init() {
 	listOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
-	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pipeline steps from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
@@ -55,15 +54,20 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	log.Infof("Listing all comments from repository %s with profile %s", listOptions.Repository, profile.Current)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing steps for pipeline %s in repository %s with profile %s", listOptions.PipelineID.Value, listOptions.Repository, profile.Current)) {
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Listing all comments from repository %s with profile %s", repository, profile.Current)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing steps for pipeline %s in repository %s with profile %s", listOptions.PipelineID.Value, repository, profile.Current)) {
 		return nil
 	}
 
 	steps, err := profile.GetAll[Step](
 		cmd.Context(),
 		cmd,
-		fmt.Sprintf("pipelines/%s/steps", listOptions.PipelineID.Value),
+		repository.GetPath("pipelines", listOptions.PipelineID.Value, "steps"),
 	)
 	if err != nil {
 		return err

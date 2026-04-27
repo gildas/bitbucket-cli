@@ -8,7 +8,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -25,14 +24,14 @@ type RepositoryCreator struct {
 }
 
 var createCmd = &cobra.Command{
-	Use:   "create [flags] <slug>",
-	Short: "create a repository in a project and a workspace. The repository <slug> must be unique in the workspace.",
-	Args:  cobra.ExactArgs(1),
-	RunE:  createProcess,
+	Use:     "create [flags] <slug>",
+	Short:   "create a repository in a project and a workspace. The repository <slug> must be unique in the workspace.",
+	Args:    cobra.ExactArgs(1),
+	PreRunE: disableUnsupportedFlags,
+	RunE:    createProcess,
 }
 
 var createOptions struct {
-	Workspace   *flags.EnumFlag
 	Project     *flags.EnumFlag
 	Name        string
 	Description string
@@ -46,10 +45,8 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	createOptions.Project = flags.NewEnumFlagWithFunc("", project.GetProjectKeys)
 	createOptions.ForkPolicy = flags.NewEnumFlag("allow_forks", "+no_public_forks", "no_forks")
-	createCmd.Flags().Var(createOptions.Workspace, "workspace", "Workspace to create repositories from")
 	createCmd.Flags().Var(createOptions.Project, "project", "Project to create repositories from")
 	createCmd.Flags().StringVar(&createOptions.Name, "name", "", "Name of the repository")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the repository")
@@ -59,8 +56,8 @@ func init() {
 	createCmd.Flags().StringVar(&createOptions.MainBranch, "main-branch", "", "Main branch of the repository")
 	createCmd.Flags().Var(createOptions.ForkPolicy, "fork-policy", "Fork policy of the repository. Default: no_public_forks")
 	createCmd.MarkFlagsMutuallyExclusive("private", "public")
-	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Workspace.CompletionFunc("workspace"))
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Project.CompletionFunc("project"))
+	createCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {
@@ -69,13 +66,6 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
 		return err
-	}
-
-	if len(createOptions.Workspace.Value) == 0 {
-		createOptions.Workspace.Value = profile.DefaultWorkspace
-		if len(createOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
 	}
 
 	payload := RepositoryCreator{
@@ -92,22 +82,22 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		payload.Project = project.NewReference(createOptions.Project.Value)
 	}
 
-	log.Record("payload", payload).Infof("Creating repository %s/%s in project %s", createOptions.Workspace, createOptions.Name, createOptions.Project)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating repository %s/%s in project %s", createOptions.Workspace, createOptions.Name, createOptions.Project) {
+	workspace, err := workspace.GetWorkspace(log.ToContext(cmd.Context()), cmd)
+	if err != nil {
+		return err
+	}
+	repository := Repository{Workspace: *workspace, Slug: args[0]}
+
+	log.Record("payload", payload).Infof("Creating repository %s in project %s", repository.GetPath(), createOptions.Project)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating repository %s in project %s", repository.GetPath(), createOptions.Project) {
 		return nil
 	}
-	var repository Repository
+	var created Repository
 
-	err = profile.Post(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("/repositories/%s/%s", createOptions.Workspace, args[0]),
-		payload,
-		&repository,
-	)
+	err = profile.Post(log.ToContext(cmd.Context()), cmd, repository.GetPath(), payload, &created)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create repository %s/%s: %s\n", createOptions.Workspace, args[0], err)
+		fmt.Fprintf(os.Stderr, "Failed to create repository %s: %s\n", repository.GetPath(), err)
 		os.Exit(1)
 	}
-	return profile.Print(cmd.Context(), cmd, repository)
+	return profile.Print(cmd.Context(), cmd, created)
 }

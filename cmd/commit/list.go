@@ -17,7 +17,6 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Repository string
 	Query      string
 	Include    []string
 	Exclude    []string
@@ -31,7 +30,6 @@ func init() {
 
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
-	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list commits from. Defaults to the current repository")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter commits")
 	listCmd.Flags().StringSliceVar(&listOptions.Include, "include", []string{}, "List of commit hashes to include")
 	listCmd.Flags().StringSliceVar(&listOptions.Exclude, "exclude", []string{}, "List of commit hashes to exclude")
@@ -45,7 +43,7 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
-	log.Infof("Listing all commits for repository: %s with profile %s", listOptions.Repository, profile.Current)
+	log.Infof("Listing all commits with profile %s", profile.Current)
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing commits") {
 		return nil
 	}

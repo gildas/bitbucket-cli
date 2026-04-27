@@ -18,23 +18,21 @@ var getCmd = &cobra.Command{
 	Short:             "get a project by its <project-key>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              getProcess,
 }
 
 var getOptions struct {
-	Workspace *flags.EnumFlag
-	Columns   *flags.EnumSliceFlag
+	Columns *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
-	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get projects from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
-	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Workspace.CompletionFunc("workspace"))
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
+	getCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

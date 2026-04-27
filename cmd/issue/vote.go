@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -18,14 +19,8 @@ var voteCmd = &cobra.Command{
 	RunE:              voteProcess,
 }
 
-var voteOptions struct {
-	Repository string
-}
-
 func init() {
 	Command.AddCommand(voteCmd)
-
-	voteCmd.Flags().StringVar(&voteOptions.Repository, "repository", "", "Repository to vote an issue from. Defaults to the current repository")
 }
 
 func voteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -48,14 +43,13 @@ func voteProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Voting for issue %s", args[0]) {
-		err = profile.Put(
-			log.ToContext(cmd.Context()),
-			cmd,
-			fmt.Sprintf("issues/%s/vote", args[0]),
-			nil,
-			nil,
-		)
+		err = profile.Put(log.ToContext(cmd.Context()), cmd, repository.GetPath("issues", args[0], "vote"), nil, nil)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to vote issue %s: %s\n", args[0], err)
 			os.Exit(1)

@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -23,14 +24,12 @@ var reopenCmd = &cobra.Command{
 
 var reopenOptions struct {
 	PullRequestID *flags.EnumFlag
-	Repository    string
 }
 
 func init() {
 	Command.AddCommand(reopenCmd)
 
 	reopenOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
-	reopenCmd.Flags().StringVar(&reopenOptions.Repository, "repository", "", "Repository to reopen a pullrequest comment from. Defaults to the current repository")
 	reopenCmd.Flags().Var(reopenOptions.PullRequestID, "pullrequest", "Pullrequest to reopen comments from")
 	_ = reopenCmd.MarkFlagRequired("pullrequest")
 	_ = reopenCmd.RegisterFlagCompletionFunc(reopenOptions.PullRequestID.CompletionFunc("pullrequest"))
@@ -56,6 +55,11 @@ func reopenProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Resolving comment %s from pullrequest %s", args[0], reopenOptions.PullRequestID) {
 		return nil
 	}
@@ -63,7 +67,7 @@ func reopenProcess(cmd *cobra.Command, args []string) (err error) {
 	err = profile.Delete(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s/comments/%s/resolve", reopenOptions.PullRequestID.Value, args[0]),
+		repository.GetPath("pullrequests", reopenOptions.PullRequestID.Value, "comments", args[0], "resolve"),
 		nil,
 	)
 	if err != nil {

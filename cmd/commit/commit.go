@@ -146,7 +146,11 @@ func GetCommitByHash(ctx context.Context, cmd *cobra.Command, hash string) (comm
 		return nil, err
 	}
 
-	err = profile.Get(ctx, cmd, fmt.Sprintf("commit/%s", hash), &commit)
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return nil, err
+	}
+	err = profile.Get(ctx, cmd, repository.GetPath("commit", hash), &commit)
 	return commit, err
 }
 
@@ -157,7 +161,7 @@ func (commit *Commit) Validate() error {
 	return merr.AsError()
 }
 
-// String gets a string representation of this pullrequest
+// String gets a string representation of this commit
 //
 // implements fmt.Stringer
 func (commit Commit) String() string {

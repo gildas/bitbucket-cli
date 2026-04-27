@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -19,14 +20,8 @@ var unapproveCmd = &cobra.Command{
 	RunE:              unapproveProcess,
 }
 
-var unapproveOptions struct {
-	Repository string
-}
-
 func init() {
 	Command.AddCommand(unapproveCmd)
-
-	unapproveCmd.Flags().StringVar(&unapproveOptions.Repository, "repository", "", "Repository to unapprove pullrequest from. Defaults to the current repository")
 }
 
 func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -54,13 +49,18 @@ func unapproveProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Unapproving pullrequest %s", args[0]) {
 		return nil
 	}
 	err = profile.Delete(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s/approve", args[0]),
+		repository.GetPath("pullrequests", args[0], "approve"),
 		nil,
 	)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -33,7 +34,6 @@ var updateCmd = &cobra.Command{
 
 var updateOptions struct {
 	PullRequestID *flags.EnumFlag
-	Repository    string
 	Comment       string
 	File          string
 	From          int
@@ -44,7 +44,6 @@ func init() {
 	Command.AddCommand(updateCmd)
 
 	updateOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
-	updateCmd.Flags().StringVar(&updateOptions.Repository, "repository", "", "Repository to update a pullrequest comment into. Defaults to the current repository")
 	updateCmd.Flags().Var(updateOptions.PullRequestID, "pullrequest", "Pullrequest to update comments to")
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the pullrequest")
 	updateCmd.Flags().StringVar(&updateOptions.File, "file", "", "File to comment on")
@@ -78,8 +77,13 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	payload := CommentUpdator{
-		Content: ContentUpdator{Raw: createOptions.Comment},
+		Content: ContentUpdator{Raw: updateOptions.Comment},
 	}
 
 	if updateOptions.File != "" {
@@ -105,7 +109,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	err = profile.Put(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s/comments/%s", updateOptions.PullRequestID.Value, args[0]),
+		repository.GetPath("pullrequests", updateOptions.PullRequestID.Value, "comments", args[0]),
 		payload,
 		&comment,
 	)

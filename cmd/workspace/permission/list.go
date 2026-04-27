@@ -19,6 +19,7 @@ var listCmd = &cobra.Command{
 	Short:             "list all workspace permissions",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: listValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              listProcess,
 }
 
@@ -41,6 +42,7 @@ func init() {
 	_ = listCmd.MarkFlagRequired("workspace")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
+	listCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func listValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

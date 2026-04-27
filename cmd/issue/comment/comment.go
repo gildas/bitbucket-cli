@@ -9,6 +9,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
@@ -141,15 +142,20 @@ func (comment Comment) MarshalJSON() (data []byte, err error) {
 func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return nil, err
+	}
+
 	type Issue struct {
 		ID int `json:"id" mapstructure:"id"`
 	}
 
 	log.Infof("Getting all issues")
-	issues, err := profile.GetAll[Issue](context, cmd, "issues")
+	issues, err := profile.GetAll[Issue](context, cmd, repository.GetPath("issues"))
 	if err != nil {
 		log.Errorf("Failed to get issues", err)
-		return []string{}, err
+		return nil, err
 	}
 	ids = core.Map(issues, func(issue Issue) string { return fmt.Sprintf("%d", issue.ID) })
 	core.Sort(ids, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
@@ -160,10 +166,15 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string, toC
 func GetIssueCommentIDs(context context.Context, cmd *cobra.Command, currentProfile *profile.Profile, issueID string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
-	comments, err := profile.GetAll[Comment](context, cmd, fmt.Sprintf("issues/%s/comments", issueID))
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	comments, err := profile.GetAll[Comment](context, cmd, repository.GetPath("issues", issueID, "comments"))
 	if err != nil {
 		log.Errorf("Failed to get issues", err)
-		return []string{}, err
+		return nil, err
 	}
 	ids = core.Map(comments, func(comment Comment) string { return fmt.Sprintf("%d", comment.ID) })
 	core.Sort(ids, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })

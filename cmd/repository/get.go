@@ -5,7 +5,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -18,11 +17,11 @@ var getCmd = &cobra.Command{
 	Short:             "get a repository by its <slug> or <uuid>. With the --forks flag, it will display the forks of the repository.",
 	Args:              cobra.RangeArgs(0, 1),
 	ValidArgsFunction: getValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              getProcess,
 }
 
 var getOptions struct {
-	Workspace *flags.EnumFlag
 	ShowForks bool
 	Columns   *flags.EnumSliceFlag
 }
@@ -30,13 +29,11 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
-	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get repositories from")
 	getCmd.Flags().BoolVar(&getOptions.ShowForks, "forks", false, "Show the forks of the repository")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
-	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Workspace.CompletionFunc("workspace"))
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
+	getCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

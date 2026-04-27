@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -21,7 +22,6 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Repository string
 	Query      string
 	Columns    *flags.EnumSliceFlag
 	SortBy     *flags.EnumFlag
@@ -34,7 +34,6 @@ func init() {
 
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
-	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pipelines from. Defaults to the current repository")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter pipelines")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by (applies a local sort on fetched results; server-side sort is always by creation date descending)")
@@ -51,17 +50,22 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	uripath := "pipelines?sort=-created_on"
 	if len(listOptions.Query) > 0 {
 		uripath = fmt.Sprintf("pipelines?sort=-created_on&q=%s", url.QueryEscape(listOptions.Query))
 	}
 
-	log.Infof("Listing pipelines for repository: %s", listOptions.Repository)
+	log.Infof("Listing pipelines for repository: %s", repository)
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing pipelines") {
 		return nil
 	}
 
-	pipelines, err := profile.GetAll[Pipeline](log.ToContext(cmd.Context()), cmd, uripath)
+	pipelines, err := profile.GetAll[Pipeline](log.ToContext(cmd.Context()), cmd, repository.GetPath(uripath))
 	if err != nil {
 		return err
 	}

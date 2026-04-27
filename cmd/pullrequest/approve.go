@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -20,14 +21,8 @@ var approveCmd = &cobra.Command{
 	RunE:              approveProcess,
 }
 
-var approveOptions struct {
-	Repository string
-}
-
 func init() {
 	Command.AddCommand(approveCmd)
-
-	approveCmd.Flags().StringVar(&approveOptions.Repository, "repository", "", "Repository to approve pullrequest from. Defaults to the current repository")
 }
 
 func approveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -57,6 +52,11 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Approving pullrequest %s", args[0]) {
 		return nil
 	}
@@ -65,7 +65,7 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s/approve", args[0]),
+		repository.GetPath("pullrequests", args[0], "approve"),
 		nil,
 		&participant,
 	)

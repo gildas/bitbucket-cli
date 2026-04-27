@@ -5,6 +5,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -18,20 +19,19 @@ var stopCmd = &cobra.Command{
 	RunE:    stopProcess,
 }
 
-var stopOptions struct {
-	Repository string
-}
-
 func init() {
 	Command.AddCommand(stopCmd)
-
-	stopCmd.Flags().StringVar(&stopOptions.Repository, "repository", "", "Repository to stop pipeline in. Defaults to the current repository")
 }
 
 func stopProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "stop")
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func stopProcess(cmd *cobra.Command, args []string) (err error) {
 	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pipelines/%s/stopPipeline", pipelineID),
+		repository.GetPath("pipelines", pipelineID, "stopPipeline"),
 		nil,
 		nil,
 	)

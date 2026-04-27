@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -31,7 +32,6 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
-	Repository  string
 	Title       string
 	Kind        *flags.EnumFlag
 	Priority    *flags.EnumFlag
@@ -44,7 +44,6 @@ func init() {
 
 	createOptions.Kind = flags.NewEnumFlag("+bug", "enhancement", "proposal", "task")
 	createOptions.Priority = flags.NewEnumFlag("+major", "trivial", "minor", "major", "critical", "blocker")
-	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create an issue into. Defaults to the current repository")
 	createCmd.Flags().StringVar(&createOptions.Title, "title", "", "Title of the issue")
 	createCmd.Flags().Var(createOptions.Kind, "kind", "Kind of the issue")
 	createCmd.Flags().Var(createOptions.Priority, "priority", "Priority of the issue")
@@ -90,19 +89,18 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		payload.Assignee = &user.User{ID: uuid}
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	log.Record("payload", payload).Infof("Creating issue")
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating issue") {
 		return nil
 	}
 	var issue Issue
 
-	err = profile.Post(
-		log.ToContext(cmd.Context()),
-		cmd,
-		"issues",
-		payload,
-		&issue,
-	)
+	err = profile.Post(log.ToContext(cmd.Context()), cmd, repository.GetPath("issues"), payload, &issue)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create issue: %s\n", err)
 		os.Exit(1)

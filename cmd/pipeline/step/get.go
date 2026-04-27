@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	plcommon "bitbucket.org/gildas_cherruel/bb/cmd/pipeline/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -23,7 +24,6 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Repository      string
 	PipelineID      *flags.EnumFlag
 	Columns         *flags.EnumSliceFlag
 	ShowLogsCommand bool
@@ -34,7 +34,6 @@ func init() {
 
 	getOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get pipeline from. Defaults to the current repository")
 	getCmd.Flags().Var(getOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	getCmd.Flags().BoolVar(&getOptions.ShowLogsCommand, "show-logs-command", false, "Show the command to get the logs for this step")
@@ -68,6 +67,11 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	log.Infof("Displaying pipeline step %s", args[0])
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing pipeline step %s", args[0])) {
 		return nil
@@ -77,7 +81,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pipelines/%s/steps/%s", getOptions.PipelineID.Value, args[0]),
+		repository.GetPath("pipelines", getOptions.PipelineID.Value, "steps", args[0]),
 		&step,
 	)
 	if err != nil {

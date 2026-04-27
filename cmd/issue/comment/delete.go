@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -22,15 +23,13 @@ var deleteCmd = &cobra.Command{
 }
 
 var deleteOptions struct {
-	IssueID    *flags.EnumFlag
-	Repository string
+	IssueID *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(deleteCmd)
 
 	deleteOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
-	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete an issue comment from. Defaults to the current repository")
 	deleteCmd.Flags().Var(deleteOptions.IssueID, "issue", "Issue to delete comments from")
 	_ = deleteCmd.MarkFlagRequired("issue")
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.IssueID.CompletionFunc("issue"))
@@ -60,13 +59,18 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	var merr errors.MultiError
 	for _, commentID := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting comment %s from issue %s", commentID, deleteOptions.IssueID) {
 			err := profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
-				fmt.Sprintf("issues/%s/comments/%s", deleteOptions.IssueID.Value, commentID),
+				repository.GetPath("issues", deleteOptions.IssueID.Value, "comments", commentID),
 				nil,
 			)
 			if err != nil {

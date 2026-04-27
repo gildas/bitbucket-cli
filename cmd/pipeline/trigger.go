@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/tag"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -29,12 +30,11 @@ var triggerCmd = &cobra.Command{
 }
 
 var triggerOptions struct {
-	Repository string
-	Branch     *flags.EnumFlag
-	Tag        *flags.EnumFlag
-	Commit     *flags.EnumFlag
-	Pattern    string
-	Variables  []string
+	Branch    *flags.EnumFlag
+	Tag       *flags.EnumFlag
+	Commit    *flags.EnumFlag
+	Pattern   string
+	Variables []string
 }
 
 func init() {
@@ -43,7 +43,6 @@ func init() {
 	triggerOptions.Branch = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
 	triggerOptions.Commit = flags.NewEnumFlagWithFunc("", commit.GetCommitHashes)
 	triggerOptions.Tag = flags.NewEnumFlagWithFunc("", tag.GetTagNames)
-	triggerCmd.Flags().StringVar(&triggerOptions.Repository, "repository", "", "Repository to trigger pipeline in. Defaults to the current repository")
 	triggerCmd.Flags().Var(triggerOptions.Branch, "branch", "Branch to run the pipeline on")
 	triggerCmd.Flags().Var(triggerOptions.Tag, "tag", "Tag to run the pipeline on")
 	triggerCmd.Flags().Var(triggerOptions.Commit, "commit", "Specific commit hash to run the pipeline on")
@@ -59,6 +58,11 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "trigger")
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}
@@ -123,13 +127,7 @@ func triggerProcess(cmd *cobra.Command, args []string) (err error) {
 
 	var pipeline Pipeline
 
-	err = profile.Post(
-		log.ToContext(cmd.Context()),
-		cmd,
-		"pipelines/",
-		payload,
-		&pipeline,
-	)
+	err = profile.Post(log.ToContext(cmd.Context()), cmd, repository.GetPath("pipelines"), payload, &pipeline)
 	if err != nil {
 		return errors.Join(errors.Errorf("failed to trigger pipeline"), err)
 	}

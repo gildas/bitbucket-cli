@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -25,16 +26,14 @@ var updateCmd = &cobra.Command{
 }
 
 var updateOptions struct {
-	IssueID    *flags.EnumFlag
-	Repository string
-	Comment    string
+	IssueID *flags.EnumFlag
+	Comment string
 }
 
 func init() {
 	Command.AddCommand(updateCmd)
 
 	updateOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
-	updateCmd.Flags().StringVar(&updateOptions.Repository, "repository", "", "Repository to update an issue into. Defaults to the current repository")
 	updateCmd.Flags().Var(updateOptions.IssueID, "issue", "Issue to update comments to")
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the issue")
 	_ = updateCmd.MarkFlagRequired("issue")
@@ -66,6 +65,11 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	payload := CommentUpdator{
 		Content: common.RenderedText{
 			Raw:    updateOptions.Comment,
@@ -82,7 +86,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	err = profile.Put(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("issues/%s/comments/%s", updateOptions.IssueID.Value, args[0]),
+		repository.GetPath("issues", updateOptions.IssueID.Value, "comments", args[0]),
 		payload,
 		&comment,
 	)

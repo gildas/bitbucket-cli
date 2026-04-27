@@ -1,11 +1,11 @@
 package artifact
 
 import (
-	"fmt"
 	"net/url"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -20,7 +20,6 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Repository string
 	Query      string
 	Columns    *flags.EnumSliceFlag
 	SortBy     *flags.EnumFlag
@@ -32,7 +31,6 @@ func init() {
 
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
-	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list artifacts from. Defaults to the current repository")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter artifacts")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
@@ -44,12 +42,17 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
-	uripath := "downloads"
-	if len(listOptions.Query) > 0 {
-		uripath = fmt.Sprintf("downloads?q=%s", url.QueryEscape(listOptions.Query))
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
-	log.Infof("Listing all projects from repository %s", listOptions.Repository)
+	uripath := repository.GetPath("downloads")
+	if len(listOptions.Query) > 0 {
+		uripath += "?q=" + url.QueryEscape(listOptions.Query)
+	}
+
+	log.Infof("Listing all artifacts")
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing artifacts") {
 		return nil
 	}

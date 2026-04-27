@@ -8,6 +8,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -21,17 +22,15 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
-	Repository string
-	Name       string
-	Message    string
-	Commit     *flags.EnumFlag
+	Name    string
+	Message string
+	Commit  *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(createCmd)
 
 	createOptions.Commit = flags.NewEnumFlagWithFunc("latest", commit.GetCommitHashes)
-	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create a tag into. Defaults to the current repository")
 	createCmd.Flags().StringVar(&createOptions.Name, "name", "", "Name of the tag")
 	createCmd.Flags().StringVar(&createOptions.Message, "message", "", "Message of the tag")
 	createCmd.Flags().Var(createOptions.Commit, "commit", "Target commit hash for the tag. Defaults to the latest commit")
@@ -44,6 +43,11 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}
@@ -70,13 +74,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	var tag Tag
 
-	err = profile.Post(
-		log.ToContext(cmd.Context()),
-		cmd,
-		"refs/tags",
-		payload,
-		&tag,
-	)
+	err = profile.Post(log.ToContext(cmd.Context()), cmd, repository.GetPath("refs", "tags"), payload, &tag)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create tag: %s\n", err)
 		os.Exit(1)

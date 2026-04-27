@@ -11,6 +11,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/project/reviewer"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -77,6 +78,11 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}
@@ -237,7 +243,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	err = profile.Put(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s", args[0]),
+		repository.GetPath("pullrequests", args[0]),
 		pullrequest,
 		&updated,
 	)

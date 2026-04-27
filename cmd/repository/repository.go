@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -228,22 +229,19 @@ func (repository Repository) GetRow(headers []string) []string {
 	return row
 }
 
-// FetchWorkspace fetches the workspace of the repository
+// GetPath gets the API path of the repository
+func (repository Repository) GetPath(paths ...string) string {
+	return path.Join(append([]string{"/repositories", repository.Workspace.Slug, repository.Slug}, paths...)...)
+}
+
+// String returns the string representation of the repository
 //
-// Deprecated
-func (repository *Repository) FetchWorkspaceX(context context.Context, cmd *cobra.Command, profile *profile.Profile) (*workspace.Workspace, error) {
-	if repository == nil {
-		return nil, errors.ArgumentMissing.With("repository")
+// implements fmt.Stringer
+func (repository Repository) String() string {
+	if len(repository.Slug) > 0 {
+		return repository.Slug
 	}
-	if !repository.Workspace.ID.IsNil() {
-		return &repository.Workspace, nil
-	}
-	workspacename := strings.Split(repository.FullName, "/")[0]
-	workspace, err := workspace.GetWorkspaceBySlugOrID(context, cmd, workspacename)
-	if err == nil {
-		repository.Workspace = *workspace
-	}
-	return workspace, err
+	return repository.Name
 }
 
 // GetRepositoryName gets the name of the repository from the command line or from the git config
@@ -322,11 +320,7 @@ func (repository Repository) GetForks(ctx context.Context, cmd *cobra.Command) (
 	log := logger.Must(logger.FromContext(ctx)).Child("repository", "forks")
 
 	log.Infof("Getting forks of repository %s/%s", repository.Workspace.Slug, repository.Slug)
-	return profile.GetAll[Repository](
-		ctx,
-		cmd,
-		fmt.Sprintf("/repositories/%s/%s/forks", repository.Workspace.Slug, repository.Slug),
-	)
+	return profile.GetAll[Repository](ctx, cmd, repository.GetPath("forks"))
 }
 
 // GetEffectiveDefaultReviewers gets the effective default reviewers for a repository
@@ -334,11 +328,7 @@ func (repository Repository) GetEffectiveDefaultReviewers(ctx context.Context, c
 	log := logger.Must(logger.FromContext(ctx)).Child("repository", "effective-default-reviewers")
 
 	log.Infof("Getting effective default reviewers of repository %s/%s", repository.Workspace.Slug, repository.Slug)
-	return profile.GetAll[reviewer.Reviewer](
-		ctx,
-		cmd,
-		fmt.Sprintf("/repositories/%s/%s/effective-default-reviewers", repository.Workspace.Slug, repository.Slug),
-	)
+	return profile.GetAll[reviewer.Reviewer](ctx, cmd, repository.GetPath("effective-default-reviewers"))
 }
 
 // GetRepositoryFromGit gets a repository from a git origin
@@ -365,11 +355,18 @@ func GetRepositoryFromGit(context context.Context, cmd *cobra.Command, profile *
 	return
 }
 
-// String returns the string representation of the repository
-//
-// implements fmt.Stringer
-func (repository Repository) String() string {
-	return repository.FullName
+// disableUnsupportedFlags disables the flags that are not supported by the repository command
+func disableUnsupportedFlags(cmd *cobra.Command, args []string) error {
+	if cmd.Flags().Changed("repository") {
+		return fmt.Errorf("the --repository flag is not supported by the repository command")
+	}
+	return nil
+}
+
+// hideUnsupportedFlags hides the flags that are not supported by the repository command
+func hideUnsupportedFlags(cmd *cobra.Command, args []string) {
+	cmd.Flags().MarkHidden("repository")
+	cmd.Parent().HelpFunc()(cmd, args)
 }
 
 // Validate validates a Repository

@@ -8,6 +8,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -41,7 +42,11 @@ func (commits Commits) Size() int {
 
 // GetCommits gets the commits of a repository
 func GetCommits(context context.Context, cmd *cobra.Command) (commits []Commit, err error) {
-	uripath := "commits"
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return []Commit{}, err
+	}
+	uripath := repository.GetPath("commits")
 	if cmd != nil && cmd.Flag("query") != nil && cmd.Flag("query").Changed {
 		query, err := cmd.Flags().GetString("query")
 		if err != nil {
@@ -83,7 +88,11 @@ func GetCommitsWithPrefix(context context.Context, cmd *cobra.Command, prefix st
 	if len(prefix) == 0 {
 		return GetCommits(context, cmd)
 	}
-	uripath := fmt.Sprintf("commits?q=hash~\"%s\"", url.QueryEscape(prefix))
+	repository, err := repository.GetRepository(context, cmd)
+	if err != nil {
+		return []Commit{}, err
+	}
+	uripath := repository.GetPath("commits", fmt.Sprintf("?q=hash~\"%s\"", url.QueryEscape(prefix)))
 	return profile.GetAll[Commit](context, cmd, uripath)
 }
 

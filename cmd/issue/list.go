@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -21,11 +22,10 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Repository string
-	States     *flags.EnumSliceFlag
-	Query      string
-	Columns    *flags.EnumSliceFlag
-	SortBy     *flags.EnumFlag
+	States  *flags.EnumSliceFlag
+	Query   string
+	Columns *flags.EnumSliceFlag
+	SortBy  *flags.EnumFlag
 }
 
 func init() {
@@ -34,7 +34,6 @@ func init() {
 	listOptions.States = flags.NewEnumSliceFlagWithAllAllowed("closed", "duplicate", "invalid", "on hold", "+new", "+open", "resolved", "submitted", "wontfix")
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
-	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list issues from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.States, "state", "State of the issues to list. Can be repeated. One of: all, closed, duplicate, invalid, on hold, new, open, resolved, submitted, wontfix. Default: open, new")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter issues")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
@@ -69,12 +68,17 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		filter += url.QueryEscape(listOptions.Query)
 	}
 
-	log.Infof("Listing all issues from repository %s with profile %s", listOptions.Repository, profile.Current)
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Listing all issues from repository %s with profile %s", repository, profile.Current)
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing issues") {
 		return nil
 	}
 
-	issues, err := profile.GetAll[Issue](cmd.Context(), cmd, "issues"+filter)
+	issues, err := profile.GetAll[Issue](cmd.Context(), cmd, repository.GetPath("issues")+filter)
 	if err != nil {
 		return err
 	}

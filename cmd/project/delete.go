@@ -8,7 +8,6 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
-	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -19,19 +18,14 @@ var deleteCmd = &cobra.Command{
 	Short:             "delete projects by their <project-key>.",
 	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: deleteValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              deleteProcess,
-}
-
-var deleteOptions struct {
-	Workspace *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
-	deleteCmd.Flags().Var(deleteOptions.Workspace, "workspace", "Workspace to delete projects from")
-	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.Workspace.CompletionFunc("workspace"))
+	deleteCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

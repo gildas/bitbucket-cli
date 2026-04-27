@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -66,9 +67,14 @@ func diffProcess(cmd *cobra.Command, args []string) error {
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing diff for %s", spec)) {
 		return nil
 	}
-	uripath := fmt.Sprintf("diff/%s", spec)
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	uripath := repository.GetPath("diff", spec)
 	if diffOptions.Stat {
-		uripath = fmt.Sprintf("diffstat/%s", spec)
+		uripath = repository.GetPath("diffstat", spec)
 	}
 
 	diff, err := profile.GetRaw(log.ToContext(cmd.Context()), cmd, uripath)

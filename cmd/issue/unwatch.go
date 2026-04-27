@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -18,14 +19,8 @@ var unwatchCmd = &cobra.Command{
 	RunE:              unwatchProcess,
 }
 
-var unwatchOptions struct {
-	Repository string
-}
-
 func init() {
 	Command.AddCommand(unwatchCmd)
-
-	unwatchCmd.Flags().StringVar(&unwatchOptions.Repository, "repository", "", "Repository to unwatch an issue from. Defaults to the current repository")
 }
 
 func unwatchValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -48,13 +43,13 @@ func unwatchProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Unwatching issue %s", args[0]) {
-		err = profile.Delete(
-			log.ToContext(cmd.Context()),
-			cmd,
-			fmt.Sprintf("issues/%s/watch", args[0]),
-			nil,
-		)
+		err = profile.Delete(log.ToContext(cmd.Context()), cmd, repository.GetPath("issues", args[0], "watch"), nil)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to unwatch issue %s: %s\n", args[0], err)
 			os.Exit(1)

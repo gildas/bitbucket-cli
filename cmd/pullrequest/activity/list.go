@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -22,7 +23,6 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Repository    string
 	PullRequestID *flags.EnumFlag
 	Query         string
 	Columns       *flags.EnumSliceFlag
@@ -36,7 +36,6 @@ func init() {
 	listOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
-	listCmd.Flags().StringVar(&listOptions.Repository, "repository", "", "Repository to list pullrequest activities from. Defaults to the current repository")
 	listCmd.Flags().Var(listOptions.PullRequestID, "pullrequest", "pullrequest to list activities from")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter activities")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
@@ -55,16 +54,19 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	var uripath string
-
-	if len(listOptions.Query) > 0 {
-		uripath = fmt.Sprintf("pullrequests/%s/activity?q=%s", listOptions.PullRequestID.Value, url.QueryEscape(listOptions.Query))
-	} else {
-		uripath = fmt.Sprintf("pullrequests/%s/activity", listOptions.PullRequestID.Value)
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
-	log.Infof("Listing all activities from repository %s with profile %s", listOptions.Repository, profile.Current)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing activities for pullrequest %s in repository %s with profile %s", listOptions.PullRequestID.Value, listOptions.Repository, profile.Current)) {
+	uripath := repository.GetPath(fmt.Sprintf("pullrequests/%s/activity", listOptions.PullRequestID.Value))
+
+	if len(listOptions.Query) > 0 {
+		uripath = fmt.Sprintf("%s?q=%s", uripath, url.QueryEscape(listOptions.Query))
+	}
+
+	log.Infof("Listing all activities from repository %s with profile %s", repository, profile.Current)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing activities for pullrequest %s in repository %s with profile %s", listOptions.PullRequestID.Value, repository, profile.Current)) {
 		return nil
 	}
 

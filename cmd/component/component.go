@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -85,7 +86,11 @@ func (component Component) String() string {
 func GetComponentIDs(context context.Context, cmd *cobra.Command) (ids []string) {
 	log := logger.Must(logger.FromContext(context)).Child("component", "getids")
 
-	components, err := profile.GetAll[Component](context, cmd, "components")
+	repository, err := repository.GetRepository(context, cmd)
+	if err != nil {
+		return []string{}
+	}
+	components, err := profile.GetAll[Component](context, cmd, repository.GetPath("components"))
 	if err != nil {
 		log.Errorf("Failed to get components", err)
 		return []string{}

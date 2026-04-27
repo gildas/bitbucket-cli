@@ -9,7 +9,6 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -23,11 +22,11 @@ var cloneCmd = &cobra.Command{
 	Short:             "clone a repository by its <slug>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: cloneValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              cloneProcess,
 }
 
 var cloneOptions struct {
-	Workspace      *flags.EnumFlag
 	Destination    string
 	Bare           bool
 	Protocol       *flags.EnumFlag
@@ -39,9 +38,7 @@ var cloneOptions struct {
 func init() {
 	Command.AddCommand(cloneCmd)
 
-	cloneOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceAllowedSlugs)
 	cloneOptions.Protocol = flags.NewEnumFlag("git", "https", "ssh")
-	cloneCmd.Flags().Var(cloneOptions.Workspace, "workspace", "Workspace to clone repositories from. If omitted, it will be extracted from the repository name")
 	cloneCmd.Flags().StringVar(&cloneOptions.Destination, "destination", "", "Destination folder. Default is the repository name")
 	cloneCmd.Flags().BoolVar(&cloneOptions.Bare, "bare", false, "Clone as a bare repository")
 	cloneCmd.Flags().Var(cloneOptions.Protocol, "protocol", "Protocol to use for cloning. Default is set in the profile, can be https, git, or ssh")
@@ -50,8 +47,9 @@ func init() {
 	cloneCmd.Flags().StringVar(&cloneOptions.Password, "password", "", "Password for authentication. If not set, it will be retrieved from the bitbucket-cli configuration")
 	_ = cloneCmd.MarkFlagDirname("destination")
 	_ = cloneCmd.MarkFlagFilename("ssh-key-file")
-	_ = cloneCmd.RegisterFlagCompletionFunc(cloneOptions.Workspace.CompletionFunc("workspace"))
 	_ = cloneCmd.RegisterFlagCompletionFunc(cloneOptions.Protocol.CompletionFunc("protocol"))
+	cloneCmd.Flags().MarkHidden("repository")
+	cloneCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func cloneValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -99,12 +97,12 @@ func cloneProcess(cmd *cobra.Command, args []string) (err error) {
 
 	switch cloneOptions.Protocol.Value {
 	case "git":
-		options.URL = fmt.Sprintf("git@bitbucket.org:%s/%s.git", repository.Workspace.Slug, repository.Slug)
+		options.URL = fmt.Sprintf("git@bitbucket.org:%s/%s.git", repository.Workspace, repository)
 	case "ssh":
 		if len(cloneOptions.User) > 0 {
 			return errors.New("SSH protocol does not support username.")
 		}
-		options.URL = fmt.Sprintf("ssh://git@bitbucket.org/%s/%s.git", repository.Workspace.Slug, repository.Slug)
+		options.URL = fmt.Sprintf("ssh://git@bitbucket.org/%s/%s.git", repository.Workspace, repository)
 		if len(cloneOptions.SshKeyFilename) == 0 {
 			if homeDir, err := os.UserHomeDir(); err != nil {
 				return errors.Wrap(err, "failed to get user home directory")
@@ -125,7 +123,7 @@ func cloneProcess(cmd *cobra.Command, args []string) (err error) {
 		repoURL := url.URL{
 			Scheme: "https",
 			Host:   "bitbucket.org",
-			Path:   fmt.Sprintf("/%s/%s.git", repository.Workspace.Slug, repository.Slug),
+			Path:   fmt.Sprintf("/%s/%s.git", repository.Workspace, repository),
 		}
 		options.URL = repoURL.String()
 		vaultUsername := cloneOptions.User

@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -21,9 +22,8 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	IssueID    *flags.EnumFlag
-	Repository string
-	Columns    *flags.EnumSliceFlag
+	IssueID *flags.EnumFlag
+	Columns *flags.EnumSliceFlag
 }
 
 func init() {
@@ -31,7 +31,6 @@ func init() {
 
 	getOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
-	getCmd.Flags().StringVar(&getOptions.Repository, "repository", "", "Repository to get an issue comment from. Defaults to the current repository")
 	getCmd.Flags().Var(getOptions.IssueID, "issue", "Issue to get comments from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.MarkFlagRequired("issue")
@@ -63,6 +62,11 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	log.Infof("Displaying issue comment %s", args[0])
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing issue comment %s", args[0])) {
 		return nil
@@ -72,7 +76,7 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("issues/%s/comments/%s", getOptions.IssueID.Value, args[0]),
+		repository.GetPath("issues", getOptions.IssueID.Value, "comments", args[0]),
 		&comment,
 	)
 	if err != nil {

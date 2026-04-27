@@ -237,3 +237,17 @@ func GetProjectNames(context context.Context, cmd *cobra.Command, args []string,
 	core.Sort(names, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
 	return names, nil
 }
+
+// disableUnsupportedFlags disables the flags that are not supported by the project command
+func disableUnsupportedFlags(cmd *cobra.Command, args []string) error {
+	if cmd.Flags().Changed("repository") {
+		return fmt.Errorf("the --repository flag is not supported by the project command")
+	}
+	return nil
+}
+
+// hideUnsupportedFlags hides the flags that are not supported by the repository command
+func hideUnsupportedFlags(cmd *cobra.Command, args []string) {
+	cmd.Flags().MarkHidden("repository")
+	cmd.Parent().HelpFunc()(cmd, args)
+}

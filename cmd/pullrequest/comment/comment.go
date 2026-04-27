@@ -9,6 +9,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
@@ -220,10 +221,15 @@ func (comment Comment) MarshalJSON() (data []byte, err error) {
 func GetPullRequestCommentIDs(context context.Context, cmd *cobra.Command, PullRequestID string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("pullrequest", "getids")
 
-	comments, err := profile.GetAll[Comment](context, cmd, fmt.Sprintf("pullrequests/%s/comments", PullRequestID))
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	comments, err := profile.GetAll[Comment](context, cmd, repository.GetPath(fmt.Sprintf("pullrequests/%s/comments", PullRequestID)))
 	if err != nil {
 		log.Errorf("Failed to get pullrequests", err)
-		return []string{}, err
+		return nil, err
 	}
 	return core.Map(comments, func(comment Comment) string {
 		return fmt.Sprintf("%d", comment.ID)

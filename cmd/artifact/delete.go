@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -20,14 +21,8 @@ var deleteCmd = &cobra.Command{
 	RunE:              deleteProcess,
 }
 
-var deleteOptions struct {
-	Repository string
-}
-
 func init() {
 	Command.AddCommand(deleteCmd)
-
-	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete artifacts from. Defaults to the current repository")
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -50,15 +45,15 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	repository, err := repository.GetRepository(log.ToContext(cmd.Context()), cmd)
+	if err != nil {
+		return err
+	}
+
 	var merr errors.MultiError
 	for _, artifactName := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting artifact %s", artifactName) {
-			err := profile.Delete(
-				log.ToContext(cmd.Context()),
-				cmd,
-				fmt.Sprintf("downloads/%s", artifactName),
-				nil,
-			)
+			err := profile.Delete(log.ToContext(cmd.Context()), cmd, repository.GetPath("downloads", artifactName), nil)
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to delete artifact %s: %s\n", artifactName, err)

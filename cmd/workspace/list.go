@@ -13,10 +13,11 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "list all workspaces for the current user",
-	Args:  cobra.NoArgs,
-	RunE:  listProcess,
+	Use:     "list",
+	Short:   "list all workspaces for the current user",
+	Args:    cobra.NoArgs,
+	PreRunE: disableUnsupportedFlags,
+	RunE:    listProcess,
 }
 
 var listOptions struct {
@@ -37,6 +38,7 @@ func init() {
 	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
+	listCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

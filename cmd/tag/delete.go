@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -20,14 +21,8 @@ var deleteCmd = &cobra.Command{
 	RunE:              deleteProcess,
 }
 
-var deleteOptions struct {
-	Repository string
-}
-
 func init() {
 	Command.AddCommand(deleteCmd)
-
-	deleteCmd.Flags().StringVar(&deleteOptions.Repository, "repository", "", "Repository to delete a tag from. Defaults to the current repository")
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -50,13 +45,18 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	var merr errors.MultiError
 	for _, tagName := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting tag %s", tagName) {
 			err := profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
-				fmt.Sprintf("refs/tags/%s", tagName),
+				repository.GetPath("refs", "tags", tagName),
 				nil,
 			)
 			if err != nil {

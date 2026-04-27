@@ -7,6 +7,7 @@ import (
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
@@ -84,7 +85,11 @@ func (artifact Artifact) GetRow(headers []string) []string {
 func GetArtifactNames(context context.Context, cmd *cobra.Command) (names []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("artifact", "getnames")
 
-	artifacts, err := profile.GetAll[Artifact](cmd.Context(), cmd, "downloads")
+	repository, err := repository.GetRepository(context, cmd)
+	if err != nil {
+		return names, err
+	}
+	artifacts, err := profile.GetAll[Artifact](cmd.Context(), cmd, repository.GetPath("downloads"))
 	if err != nil {
 		log.Errorf("Failed to get artifacts: %s", err)
 		return

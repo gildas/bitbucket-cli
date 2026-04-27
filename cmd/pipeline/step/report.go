@@ -1,13 +1,13 @@
 package step
 
 import (
-	"fmt"
 	"io"
 	"os"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	plcommon "bitbucket.org/gildas_cherruel/bb/cmd/pipeline/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -24,7 +24,6 @@ var reportCmd = &cobra.Command{
 }
 
 var reportOptions struct {
-	Repository string
 	PipelineID *flags.EnumFlag
 }
 
@@ -32,7 +31,6 @@ func init() {
 	Command.AddCommand(reportCmd)
 
 	reportOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
-	reportCmd.Flags().StringVar(&reportOptions.Repository, "repository", "", "Repository to get pipeline from. Defaults to the current repository")
 	reportCmd.Flags().Var(reportOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	_ = reportCmd.MarkFlagRequired("pipeline")
 	_ = reportCmd.RegisterFlagCompletionFunc(reportOptions.PipelineID.CompletionFunc("pipeline"))
@@ -63,10 +61,15 @@ func reportProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	report, err := profile.GetRaw(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pipelines/%s/steps/%s/test_reports", reportOptions.PipelineID.Value, args[0]),
+		repository.GetPath("pipelines", reportOptions.PipelineID.Value, "steps", args[0], "test_reports"),
 	)
 	if err != nil {
 		return errors.Join(errors.Errorf("failed to get test reports for step %s", args[0]), err)
