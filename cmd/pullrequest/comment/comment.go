@@ -18,14 +18,14 @@ import (
 )
 
 type Comment struct {
-	Type        string                `json:"type"             mapstructure:"type"`
-	ID          int                   `json:"id"               mapstructure:"id"`
-	Content     common.RenderedText   `json:"content"          mapstructure:"content"`
-	User        user.User             `json:"user"             mapstructure:"user"`
-	Anchor      *common.FileAnchor    `json:"inline,omitempty" mapstructure:"inline"`
-	Parent      *Comment              `json:"parent,omitempty" mapstructure:"parent"`
-	CreatedOn   time.Time             `json:"created_on"       mapstructure:"created_on"`
-	UpdatedOn   time.Time             `json:"updated_on"       mapstructure:"updated_on"`
+	Type        string                `json:"type"                 mapstructure:"type"`
+	ID          int                   `json:"id"                   mapstructure:"id"`
+	Content     common.RenderedText   `json:"content"              mapstructure:"content"`
+	User        user.User             `json:"user"                 mapstructure:"user"`
+	Anchor      *common.FileAnchor    `json:"inline,omitempty"     mapstructure:"inline"`
+	Parent      *Comment              `json:"parent,omitempty"     mapstructure:"parent"`
+	CreatedOn   time.Time             `json:"created_on"           mapstructure:"created_on"`
+	UpdatedOn   time.Time             `json:"updated_on"           mapstructure:"updated_on"`
 	IsDeleted   bool                  `json:"deleted"              mapstructure:"deleted"`
 	IsPending   bool                  `json:"pending"              mapstructure:"pending"`
 	Resolution  *Resolution           `json:"resolution,omitempty" mapstructure:"resolution"`
