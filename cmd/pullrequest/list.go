@@ -22,6 +22,7 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
+	Commit     string
 	State      *flags.EnumFlag
 	Query      string
 	Columns    *flags.EnumSliceFlag
@@ -35,11 +36,14 @@ func init() {
 	listOptions.State = flags.NewEnumFlag("all", "declined", "merged", "+open", "superseded")
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
+	listCmd.Flags().StringVar(&listOptions.Commit, "commit", "", "List pull requests by commit hash")
 	listCmd.Flags().Var(listOptions.State, "state", "Pull request state to fetch. Defaults to \"open\"")
 	listCmd.Flags().StringVar(&listOptions.Query, "query", "", "Query string to filter pull requests")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
+	listCmd.MarkFlagsMutuallyExclusive("commit", "state")
+	listCmd.MarkFlagsMutuallyExclusive("commit", "query")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.State.CompletionFunc("state"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
@@ -55,7 +59,9 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 
 	var uripath string
 
-	if len(listOptions.Query) > 0 {
+	if len(listOptions.Commit) > 0 {
+		uripath = repository.GetPath("commit", listOptions.Commit, "pullrequests")
+	} else if len(listOptions.Query) > 0 {
 		uripath = repository.GetPath(fmt.Sprintf("pullrequests?state=%s&q=%s", url.QueryEscape(strings.ToUpper(listOptions.State.String())), url.QueryEscape(listOptions.Query)))
 	} else {
 		uripath = repository.GetPath(fmt.Sprintf("pullrequests?state=%s", url.QueryEscape(strings.ToUpper(listOptions.State.String()))))
