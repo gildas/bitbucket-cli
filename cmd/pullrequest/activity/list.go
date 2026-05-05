@@ -16,10 +16,11 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "list all pullrequest Activities",
-	Args:  cobra.NoArgs,
-	RunE:  listProcess,
+	Use:        "list",
+	Short:      "list all pullrequest Activities",
+	Deprecated: "Please use 'pullrequest activities' instead",
+	Args:       cobra.MaximumNArgs(1),
+	RunE:       listProcess,
 }
 
 var listOptions struct {
