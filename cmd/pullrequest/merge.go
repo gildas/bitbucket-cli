@@ -18,7 +18,7 @@ import (
 
 var mergeCmd = &cobra.Command{
 	Use:               "merge [flags] <pullrequest-id>",
-	Short:             "merge a pullrequest by its <pullrequest-id>.",
+	Short:             "merge a pullrequest by its <pullrequest-id>. If not provided, it will try to merge the only open pullrequest.",
 	Args:              cobra.MaximumNArgs(1),
 	ValidArgsFunction: mergeValidArgs,
 	RunE:              mergeProcess,
@@ -85,7 +85,7 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 	var pullRequestID string
 
 	if len(args) == 0 {
-		pullRequestIDs, err := prcommon.GetPullRequestIDsWithState(cmd.Context(), cmd, "OPEN")
+		pullRequestIDs, err := prcommon.GetPullRequestIDsFromRepositoryWithState(cmd.Context(), cmd, repository, "OPEN")
 		if err != nil {
 			return err
 		}

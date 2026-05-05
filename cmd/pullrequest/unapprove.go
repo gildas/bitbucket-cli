@@ -3,19 +3,21 @@ package pullrequest
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
 var unapproveCmd = &cobra.Command{
 	Use:               "unapprove [flags] <pullrequest-id>",
-	Short:             "unapprove a pullrequest by its <pullrequest-id>.",
-	Args:              cobra.ExactArgs(1),
+	Short:             "unapprove a pullrequest by its <pullrequest-id>. If not provided, it will try to unapprove the only open pullrequest.",
+	Args:              cobra.MaximumNArgs(1),
 	ValidArgsFunction: unapproveValidArgs,
 	RunE:              unapproveProcess,
 }
@@ -54,17 +56,35 @@ func unapproveProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Unapproving pullrequest %s", args[0]) {
+	var pullRequestID string
+
+	if len(args) == 0 {
+		pullRequestIDs, err := prcommon.GetPullRequestIDsFromRepositoryWithState(cmd.Context(), cmd, repository, "OPEN")
+		if err != nil {
+			return err
+		}
+		if len(pullRequestIDs) == 0 {
+			return errors.Errorf("No pullrequest to unapprove")
+		}
+		if len(pullRequestIDs) > 1 {
+			return errors.Errorf("Too many pullrequests to unapprove: %s", strings.Join(pullRequestIDs, ", "))
+		}
+		pullRequestID = pullRequestIDs[0]
+	} else {
+		pullRequestID = args[0]
+	}
+
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Unapproving pullrequest %s", pullRequestID) {
 		return nil
 	}
 	err = profile.Delete(
 		log.ToContext(cmd.Context()),
 		cmd,
-		repository.GetPath("pullrequests", args[0], "approve"),
+		repository.GetPath("pullrequests", pullRequestID, "approve"),
 		nil,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to unapprove pullrequest %s: %s\n", args[0], err)
+		fmt.Fprintf(os.Stderr, "Failed to unapprove pullrequest %s: %s\n", pullRequestID, err)
 		os.Exit(1)
 	}
 	return

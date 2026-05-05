@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -17,13 +18,22 @@ type PullRequestID struct {
 
 // GetPullRequestIDsWithState gets the pullrequest Ids for completion for a given state
 func GetPullRequestIDsWithState(context context.Context, cmd *cobra.Command, state string) (ids []string, err error) {
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return []string{}, err
+	}
+	return GetPullRequestIDsFromRepositoryWithState(context, cmd, repository, state)
+}
+
+// GetPullRequestIDsFromRepositoryWithState gets the pullrequest Ids for completion for a given state and repository
+func GetPullRequestIDsFromRepositoryWithState(context context.Context, cmd *cobra.Command, repository *repository.Repository, state string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getpullrequests")
 
 	log.Infof("Getting %s pullrequests", state)
 	pullrequests, err := profile.GetAll[PullRequestID](
 		log.ToContext(context),
 		cmd,
-		fmt.Sprintf("pullrequests?state=%s", state),
+		repository.GetPath(fmt.Sprintf("pullrequests?state=%s", state)),
 	)
 	if err != nil {
 		log.Errorf("Failed to get %s pullrequests", state, err)
