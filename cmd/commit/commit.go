@@ -81,6 +81,11 @@ func (commit Commit) GetReference() *CommitReference {
 	}
 }
 
+// GetColumnDefinitions gets the column definitions for commits
+func (commit Commit) GetColumnDefinitions() common.Columns[Commit] {
+	return columns
+}
+
 // GetHeaders gets the header for a table
 //
 // implements common.Tableable
