@@ -29,7 +29,9 @@ func GetRemoteFromGitConfig(context context.Context, name string) (remote *Remot
 
 // GetRemoteFromReader gets a remote from a reader
 //
-// If the name is empty, it gets the first remote in the reader
+// - If the name is empty, it gets the first bitbucket remote in the reader
+//
+// - If the remote URL does not contain "bitbucket.org", it returns an error
 func GetRemoteFromReader(context context.Context, reader io.Reader, name string) (remote *Remote, err error) {
 	if len(name) == 0 {
 		sections, err := common.GetGitSectionsMatching(context, reader, regexp.MustCompile("remote \".*\""))
@@ -39,18 +41,27 @@ func GetRemoteFromReader(context context.Context, reader io.Reader, name string)
 		if len(sections) == 0 {
 			return nil, errors.NotFound.With("remote", "any")
 		}
-		section := sections[0]
-		return &Remote{
-			URL:   section.Key("url").String(),
-			Fetch: section.Key("fetch").String(),
-		}, nil
+		for _, section := range sections {
+			url := section.Key("url").String()
+			if strings.Contains(url, "bitbucket.org") {
+				return &Remote{
+					URL:   url,
+					Fetch: section.Key("fetch").String(),
+				}, nil
+			}
+		}
+		return nil, errors.NotFound.With("remote", "any")
 	}
 	section, err := common.GetGitSection(context, reader, "remote \""+name+"\"")
 	if err != nil {
 		return nil, err
 	}
+	url := section.Key("url").String()
+	if !strings.Contains(url, "bitbucket.org") {
+		return nil, errors.ArgumentInvalid.With("remote", name)
+	}
 	return &Remote{
-		URL:   section.Key("url").String(),
+		URL:   url,
 		Fetch: section.Key("fetch").String(),
 	}, nil
 }
