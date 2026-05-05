@@ -1,10 +1,6 @@
 package pullrequest
 
 import (
-	"fmt"
-	"os"
-	"strings"
-
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
@@ -51,30 +47,17 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
-		return err
+		return errors.Join(errors.Errorf("Cannot approve Pull Request"), err)
 	}
 
 	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
-		return err
+		return errors.Join(errors.Errorf("Cannot approve Pull Request"), err)
 	}
 
-	var pullRequestID string
-
-	if len(args) == 0 {
-		pullRequestIDs, err := prcommon.GetPullRequestIDsFromRepositoryWithState(cmd.Context(), cmd, repository, "OPEN")
-		if err != nil {
-			return err
-		}
-		if len(pullRequestIDs) == 0 {
-			return errors.Errorf("No pullrequest to approve")
-		}
-		if len(pullRequestIDs) > 1 {
-			return errors.Errorf("Too many pullrequests to approve: %s", strings.Join(pullRequestIDs, ", "))
-		}
-		pullRequestID = pullRequestIDs[0]
-	} else {
-		pullRequestID = args[0]
+	pullRequestID, err := GetPullRequestIDFromArgs(cmd.Context(), cmd, repository, args)
+	if err != nil {
+		return errors.Join(errors.Errorf("Cannot approve Pull Request"), err)
 	}
 
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Approving pullrequest %s", pullRequestID) {
@@ -90,8 +73,7 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 		&participant,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to approve pullrequest %s: %s\n", pullRequestID, err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to approve Pull Request %s", pullRequestID), err)
 	}
 	return profile.Print(cmd.Context(), cmd, participant)
 }

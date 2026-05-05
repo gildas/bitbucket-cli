@@ -1,10 +1,6 @@
 package pullrequest
 
 import (
-	"fmt"
-	"os"
-	"strings"
-
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
@@ -49,30 +45,17 @@ func declineProcess(cmd *cobra.Command, args []string) (err error) {
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
-		return err
+		return errors.Join(errors.Errorf("Cannot decline Pull Request"), err)
 	}
 
 	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
-		return err
+		return errors.Join(errors.Errorf("Cannot decline Pull Request"), err)
 	}
 
-	var pullRequestID string
-
-	if len(args) == 0 {
-		pullRequestIDs, err := prcommon.GetPullRequestIDsFromRepositoryWithState(cmd.Context(), cmd, repository, "OPEN")
-		if err != nil {
-			return err
-		}
-		if len(pullRequestIDs) == 0 {
-			return errors.Errorf("No pullrequest to decline")
-		}
-		if len(pullRequestIDs) > 1 {
-			return errors.Errorf("Too many pullrequests to decline: %s", strings.Join(pullRequestIDs, ", "))
-		}
-		pullRequestID = pullRequestIDs[0]
-	} else {
-		pullRequestID = args[0]
+	pullRequestID, err := GetPullRequestIDFromArgs(cmd.Context(), cmd, repository, args)
+	if err != nil {
+		return errors.Join(errors.Errorf("Cannot decline Pull Request"), err)
 	}
 
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Declining pullrequest %s", pullRequestID) {
@@ -88,8 +71,7 @@ func declineProcess(cmd *cobra.Command, args []string) (err error) {
 		&participant,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to decline pullrequest %s: %s\n", pullRequestID, err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to decline Pull Request %s", pullRequestID), err)
 	}
 	return profile.Print(cmd.Context(), cmd, participant)
 }

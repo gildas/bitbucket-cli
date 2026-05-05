@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,6 +14,8 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/activity"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/comment"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -197,6 +200,27 @@ func (pullrequest *PullRequest) Validate() error {
 // implements fmt.Stringer
 func (pullrequest PullRequest) String() string {
 	return pullrequest.Title
+}
+
+// GetPullRequestIDFromArgs gets the pullrequest ID from the command arguments or, if not provided, from the only open pullrequestA
+func GetPullRequestIDFromArgs(ctx context.Context, cmd *cobra.Command, repository *repository.Repository, args []string) (pullRequestID string, err error) {
+	if len(args) == 0 {
+		pullRequestIDs, err := prcommon.GetPullRequestIDsFromRepositoryWithState(cmd.Context(), cmd, repository, "OPEN")
+		if err != nil {
+			return "", err
+		}
+		if len(pullRequestIDs) == 0 {
+			return "", errors.Errorf("No open pullrequest found for repository %s", repository.FullName)
+		}
+		if len(pullRequestIDs) > 1 {
+			return "", errors.Errorf("Too many pullrequests to merge: %s", strings.Join(pullRequestIDs, ", "))
+		}
+		return pullRequestIDs[0], nil
+	}
+	if _, err := strconv.Atoi(args[0]); err != nil {
+		return "", errors.ArgumentInvalid.With("pullrequest-id", args[0])
+	}
+	return args[0], nil
 }
 
 // GetReviewerNicknames gets the reviewer nicknames for the current Workspace

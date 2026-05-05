@@ -1,11 +1,6 @@
 package pullrequest
 
 import (
-	"fmt"
-	"os"
-	"strconv"
-	"strings"
-
 	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
@@ -62,12 +57,17 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
-		return err
+		return errors.Join(errors.Errorf("Cannot merge Pull Request"), err)
 	}
 
 	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
-		return err
+		return errors.Join(errors.Errorf("Cannot merge Pull Request"), err)
+	}
+
+	pullRequestID, err := GetPullRequestIDFromArgs(cmd.Context(), cmd, repository, args)
+	if err != nil {
+		return errors.Join(errors.Errorf("Cannot merge Pull Request"), err)
 	}
 
 	var pullrequest PullRequest
@@ -82,28 +82,6 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 		MergeStrategy:     mergeOptions.MergeStrategy.String(),
 	}
 
-	var pullRequestID string
-
-	if len(args) == 0 {
-		pullRequestIDs, err := prcommon.GetPullRequestIDsFromRepositoryWithState(cmd.Context(), cmd, repository, "OPEN")
-		if err != nil {
-			return err
-		}
-		if len(pullRequestIDs) == 0 {
-			return errors.Errorf("No pullrequest to merge")
-		}
-		if len(pullRequestIDs) > 1 {
-			return errors.Errorf("Too many pullrequests to merge: %s", strings.Join(pullRequestIDs, ", "))
-		}
-		pullRequestID = pullRequestIDs[0]
-	} else {
-		pullRequestID = args[0]
-	}
-
-	if _, err := strconv.Atoi(pullRequestID); err != nil {
-		return errors.ArgumentInvalid.With("pullrequest-id", pullRequestID)
-	}
-
 	log.Record("payload", payload).Infof("Merging pullrequest %s", pullRequestID)
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Merging pullrequest %s", pullRequestID) {
 		return nil
@@ -116,8 +94,7 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 		&pullrequest,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to merge pullrequest %s: %s\n", pullRequestID, err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to merge Pull Request %s", pullRequestID), err)
 	}
 	return profile.Print(cmd.Context(), cmd, pullrequest)
 }
