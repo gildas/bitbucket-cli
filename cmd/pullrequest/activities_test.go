@@ -68,7 +68,7 @@ func (suite *ActivitySuite) AfterTest(suiteName, testName string) {
 }
 
 func (suite *ActivitySuite) LoadTestData(filename string) []byte {
-	data, err := os.ReadFile(fmt.Sprintf("../../../testdata/%s", filename))
+	data, err := os.ReadFile(fmt.Sprintf("../../testdata/%s", filename))
 	if err != nil {
 		suite.T().Fatal(err)
 	}
