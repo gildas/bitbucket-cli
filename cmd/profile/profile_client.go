@@ -35,6 +35,12 @@ func (profile *Profile) Post(context context.Context, cmd *cobra.Command, uripat
 	return
 }
 
+// PostWithResult posts a resource and returns the raw result
+func (profile *Profile) PostWithResult(context context.Context, cmd *cobra.Command, uripath string, body interface{}) (result *request.Content, err error) {
+	options := &request.Options{Method: http.MethodPost, Payload: body}
+	return profile.send(context, cmd, options, uripath, nil)
+}
+
 // Get gets a resource
 func (profile *Profile) Get(context context.Context, cmd *cobra.Command, uripath string, response interface{}) (err error) {
 	options := &request.Options{Method: http.MethodGet}
@@ -397,7 +403,7 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 	return request.BearerAuthorization(profile.AccessToken), nil
 }
 
-func (profile *Profile) send(context context.Context, cmd *cobra.Command, options *request.Options, uripath string, response interface{}) (result *request.Content, err error) {
+func (profile *Profile) send(context context.Context, cmd *cobra.Command, options *request.Options, uripath string, response any) (result *request.Content, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, strings.ToLower(options.Method))
 
 	if len(profile.User) > 0 {

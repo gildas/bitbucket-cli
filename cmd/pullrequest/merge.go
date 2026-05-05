@@ -20,6 +20,7 @@ var mergeCmd = &cobra.Command{
 }
 
 var mergeOptions struct {
+	Async             bool
 	Message           string
 	MergeStrategy     *flags.EnumFlag
 	CloseSourceBranch bool
@@ -31,6 +32,7 @@ func init() {
 	mergeOptions.MergeStrategy = flags.NewEnumFlag("+merge_commit", "squash", "fast_forward")
 	mergeCmd.Flags().StringVar(&mergeOptions.Message, "message", "", "Message of the merge")
 	mergeCmd.Flags().BoolVar(&mergeOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
+	mergeCmd.Flags().BoolVar(&mergeOptions.Async, "async", false, "Perform the merge asynchronously")
 	mergeCmd.Flags().Var(mergeOptions.MergeStrategy, "merge-strategy", "Merge strategy to use. Possible values are \"merge_commit\", \"squash\" or \"fast_forward\"")
 	_ = mergeCmd.RegisterFlagCompletionFunc(mergeOptions.MergeStrategy.CompletionFunc("merge-strategy"))
 }
@@ -70,7 +72,11 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.Join(errors.Errorf("Cannot merge Pull Request"), err)
 	}
 
-	var pullrequest PullRequest
+	uripath := repository.GetPath("pullrequests", pullRequestID, "merge")
+
+	if mergeOptions.Async {
+		uripath += "?async=true"
+	}
 
 	payload := struct {
 		Message           string `json:"message,omitempty"`
@@ -86,15 +92,25 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Merging pullrequest %s", pullRequestID) {
 		return nil
 	}
-	err = profile.Post(
-		log.ToContext(cmd.Context()),
-		cmd,
-		repository.GetPath("pullrequests", pullRequestID, "merge"),
-		payload,
-		&pullrequest,
-	)
-	if err != nil {
-		return errors.Join(errors.Errorf("Failed to merge Pull Request %s", pullRequestID), err)
+
+	if mergeOptions.Async {
+		result, err := profile.PostWithResult(log.ToContext(cmd.Context()), cmd, uripath, payload)
+		if err != nil {
+			return errors.Join(errors.Errorf("Failed to merge Pull Request %s", pullRequestID), err)
+		}
+		status, err := NewPullRequestMergeStatusFromLocation(result.Headers.Get("Location"))
+		if err != nil {
+			return errors.Join(errors.Errorf("Failed to get merge status for Pull Request %s", pullRequestID), err)
+		}
+		log.Infof("Merge request accepted, task ID: %s", status.ID)
+		return profile.Print(cmd.Context(), cmd, status)
+	} else {
+		var pullrequest PullRequest
+
+		err = profile.Post(log.ToContext(cmd.Context()), cmd, uripath, payload, &pullrequest)
+		if err != nil {
+			return errors.Join(errors.Errorf("Failed to merge Pull Request %s", pullRequestID), err)
+		}
+		return profile.Print(cmd.Context(), cmd, pullrequest)
 	}
-	return profile.Print(cmd.Context(), cmd, pullrequest)
 }
