@@ -16,7 +16,7 @@ var diffCmd = &cobra.Command{
 	Use:               "diff [flags] <commit-hash> [<commit-hash>]",
 	Short:             "show the diff of a commit or between two commits",
 	Args:              cobra.RangeArgs(1, 2),
-	ValidArgsFunction: validCommitArgs,
+	ValidArgsFunction: validDiffArgs,
 	RunE:              diffProcess,
 }
 
@@ -30,7 +30,7 @@ func init() {
 	diffCmd.Flags().BoolVar(&diffOptions.Stat, "stat", false, "show only the diffstat")
 }
 
-func validCommitArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func validDiffArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "diff")
 	if len(args) == 0 && toComplete == "" || len(args) > 2 {
 		log.Debugf("No args or too many args for completion: %v, toComplete: %s", args, toComplete)
