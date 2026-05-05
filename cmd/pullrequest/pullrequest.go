@@ -200,8 +200,8 @@ func (pullrequest PullRequest) String() string {
 }
 
 // GetReviewerNicknames gets the reviewer nicknames for the current Workspace
-func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string, toComplete string) (nicknames []string, err error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "getreviewers")
+func GetReviewerNicknames(ctx context.Context, cmd *cobra.Command, args []string, toComplete string) (nicknames []string, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child(nil, "getreviewers")
 
 	if cmd == nil {
 		fmt.Fprintln(os.Stderr, "cmd is nil")
@@ -215,7 +215,7 @@ func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []st
 		return []string{}, err
 	}
 	log.Infof("Getting members of workspace %s", pullrequestWorkspace)
-	members, _ := pullrequestWorkspace.GetMembers(context, cmd)
+	members, _ := pullrequestWorkspace.GetMembers(ctx, cmd)
 	nicknames = core.Map(members, func(member workspace.Member) string { return member.User.Nickname })
 	core.Sort(nicknames, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
 	return common.FilterValidArgs(nicknames, args, toComplete), nil
