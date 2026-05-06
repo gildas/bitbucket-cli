@@ -1,4 +1,4 @@
-module bitbucket.org/gildas_cherruel/bb
+module github.com/gildas/bitbucket-cli
 
 go 1.26
 

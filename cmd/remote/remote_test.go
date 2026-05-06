@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
+	"github.com/gildas/bitbucket-cli/cmd/remote"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,10 +48,10 @@ func TestCanGetRepositoryNameWithHTTPS(t *testing.T) {
 	bare = false
 	logallrefupdates = true
 [remote "origin"]
-	url = https://bitbucket.org/gildas_cherruel/bb.git
+	url = https://github.com/gildas/bitbucket-cli.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "alternate"]
-	url = https://bitbucket.org/gildas_cherruel/bb
+	url = https://github.com/gildas/bitbucket-cli
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
@@ -110,10 +110,10 @@ func TestCanGetWorkspaceNameWithHTTPS(t *testing.T) {
 	bare = false
 	logallrefupdates = true
 [remote "origin"]
-	url = https://bitbucket.org/gildas_cherruel/bb.git
+	url = https://github.com/gildas/bitbucket-cli.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "alternate"]
-	url = https://bitbucket.org/gildas_cherruel/bb
+	url = https://github.com/gildas/bitbucket-cli
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin

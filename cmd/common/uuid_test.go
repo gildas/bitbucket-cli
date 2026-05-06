@@ -3,7 +3,7 @@ package common_test
 import (
 	"encoding/json"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 )
 
 func (suite *CommonSuite) TestCanCreateUUID() {

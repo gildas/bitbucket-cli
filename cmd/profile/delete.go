@@ -3,7 +3,7 @@ package profile
 import (
 	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

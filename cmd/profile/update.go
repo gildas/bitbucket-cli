@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"

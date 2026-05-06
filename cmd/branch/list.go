@@ -1,8 +1,8 @@
 package branch
 
 import (
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"

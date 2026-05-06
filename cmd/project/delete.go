@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/workspace"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"

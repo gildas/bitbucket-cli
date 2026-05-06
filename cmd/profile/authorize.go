@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/briandowns/spinner"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"

@@ -3,12 +3,12 @@ package pipeline
 import (
 	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
-	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
-	"bitbucket.org/gildas_cherruel/bb/cmd/tag"
+	"github.com/gildas/bitbucket-cli/cmd/branch"
+	"github.com/gildas/bitbucket-cli/cmd/commit"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/bitbucket-cli/cmd/tag"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"

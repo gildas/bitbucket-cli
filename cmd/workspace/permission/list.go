@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/url"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	wkcommon "bitbucket.org/gildas_cherruel/bb/cmd/workspace/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	wkcommon "github.com/gildas/bitbucket-cli/cmd/workspace/common"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"

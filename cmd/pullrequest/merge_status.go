@@ -1,10 +1,10 @@
 package pullrequest
 
 import (
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	prcommon "bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	prcommon "github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"

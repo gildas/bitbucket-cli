@@ -1,13 +1,10 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
 package main
 
 import (
 	"context"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd"
+	"github.com/gildas/bitbucket-cli/cmd"
 	"github.com/gildas/go-logger"
 	"github.com/joho/godotenv"
 )

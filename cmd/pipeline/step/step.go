@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	plcommon "bitbucket.org/gildas_cherruel/bb/cmd/pipeline/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	plcommon "github.com/gildas/bitbucket-cli/cmd/pipeline/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"

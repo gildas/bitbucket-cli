@@ -1,6 +1,6 @@
 ﻿
 
-From: https://bitbucket.org/gildas_cherruel/bb/src/master/LICENSE
+From: https://github.com/gildas/bitbucket-cli/src/master/LICENSE
 
 LICENSE
 
