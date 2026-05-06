@@ -676,6 +676,12 @@ You can list pull requests with the `bb pullrequest list` command:
 bb pullrequest list
 ```
 
+You can get the list of pull requests for a given commit hash (it must be the full hash) with the `--commit` flag:
+
+```bash
+bb pullrequest list --commit ae86d5323477989fab3bf3879cd1234543565753
+```
+
 You can create a pull request with the `bb pullrequest create` command:
 
 ```bash
@@ -725,11 +731,15 @@ You can `approve`or `unapprove` a pull request with the `bb pullrequest approve`
 bb pullrequest approve 1
 ```
 
+If no pull request is provided, the command will try to approve the opened pull request with the current branch.
+
 You can `decline` a pull request with the `bb pullrequest decline` command:
 
 ```bash
 bb pullrequest decline 1
 ```
+
+If no pull request is provided, the command will try to decline the opened pull request with the current branch.
 
 You can `merge` a pull request with the `bb pullrequest merge` command:
 
@@ -737,7 +747,79 @@ You can `merge` a pull request with the `bb pullrequest merge` command:
 bb pullrequest merge 1
 ```
 
-If no pull request is provided, the command will try to merge the pull request with the current branch.
+If no pull request is provided, the command will try to merge the opened pull request with the current branch.
+
+You can also merge the pull request asynchronously with the `--async` flag:
+
+```bash
+bb pullrequest merge 1 --async
+```
+
+In that case, you will receive a merge task ID in return, and you can check the status of the merge task with the `bb pullrequest merge-status` command:
+
+```bash
+bb pullrequest merge-status 1 --task-id 6a0ddb61-40cf-4224-b9e8-bbb5852c66ba
+```
+
+If no pull request is provided, the command will try to request the merge status of the opened pull request with the current branch.
+
+You can request changes on a pull request with the `bb pullrequest request-changes` command:
+
+```bash
+bb pullrequest request-changes 1
+```
+
+If no pull request is provided, the command will try to request changes on the opened pull request with the current branch.
+
+To remove the request for changes, you can use the `bb pullrequest remove-request-changes` command:
+
+```bash
+bb pullrequest remove-request-changes 1
+```
+
+If no pull request is provided, the command will try to remove the request for changes on the opened pull request with the current branch.
+
+You can see the activities of a pull request with the `bb pullrequest activities` command:
+
+```bash
+bb pullrequest activities 1
+```
+
+If no pull request is provided, the command will try to list the activities of the opened pull request with the current branch.
+
+You can list the commits of a pull request with the `bb pullrequest commits` command:
+
+```bash
+bb pullrequest commits 1
+```
+
+If no pull request is provided, the command will try to list the commits of the opened pull request with the current branch.
+
+You can see the diff of a pull request with the `bb pullrequest diff` command:
+
+```bash
+bb pullrequest diff 1
+```
+
+If no pull request is provided, the command will try to show the diff of the opened pull request with the current branch.
+
+You can get the diffstat of a pull request with the `bb pullrequest diff --stat` command:
+
+```bash
+bb pullrequest diff --stat 1
+```
+
+If no pull request is provided, the command will try to show the diffstat of the opened pull request with the current branch.
+
+You can also get the patch of a pull request with the `bb pullrequest patch` command:
+
+```bash
+bb pullrequest patch 1
+```
+
+If no pull request is provided, the command will try to show the patch of the opened pull request with the current branch.
+
+#### Pull Request Comments
 
 You can list the comments of a pull request with the `bb pullrequest comment list` command:
 
@@ -783,6 +865,47 @@ You can delete a comment with the `bb pullrequest comment delete` command:
 
 ```bash
 bb pullrequest comment delete --pullrequest 1 452466
+```
+
+#### Pull Request Tasks
+
+You can list the tasks of a pull request with the `bb pullrequest task list` command:
+
+```bash
+bb pullrequest task list --pullrequest 1
+```
+
+You can add a task to a pull request with the `bb pullrequest task create` or `bb pullrequest task add` command:
+
+```bash
+bb pullrequest task create --pullrequest 1 \
+  --content "My task"
+```
+
+You can reference a comment in a task with the `--comment` flag:
+
+```bash
+bb pullrequest task create --pullrequest 1 \
+  --content "My task" \
+  --comment 452466
+```
+
+You can complete a task with the `bb pullrequest task update` command:
+
+```bashbb pullrequest task update --pullrequest 1 7643545 \
+  --state RESOLVED
+```
+
+You can also re-open a task with the same command:
+
+```bashbb pullrequest task update --pullrequest 1 7643545 \
+  --state UNRESOLVED
+```
+
+You can delete a task with the `bb pullrequest task delete` command:
+
+```bash
+bb pullrequest task delete --pullrequest 1 7643545
 ```
 
 ### Issues
