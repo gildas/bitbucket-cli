@@ -1,4 +1,4 @@
-package comment
+package task
 
 import (
 	"fmt"
@@ -15,9 +15,9 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete [flags] <comment-id...>",
+	Use:               "delete [flags] <task-id...>",
 	Aliases:           []string{"remove", "rm"},
-	Short:             "delete pullrequest comments by their <comment-id>.",
+	Short:             "delete pullrequest tasks by their <task-id>.",
 	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: deleteValidArgs,
 	RunE:              deleteProcess,
@@ -41,11 +41,11 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	commentIDs, err := GetPullRequestCommentIDs(cmd.Context(), cmd, args, toComplete)
+	taskIDs, err := GetPullRequestTaskIDs(cmd.Context(), cmd, deleteOptions.PullRequestID.Value)
 	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return commentIDs, cobra.ShellCompDirectiveNoFileComp
+	return taskIDs, cobra.ShellCompDirectiveNoFileComp
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
@@ -62,31 +62,31 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	var merr errors.MultiError
-	for _, commentID := range args {
-		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting comment %s from pullrequest %s", commentID, deleteOptions.PullRequestID) {
+	for _, taskID := range args {
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting task %s from pullrequest %s", taskID, deleteOptions.PullRequestID) {
 			err := profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,
-				repository.GetPath("pullrequests", deleteOptions.PullRequestID.Value, "comments", commentID),
+				repository.GetPath("pullrequests", deleteOptions.PullRequestID.Value, "tasks", taskID),
 				nil,
 			)
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
-					fmt.Fprintf(os.Stderr, "Failed to delete pullrequest comment %s: %s\n", commentID, err)
+					fmt.Fprintf(os.Stderr, "Failed to delete pullrequest task %s: %s\n", taskID, err)
 					os.Exit(1)
 				} else {
 					merr.Append(err)
 				}
 			}
-			log.Infof("Pullrequest comment %s deleted", commentID)
+			log.Infof("Pullrequest task %s deleted", taskID)
 		}
 	}
 	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
-		fmt.Fprintf(os.Stderr, "Failed to delete these comments: %s\n", merr)
+		fmt.Fprintf(os.Stderr, "Failed to delete these tasks: %s\n", merr)
 		return nil
 	}
 	if profile.ShouldIgnoreErrors(cmd) {
-		log.Warnf("Failed to delete these comments, but ignoring errors: %s", merr)
+		log.Warnf("Failed to delete these tasks, but ignoring errors: %s", merr)
 		return nil
 	}
 	return merr.AsError()

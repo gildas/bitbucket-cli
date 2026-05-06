@@ -222,20 +222,26 @@ func (comment Comment) MarshalJSON() (data []byte, err error) {
 }
 
 // GetPullRequestCommentIDs gets the IDs of the comments for a pullrequest
-func GetPullRequestCommentIDs(context context.Context, cmd *cobra.Command, PullRequestID string) (ids []string, err error) {
-	log := logger.Must(logger.FromContext(context)).Child("pullrequest", "getids")
+func GetPullRequestCommentIDs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (ids []string, err error) {
+	log := logger.Must(logger.FromContext(context)).Child("comment", "getids")
 
 	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
 		return nil, err
 	}
 
-	comments, err := profile.GetAll[Comment](context, cmd, repository.GetPath(fmt.Sprintf("pullrequests/%s/comments", PullRequestID)))
+	var pullRequestID string
+	if cmd.Flag("pullrequest") != nil {
+		pullRequestID = cmd.Flag("pullrequest").Value.String()
+	} else {
+		return nil, errors.New("pullrequest flag is required")
+	}
+
+	comments, err := profile.GetAll[Comment](context, cmd, repository.GetPath(fmt.Sprintf("pullrequests/%s/comments", pullRequestID)))
 	if err != nil {
 		log.Errorf("Failed to get pullrequests", err)
 		return nil, err
 	}
-	return core.Map(comments, func(comment Comment) string {
-		return fmt.Sprintf("%d", comment.ID)
-	}), nil
+	ids = core.Map(comments, func(comment Comment) string { return fmt.Sprintf("%d", comment.ID) })
+	return common.FilterValidArgs(ids, args, toComplete), nil
 }

@@ -1,4 +1,4 @@
-package comment
+package task
 
 import (
 	"fmt"
@@ -14,9 +14,9 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:               "get [flags] <comment-id>",
+	Use:               "get [flags] <task-id>",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get a pullrequest comment by its <comment-id>.",
+	Short:             "get a pullrequest task by its <task-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
@@ -32,7 +32,7 @@ func init() {
 
 	getOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
-	getCmd.Flags().Var(getOptions.PullRequestID, "pullrequest", "Pullrequest to get comments from")
+	getCmd.Flags().Var(getOptions.PullRequestID, "pullrequest", "Pullrequest to get tasks from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.MarkFlagRequired("pullrequest")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.PullRequestID.CompletionFunc("pullrequest"))
@@ -44,11 +44,11 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	commentIDs, err := GetPullRequestCommentIDs(cmd.Context(), cmd, args, toComplete)
+	taskIDs, err := GetPullRequestTaskIDs(cmd.Context(), cmd, getOptions.PullRequestID.Value)
 	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	return commentIDs, cobra.ShellCompDirectiveNoFileComp
+	return taskIDs, cobra.ShellCompDirectiveNoFileComp
 }
 
 func getProcess(cmd *cobra.Command, args []string) (err error) {
@@ -64,22 +64,22 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	log.Infof("Displaying pullrequest comment %s", args[0])
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing pullrequest comment %s", args[0])) {
+	log.Infof("Displaying pullrequest task %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing pullrequest task %s", args[0])) {
 		return nil
 	}
 
-	var comment Comment
+	var task Task
 
 	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
-		repository.GetPath("pullrequests", getOptions.PullRequestID.Value, "comments", args[0]),
-		&comment,
+		repository.GetPath("pullrequests", getOptions.PullRequestID.Value, "tasks", args[0]),
+		&task,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get pullrequest comment %s: %s\n", args[0], err)
+		fmt.Fprintf(os.Stderr, "Failed to get pullrequest task %s: %s\n", args[0], err)
 		os.Exit(1)
 	}
-	return profile.Print(cmd.Context(), cmd, comment)
+	return profile.Print(cmd.Context(), cmd, task)
 }

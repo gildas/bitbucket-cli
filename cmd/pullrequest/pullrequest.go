@@ -15,6 +15,7 @@ import (
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/activity"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/comment"
 	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/task"
 	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
 	"bitbucket.org/gildas_cherruel/bb/cmd/user"
 	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
@@ -125,6 +126,7 @@ var columns = common.Columns[PullRequest]{
 func init() {
 	Command.AddCommand(comment.Command)
 	Command.AddCommand(activity.Command)
+	Command.AddCommand(task.Command)
 }
 
 // GetHeaders gets the header for a table
