@@ -1,32 +1,25 @@
 package pullrequest
 
 import (
-	"fmt"
-	"os"
-
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
 var unapproveCmd = &cobra.Command{
 	Use:               "unapprove [flags] <pullrequest-id>",
-	Short:             "unapprove a pullrequest by its <pullrequest-id>.",
-	Args:              cobra.ExactArgs(1),
+	Short:             "unapprove a pullrequest by its <pullrequest-id>. If not provided, it will try to unapprove the only open pullrequest.",
+	Args:              cobra.MaximumNArgs(1),
 	ValidArgsFunction: unapproveValidArgs,
 	RunE:              unapproveProcess,
 }
 
-var unapproveOptions struct {
-	Repository string
-}
-
 func init() {
 	Command.AddCommand(unapproveCmd)
-
-	unapproveCmd.Flags().StringVar(&unapproveOptions.Repository, "repository", "", "Repository to unapprove pullrequest from. Defaults to the current repository")
 }
 
 func unapproveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -51,21 +44,30 @@ func unapproveProcess(cmd *cobra.Command, args []string) (err error) {
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
-		return err
+		return errors.Join(errors.Errorf("Cannot unapprove Pull Request"), err)
 	}
 
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Unapproving pullrequest %s", args[0]) {
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return errors.Join(errors.Errorf("Cannot unapprove Pull Request"), err)
+	}
+
+	pullRequestID, err := GetPullRequestIDFromArgs(cmd.Context(), cmd, repository, args)
+	if err != nil {
+		return errors.Join(errors.Errorf("Cannot unapprove Pull Request"), err)
+	}
+
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Unapproving pullrequest %s", pullRequestID) {
 		return nil
 	}
 	err = profile.Delete(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s/approve", args[0]),
+		repository.GetPath("pullrequests", pullRequestID, "approve"),
 		nil,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to unapprove pullrequest %s: %s\n", args[0], err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to unapprove Pull Request %s", pullRequestID), err)
 	}
 	return
 }

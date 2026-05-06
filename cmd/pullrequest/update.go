@@ -6,13 +6,14 @@ import (
 	"slices"
 	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/branch"
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/project/reviewer"
-	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/user"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/bitbucket-cli/cmd/branch"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/project/reviewer"
+	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/bitbucket-cli/cmd/user"
+	"github.com/gildas/bitbucket-cli/cmd/workspace"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -81,6 +82,11 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	var pullrequest PullRequest
 
 	log.Infof("Fetching pullrequest %s", args[0])
@@ -123,9 +129,9 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 
 	var pullrequestWorkspace *workspace.Workspace
 	if pullrequest.Destination.Repository != nil {
-		pullrequestWorkspace, err = pullrequest.Destination.Repository.FetchWorkspace(cmd.Context(), cmd, profile)
+		pullrequestWorkspace, err = workspace.GetWorkspaceBySlugOrID(cmd.Context(), cmd, pullrequest.Destination.Repository.Workspace.Slug)
 	} else {
-		pullrequestWorkspace, err = workspace.GetWorkspaceFromCommandOrGit(cmd.Context(), cmd)
+		pullrequestWorkspace, err = workspace.GetWorkspace(cmd.Context(), cmd)
 	}
 	if err != nil {
 		log.Errorf("Failed to get workspace of pullrequest destination repository", err)
@@ -237,7 +243,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	err = profile.Put(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s", args[0]),
+		repository.GetPath("pullrequests", args[0]),
 		pullrequest,
 		&updated,
 	)

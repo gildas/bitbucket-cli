@@ -1,8 +1,8 @@
 package pullrequest
 
 import (
-	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
-	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
+	"github.com/gildas/bitbucket-cli/cmd/commit"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
 )
 
 type Endpoint struct {

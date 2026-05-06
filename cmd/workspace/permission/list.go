@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/url"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	wkcommon "bitbucket.org/gildas_cherruel/bb/cmd/workspace/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	wkcommon "github.com/gildas/bitbucket-cli/cmd/workspace/common"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -19,6 +19,7 @@ var listCmd = &cobra.Command{
 	Short:             "list all workspace permissions",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: listValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              listProcess,
 }
 
@@ -41,6 +42,7 @@ func init() {
 	_ = listCmd.MarkFlagRequired("workspace")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
+	listCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func listValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

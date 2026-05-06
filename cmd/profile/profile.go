@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -192,8 +192,14 @@ func (profile Profile) GetRow(headers []string) []string {
 // implements logger.Redactable
 func (profile Profile) Redact() any {
 	redacted := profile
+	if len(redacted.ClientID) > 0 {
+		redacted.ClientID = logger.RedactWithHash(redacted.ClientID)
+	}
 	if len(redacted.ClientSecret) > 0 {
 		redacted.ClientSecret = logger.RedactWithHash(redacted.ClientSecret)
+	}
+	if len(redacted.User) > 0 {
+		redacted.User = logger.RedactWithHash(redacted.User)
 	}
 	if len(redacted.Password) > 0 {
 		redacted.Password = logger.RedactWithHash(redacted.Password)
@@ -203,6 +209,9 @@ func (profile Profile) Redact() any {
 	}
 	if len(redacted.RefreshToken) > 0 {
 		redacted.RefreshToken = logger.RedactWithHash(redacted.RefreshToken)
+	}
+	if len(redacted.CloneUser) > 0 {
+		redacted.CloneUser = logger.RedactWithHash(redacted.CloneUser)
 	}
 	redacted.TokenScopes = nil
 	return redacted
@@ -643,4 +652,22 @@ func getProjectKeys(context context.Context, cmd *cobra.Command, args []string, 
 	keys = core.Map(projects, func(project Project) string { return project.Key })
 	core.Sort(keys, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
 	return keys, nil
+}
+
+// disableUnsupportedFlags disables the flags that are not supported by the profile command
+func disableUnsupportedFlags(cmd *cobra.Command, args []string) error {
+	if cmd.Flags().Changed("repository") {
+		return fmt.Errorf("the --repository flag is not supported by the profile command")
+	}
+	if cmd.Flags().Changed("workspace") {
+		return fmt.Errorf("the --workspace flag is not supported by the profile command")
+	}
+	return nil
+}
+
+// hideUnsupportedFlags hides the flags that are not supported by the profile command
+func hideUnsupportedFlags(cmd *cobra.Command, args []string) {
+	cmd.Flags().MarkHidden("repository")
+	cmd.Flags().MarkHidden("workspace")
+	cmd.Parent().HelpFunc()(cmd, args)
 }

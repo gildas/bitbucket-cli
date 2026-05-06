@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/workspace"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -18,23 +18,21 @@ var getCmd = &cobra.Command{
 	Short:             "get a project by its <project-key>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              getProcess,
 }
 
 var getOptions struct {
-	Workspace *flags.EnumFlag
-	Columns   *flags.EnumSliceFlag
+	Columns *flags.EnumSliceFlag
 }
 
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
-	getCmd.Flags().Var(getOptions.Workspace, "workspace", "Workspace to get projects from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
-	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Workspace.CompletionFunc("workspace"))
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
+	getCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -58,7 +56,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	workspace, err := GetWorkspace(cmd, profile)
+	workspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}

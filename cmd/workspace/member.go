@@ -3,8 +3,8 @@ package workspace
 import (
 	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/user"
 	"github.com/spf13/cobra"
 )
 

@@ -1,0 +1,42 @@
+{
+  "type": "workspace",
+	"uuid": "{12345678-9abc-def0-1234-56789abcdef0}",
+  "name": "My Workspace",
+	"slug": "myworkspace",
+  "is_private": false,
+  "is_privacy_enforced": false,
+  "forking_mode": "allow_forks",
+  "created_on": "2018-12-02T06:49:58.468988+00:00",
+  "links": {
+    "avatar": {
+      "href": "https://bitbucket.org/workspaces/myworkspace/avatar/?ts=1543733398"
+    },
+    "hooks": {
+      "href": "https://api.bitbucket.org/2.0/workspaces/myworkspace/hooks"
+    },
+    "html": {
+      "href": "https://bitbucket.org/myworkspace/"
+    },
+    "html_overview": {
+      "href": "https://bitbucket.org/myworkspace/workspace/overview/"
+    },
+    "members": {
+      "href": "https://api.bitbucket.org/2.0/workspaces/myworkspace/members"
+    },
+    "owners": {
+      "href": "https://api.bitbucket.org/2.0/workspaces/myworkspace/members?q=permission%3D%22owner%22"
+    },
+    "projects": {
+      "href": "https://api.bitbucket.org/2.0/workspaces/myworkspace/projects"
+    },
+    "repositories": {
+      "href": "https://api.bitbucket.org/2.0/repositories/myworkspace"
+    },
+    "snippets": {
+      "href": "https://api.bitbucket.org/2.0/snippets/myworkspace"
+    },
+    "self": {
+      "href": "https://api.bitbucket.org/2.0/workspaces/myworkspace"
+    }
+  }
+}

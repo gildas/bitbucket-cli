@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
 	"github.com/briandowns/spinner"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -20,11 +20,13 @@ var authorizeCmd = &cobra.Command{
 	Use:               "authorize",
 	Short:             "authorize an Authorization Code Grant profile",
 	ValidArgsFunction: ValidProfileNames,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              authorizeProcess,
 }
 
 func init() {
 	Command.AddCommand(authorizeCmd)
+	authorizeCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func authorizeProcess(cmd *cobra.Command, args []string) error {

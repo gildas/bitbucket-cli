@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
-	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/bitbucket-cli/cmd/user"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/go-git/go-git/v5"
@@ -81,6 +81,11 @@ func (commit Commit) GetReference() *CommitReference {
 	}
 }
 
+// GetColumnDefinitions gets the column definitions for commits
+func (commit Commit) GetColumnDefinitions() common.Columns[Commit] {
+	return columns
+}
+
 // GetHeaders gets the header for a table
 //
 // implements common.Tableable
@@ -146,7 +151,11 @@ func GetCommitByHash(ctx context.Context, cmd *cobra.Command, hash string) (comm
 		return nil, err
 	}
 
-	err = profile.Get(ctx, cmd, fmt.Sprintf("commit/%s", hash), &commit)
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return nil, err
+	}
+	err = profile.Get(ctx, cmd, repository.GetPath("commit", hash), &commit)
 	return commit, err
 }
 
@@ -157,7 +166,7 @@ func (commit *Commit) Validate() error {
 	return merr.AsError()
 }
 
-// String gets a string representation of this pullrequest
+// String gets a string representation of this commit
 //
 // implements fmt.Stringer
 func (commit Commit) String() string {

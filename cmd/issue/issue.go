@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/component"
-	"bitbucket.org/gildas_cherruel/bb/cmd/issue/attachment"
-	"bitbucket.org/gildas_cherruel/bb/cmd/issue/comment"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/repository"
-	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/component"
+	"github.com/gildas/bitbucket-cli/cmd/issue/attachment"
+	"github.com/gildas/bitbucket-cli/cmd/issue/comment"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/bitbucket-cli/cmd/user"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -204,7 +204,11 @@ func (issue Issue) MarshalJSON() (data []byte, err error) {
 func GetIssueIDs(context context.Context, cmd *cobra.Command) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
-	issues, err := profile.GetAll[Issue](context, cmd, "issues")
+	repository, err := repository.GetRepository(context, cmd)
+	if err != nil {
+		return ids, err
+	}
+	issues, err := profile.GetAll[Issue](context, cmd, repository.GetPath("issues"))
 	if err != nil {
 		log.Errorf("Failed to get issues", err)
 		return

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gildas/go-errors"
@@ -13,8 +14,8 @@ import (
 )
 
 // OpenGitConfig opens the .git/config file in the current folder or one of its parents
-func OpenGitConfig(context context.Context) (io.ReadCloser, error) {
-	log := logger.Must(logger.FromContext(context)).Child("remote", "opengitconfig")
+func OpenGitConfig(ctx context.Context) (io.ReadCloser, error) {
+	log := logger.Must(logger.FromContext(ctx)).Child("remote", "opengitconfig")
 	folder, err := filepath.Abs(".")
 	if err != nil {
 		folder = "."
@@ -66,12 +67,8 @@ func OpenGitConfig(context context.Context) (io.ReadCloser, error) {
 }
 
 // GetGitSection returns the INI section from the git config file
-func GetGitSection(context context.Context, reader io.Reader, name string) (section *ini.Section, err error) {
-	payload, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, err
-	}
-	data, err := ini.Load(payload)
+func GetGitSection(ctx context.Context, reader io.Reader, name string) (section *ini.Section, err error) {
+	data, err := getINIContent(ctx, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -80,4 +77,31 @@ func GetGitSection(context context.Context, reader io.Reader, name string) (sect
 		return nil, errors.NotFound.With("section", name)
 	}
 	return section, nil
+}
+
+// GetGitSectionsMatching returns the INI sections from the git config file matching the given regex
+func GetGitSectionsMatching(ctx context.Context, reader io.Reader, rex *regexp.Regexp) (sections []*ini.Section, err error) {
+	data, err := getINIContent(ctx, reader)
+	if err != nil {
+		return nil, err
+	}
+	for _, section := range data.Sections() {
+		if rex.MatchString(section.Name()) {
+			sections = append(sections, section)
+		}
+	}
+	return
+}
+
+// getINIContent reads the INI content from a reader and returns it as an ini.File
+func getINIContent(_ context.Context, reader io.Reader) (data *ini.File, err error) {
+	payload, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	data, err = ini.Load(payload)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

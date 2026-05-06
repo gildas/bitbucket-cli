@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -20,6 +20,7 @@ var updateCmd = &cobra.Command{
 	Short:             "update a profile by its <profile-name>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: ValidProfileNames,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              updateProcess,
 }
 
@@ -67,6 +68,7 @@ func init() {
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.CloneProtocol.CompletionFunc("clone-protocol"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.OutputFormat.CompletionFunc("output"))
 	_ = updateCmd.RegisterFlagCompletionFunc("error-processing", updateOptions.ErrorProcessing.CompletionFunc())
+	updateCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func updateProcess(cmd *cobra.Command, args []string) error {
@@ -96,7 +98,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	// We need to check updates to the vault key early, so we can store the client secret and password in the vault if provided
-	if !cmd.Flag("vault-key").Changed {
+	if runtime.GOOS != "windows" && !cmd.Flag("vault-key").Changed {
 		updateOptions.VaultKey = profile.VaultKey
 	}
 

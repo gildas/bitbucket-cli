@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/project/reviewer"
-	"bitbucket.org/gildas_cherruel/bb/cmd/user"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/project/reviewer"
+	"github.com/gildas/bitbucket-cli/cmd/user"
+	"github.com/gildas/bitbucket-cli/cmd/workspace"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -191,18 +191,6 @@ func (project Project) MarshalJSON() (data []byte, err error) {
 	return data, errors.JSONMarshalError.Wrap(err)
 }
 
-// GetWorkspace gets the workspace from the command
-func GetWorkspace(cmd *cobra.Command, profile *profile.Profile) (workspace string, err error) {
-	workspace = cmd.Flag("workspace").Value.String()
-	if len(workspace) == 0 {
-		workspace = profile.DefaultWorkspace
-		if len(workspace) == 0 {
-			return "", errors.ArgumentMissing.With("workspace")
-		}
-	}
-	return
-}
-
 // GetProjectKeys gets the keys of the projects in the workspace given in the command
 func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string, toComplete string) (keys []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
@@ -248,4 +236,18 @@ func GetProjectNames(context context.Context, cmd *cobra.Command, args []string,
 	names = core.Map(projects, func(project Project) string { return project.Name })
 	core.Sort(names, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
 	return names, nil
+}
+
+// disableUnsupportedFlags disables the flags that are not supported by the project command
+func disableUnsupportedFlags(cmd *cobra.Command, args []string) error {
+	if cmd.Flags().Changed("repository") {
+		return fmt.Errorf("the --repository flag is not supported by the project command")
+	}
+	return nil
+}
+
+// hideUnsupportedFlags hides the flags that are not supported by the repository command
+func hideUnsupportedFlags(cmd *cobra.Command, args []string) {
+	cmd.Flags().MarkHidden("repository")
+	cmd.Parent().HelpFunc()(cmd, args)
 }

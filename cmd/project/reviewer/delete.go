@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/workspace"
 	errors "github.com/gildas/go-errors"
 	flags "github.com/gildas/go-flags"
 	logger "github.com/gildas/go-logger"
@@ -19,23 +19,21 @@ var deleteCmd = &cobra.Command{
 	Short:             "delete  reviewers by their <user-id>.",
 	ValidArgsFunction: deleteValidArgs,
 	Args:              cobra.MinimumNArgs(1),
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              deleteProcess,
 }
 
 var deleteOptions struct {
-	Workspace *flags.EnumFlag
-	Project   *flags.EnumFlag
+	Project *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
 	deleteOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
-	deleteCmd.Flags().Var(deleteOptions.Workspace, "workspace", "Workspace to delete reviewers from")
 	deleteCmd.Flags().Var(deleteOptions.Project, "project", "Project Key to delete reviewers from")
-	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.Workspace.CompletionFunc("workspace"))
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.Project.CompletionFunc("project"))
+	deleteCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -58,7 +56,12 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	workspace, project, err := GetWorkspaceAndProject(cmd, profile)
+	workspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	project, err := GetProjectName(cmd, profile)
 	if err != nil {
 		return err
 	}

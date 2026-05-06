@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -19,6 +19,7 @@ var createCmd = &cobra.Command{
 	Aliases: []string{"add", "new"},
 	Short:   "create a profile",
 	Args:    cobra.NoArgs,
+	PreRunE: disableUnsupportedFlags,
 	RunE:    createProcess,
 }
 
@@ -69,6 +70,7 @@ func init() {
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.CloneProtocol.CompletionFunc("clone-protocol"))
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.OutputFormat.CompletionFunc("output"))
 	_ = createCmd.RegisterFlagCompletionFunc("error-processing", createOptions.ErrorProcessing.CompletionFunc())
+	createCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func createProcess(cmd *cobra.Command, args []string) error {

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	prcommon "bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	prcommon "github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -16,15 +17,11 @@ import (
 type CommentCreator struct {
 	Content ContentCreator     `json:"content" mapstructure:"content"`
 	Anchor  *common.FileAnchor `json:"inline,omitempty" mapstructure:"inline"`
-	Parent  *ParentRef         `json:"parent,omitempty" mapstructure:"parent"`
+	Parent  *ParentReference   `json:"parent,omitempty" mapstructure:"parent"`
 }
 
 type ContentCreator struct {
 	Raw string `json:"raw" mapstructure:"raw"`
-}
-
-type ParentRef struct {
-	ID int64 `json:"id" mapstructure:"id"`
 }
 
 var createCmd = &cobra.Command{
@@ -37,7 +34,6 @@ var createCmd = &cobra.Command{
 
 var createOptions struct {
 	PullRequestID *flags.EnumFlag
-	Repository    string
 	Comment       string
 	File          string
 	From          int
@@ -49,7 +45,6 @@ func init() {
 	Command.AddCommand(createCmd)
 
 	createOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
-	createCmd.Flags().StringVar(&createOptions.Repository, "repository", "", "Repository to create a pullrequest comment into. Defaults to the current repository")
 	createCmd.Flags().Var(createOptions.PullRequestID, "pullrequest", "Pullrequest to create comments to")
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.File, "file", "", "File to comment on")
@@ -72,12 +67,17 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	payload := CommentCreator{
 		Content: ContentCreator{Raw: createOptions.Comment},
 	}
 
 	if createOptions.ParentID > 0 {
-		payload.Parent = &ParentRef{ID: createOptions.ParentID}
+		payload.Parent = &ParentReference{ID: createOptions.ParentID}
 	}
 
 	if createOptions.File != "" {
@@ -103,7 +103,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s/comments", createOptions.PullRequestID.Value),
+		repository.GetPath("pullrequests", createOptions.PullRequestID.Value, "comments"),
 		payload,
 		&comment,
 	)

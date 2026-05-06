@@ -3,7 +3,7 @@ package common_test
 import (
 	"encoding/json"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 )
 
 func (suite *CommonSuite) TestCanCreateUUID() {
@@ -27,6 +27,12 @@ func (suite *CommonSuite) TestCanUnmarshalUUID() {
 	expected := "{c32f719b-6c8a-4c87-93e2-9ba8f5cd90dd}" // a Bitbucket String for UUIDs
 	var uuid common.UUID
 	err := json.Unmarshal([]byte(`"`+expected+`"`), &uuid)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(uuid)
+	suite.False(uuid.IsNil())
+	suite.Equal(expected, uuid.String())
+
+	err = json.Unmarshal([]byte(`"`+expected[1:len(expected)-1]+`"`), &uuid)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(uuid)
 	suite.False(uuid.IsNil())

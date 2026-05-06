@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest"
+	"github.com/gildas/bitbucket-cli/cmd/pullrequest"
 	"github.com/gildas/go-logger"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/suite"
@@ -115,4 +115,37 @@ func (suite *PullRequestSuite) TestDestinationRepositoryIsNilAfterSettingNewDest
 
 	suite.Assert().Nil(pr.Destination.Repository)
 	suite.Assert().Equal("new-branch", pr.Destination.Branch.Name)
+}
+
+func (suite *PullRequestSuite) TestCanCreatePullRequestMergeStatus() {
+	location := "https://api.bitbucket.org/2.0/repositories/workspace_slug/repo_slug/pullrequests/123/merge/task-status/b45ea563-edb0-4d1d-ba34-ffaac2a6e10b"
+	mergeStatus, err := pullrequest.NewPullRequestMergeStatusFromLocation(location)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(mergeStatus)
+	suite.Assert().Equal("b45ea563-edb0-4d1d-ba34-ffaac2a6e10b", mergeStatus.ID)
+	suite.Assert().Equal(uint64(123), mergeStatus.PullRequest.ID)
+}
+
+func (suite *PullRequestSuite) TestShouldFailCreatingPullRequestMergeStatusWithInvalidURL() {
+	location := "invalid-url"
+	mergeStatus, err := pullrequest.NewPullRequestMergeStatusFromLocation(location)
+	suite.Require().Error(err)
+	suite.Assert().Nil(mergeStatus)
+	suite.T().Logf("Expected error: %s", err.Error())
+}
+
+func (suite *PullRequestSuite) TestShouldFailCreatingPullRequestMergeStatusWithEmptyURL() {
+	location := ""
+	mergeStatus, err := pullrequest.NewPullRequestMergeStatusFromLocation(location)
+	suite.Require().Error(err)
+	suite.Assert().Nil(mergeStatus)
+	suite.T().Logf("Expected error: %s", err.Error())
+}
+
+func (suite *PullRequestSuite) TestShouldFailCreatingPullRequestMergeStatusWithShortURL() {
+	location := "https://api.bitbucket.org/2.0/repositories/workspace_slug/repo_slug/pullrequests/123/merge/task-status"
+	mergeStatus, err := pullrequest.NewPullRequestMergeStatusFromLocation(location)
+	suite.Require().Error(err)
+	suite.Assert().Nil(mergeStatus)
+	suite.T().Logf("Expected error: %s", err.Error())
 }

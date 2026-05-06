@@ -3,13 +3,14 @@ package pullrequest
 import (
 	"encoding/json"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-errors"
 )
 
 // PullRequestReference describes a reference to a PullRequest
 type PullRequestReference struct {
-	ID      uint64       `json:"id"    mapstructure:"id"`
+	Type    string       `json:"type"            mapstructure:"type"`
+	ID      uint64       `json:"id"              mapstructure:"id"`
 	Title   string       `json:"title,omitempty" mapstructure:"title"`
 	IsDraft bool         `json:"draft,omitempty" mapstructure:"draft"`
 	Links   common.Links `json:"links,omitempty" mapstructure:"links"`

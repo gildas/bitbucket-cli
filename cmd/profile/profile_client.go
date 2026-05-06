@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/remote"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -34,6 +33,12 @@ func (profile *Profile) Post(context context.Context, cmd *cobra.Command, uripat
 	options := &request.Options{Method: http.MethodPost, Payload: body}
 	_, err = profile.send(context, cmd, options, uripath, response)
 	return
+}
+
+// PostWithResult posts a resource and returns the raw result
+func (profile *Profile) PostWithResult(context context.Context, cmd *cobra.Command, uripath string, body interface{}) (result *request.Content, err error) {
+	options := &request.Options{Method: http.MethodPost, Payload: body}
+	return profile.send(context, cmd, options, uripath, nil)
 }
 
 // Get gets a resource
@@ -398,7 +403,7 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 	return request.BearerAuthorization(profile.AccessToken), nil
 }
 
-func (profile *Profile) send(context context.Context, cmd *cobra.Command, options *request.Options, uripath string, response interface{}) (result *request.Content, err error) {
+func (profile *Profile) send(context context.Context, cmd *cobra.Command, options *request.Options, uripath string, response any) (result *request.Content, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, strings.ToLower(options.Method))
 
 	if len(profile.User) > 0 {
@@ -417,17 +422,6 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 	if strings.HasPrefix(uripath, "/") {
 		components := strings.Split(uripath, "?")
 		options.URL = apiRoot.JoinPath("2.0", components[0])
-		if len(components) > 1 {
-			options.URL.RawQuery = components[1]
-		}
-	} else if !strings.HasPrefix(uripath, "http") {
-		repositoryName, err := profile.getRepositoryFullname(context, cmd)
-		if err != nil {
-			return nil, err
-		}
-		log.Infof("Using repository %s", repositoryName)
-		components := strings.Split(uripath, "?")
-		options.URL = apiRoot.JoinPath("2.0", "repositories", repositoryName, components[0])
 		if len(components) > 1 {
 			options.URL.RawQuery = components[1]
 		}
@@ -469,22 +463,4 @@ func (profile *Profile) send(context context.Context, cmd *cobra.Command, option
 		}
 	}
 	return
-}
-
-func (profile Profile) getRepositoryFullname(context context.Context, cmd *cobra.Command) (string, error) {
-	log := logger.Must(logger.FromContext(context)).Child("profile", "getrepositoryname")
-
-	fullName := ""
-	if cmd != nil && cmd.Flag("repository") != nil {
-		fullName = cmd.Flag("repository").Value.String()
-	}
-	if len(fullName) == 0 {
-		log.Debugf("No repository name given, trying to get it from the current git repository")
-		remote, err := remote.GetFromGitConfig(context, "origin")
-		if err != nil {
-			return "", errors.Join(errors.NotFound.With("current repository"), err)
-		}
-		fullName = remote.RepositoryName()
-	}
-	return fullName, nil
 }

@@ -1,12 +1,9 @@
 package repository
 
 import (
-	"fmt"
-
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/project"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/project"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -28,11 +25,11 @@ var forkCmd = &cobra.Command{
 	Short:             "fork a repository by its <slug> or <uuid>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: forkValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              forkProcess,
 }
 
 var forkOptions struct {
-	Workspace   *flags.EnumFlag
 	Project     *flags.EnumFlag
 	Name        string
 	Description string
@@ -46,10 +43,8 @@ var forkOptions struct {
 func init() {
 	Command.AddCommand(forkCmd)
 
-	forkOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
 	forkOptions.Project = flags.NewEnumFlagWithFunc("", project.GetProjectKeys)
 	forkOptions.ForkPolicy = flags.NewEnumFlag("allow_forks", "+no_public_forks", "no_forks")
-	forkCmd.Flags().Var(forkOptions.Workspace, "workspace", "Workspace to fork repositories from")
 	forkCmd.Flags().Var(forkOptions.Project, "project", "Project to fork repositories from")
 	forkCmd.Flags().StringVar(&forkOptions.Name, "name", "", "Name of the repository")
 	forkCmd.Flags().StringVar(&forkOptions.Description, "description", "", "Description of the repository")
@@ -59,15 +54,15 @@ func init() {
 	forkCmd.Flags().StringVar(&forkOptions.MainBranch, "main-branch", "", "Main branch of the repository")
 	forkCmd.Flags().Var(forkOptions.ForkPolicy, "fork-policy", "Fork policy of the repository. Default: no_public_forks")
 	forkCmd.MarkFlagsMutuallyExclusive("private", "public")
-	_ = forkCmd.RegisterFlagCompletionFunc(forkOptions.Workspace.CompletionFunc("workspace"))
 	_ = forkCmd.RegisterFlagCompletionFunc(forkOptions.Project.CompletionFunc("project"))
+	forkCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func forkValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	slugs, err := GetRepositorySlugs(cmd.Context(), cmd, forkOptions.Workspace.String())
+	slugs, err := GetRepositorySlugs(cmd.Context(), cmd)
 	if err != nil {
 		cobra.CompErrorln(err.Error())
 		return []string{}, cobra.ShellCompDirectiveError
@@ -83,11 +78,12 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if len(forkOptions.Workspace.Value) == 0 {
-		forkOptions.Workspace.Value = profile.DefaultWorkspace
-		if len(forkOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
+	repository, err := GetRepositoryBySlugOrID(cmd.Context(), cmd, args[0])
+	if err != nil {
+		return errors.Join(
+			errors.Errorf("failed to get repository: %s", args[0]),
+			err,
+		)
 	}
 
 	payload := RepositoryForkCreator{
@@ -104,18 +100,12 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 		payload.Project = project.NewReference(forkOptions.Project.Value)
 	}
 
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Forking repository %s/%s", forkOptions.Workspace, args[0]) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Forking repository %s", repository.GetPath()) {
 		return nil
 	}
 	var forked Repository
 
-	err = profile.Post(
-		log.ToContext(cmd.Context()),
-		cmd,
-		fmt.Sprintf("/repositories/%s/%s/forks", forkOptions.Workspace, args[0]),
-		payload,
-		&forked,
-	)
+	err = profile.Post(log.ToContext(cmd.Context()), cmd, repository.GetPath("forks"), payload, &forked)
 	if err != nil {
 		return err
 	}

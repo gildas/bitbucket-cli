@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -16,6 +17,7 @@ import (
 type CommentUpdator struct {
 	Content ContentUpdator     `json:"content" mapstructure:"content"`
 	Anchor  *common.FileAnchor `json:"inline,omitempty" mapstructure:"inline"`
+	Parent  *ParentReference   `json:"parent,omitempty" mapstructure:"parent"`
 }
 
 type ContentUpdator struct {
@@ -33,24 +35,24 @@ var updateCmd = &cobra.Command{
 
 var updateOptions struct {
 	PullRequestID *flags.EnumFlag
-	Repository    string
 	Comment       string
 	File          string
 	From          int
 	To            int
+	ParentID      int64
 }
 
 func init() {
 	Command.AddCommand(updateCmd)
 
 	updateOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
-	updateCmd.Flags().StringVar(&updateOptions.Repository, "repository", "", "Repository to update a pullrequest comment into. Defaults to the current repository")
 	updateCmd.Flags().Var(updateOptions.PullRequestID, "pullrequest", "Pullrequest to update comments to")
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the pullrequest")
 	updateCmd.Flags().StringVar(&updateOptions.File, "file", "", "File to comment on")
 	updateCmd.Flags().IntVar(&updateOptions.From, "line", 0, "From line to comment on. Cannot be used with --to")
 	updateCmd.Flags().IntVar(&updateOptions.From, "from", 0, "From line to comment on. Cannot be used with --line")
 	updateCmd.Flags().IntVar(&updateOptions.To, "to", 0, "To line to comment on. Cannot be used with --line")
+	updateCmd.Flags().Int64Var(&updateOptions.ParentID, "parent", 0, "Parent comment ID to reply to")
 	updateCmd.MarkFlagsMutuallyExclusive("line", "from")
 	updateCmd.MarkFlagsMutuallyExclusive("line", "to")
 	_ = updateCmd.MarkFlagRequired("pullrequest")
@@ -63,7 +65,7 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	commentIDs, err := GetPullRequestCommentIDs(cmd.Context(), cmd, deleteOptions.PullRequestID.Value)
+	commentIDs, err := GetPullRequestCommentIDs(cmd.Context(), cmd, args, toComplete)
 	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
@@ -78,8 +80,13 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
 	payload := CommentUpdator{
-		Content: ContentUpdator{Raw: createOptions.Comment},
+		Content: ContentUpdator{Raw: updateOptions.Comment},
 	}
 
 	if updateOptions.File != "" {
@@ -96,6 +103,10 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.RuntimeError.With("Cannot specify from/to without a file")
 	}
 
+	if updateOptions.ParentID > 0 {
+		payload.Parent = &ParentReference{ID: updateOptions.ParentID}
+	}
+
 	log.Record("payload", payload).Infof("Updating pullrequest comment")
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating comment %s for pullrequest %s", updateOptions.Comment, updateOptions.PullRequestID) {
 		return nil
@@ -105,7 +116,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	err = profile.Put(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s/comments/%s", updateOptions.PullRequestID.Value, args[0]),
+		repository.GetPath("pullrequests", updateOptions.PullRequestID.Value, "comments", args[0]),
 		payload,
 		&comment,
 	)

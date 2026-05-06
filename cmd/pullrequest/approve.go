@@ -1,33 +1,26 @@
 package pullrequest
 
 import (
-	"fmt"
-	"os"
-
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/bitbucket-cli/cmd/user"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
 
 var approveCmd = &cobra.Command{
 	Use:               "approve [flags] <pullrequest-id>",
-	Short:             "approve a pullrequest by its <pullrequest-id>.",
-	Args:              cobra.ExactArgs(1),
+	Short:             "approve a pullrequest by its <pullrequest-id>. If not provided, it will try to approve the only open pullrequest.",
+	Args:              cobra.MaximumNArgs(1),
 	ValidArgsFunction: approveValidArgs,
 	RunE:              approveProcess,
 }
 
-var approveOptions struct {
-	Repository string
-}
-
 func init() {
 	Command.AddCommand(approveCmd)
-
-	approveCmd.Flags().StringVar(&approveOptions.Repository, "repository", "", "Repository to approve pullrequest from. Defaults to the current repository")
 }
 
 func approveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -54,10 +47,20 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
-		return err
+		return errors.Join(errors.Errorf("Cannot approve Pull Request"), err)
 	}
 
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Approving pullrequest %s", args[0]) {
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return errors.Join(errors.Errorf("Cannot approve Pull Request"), err)
+	}
+
+	pullRequestID, err := GetPullRequestIDFromArgs(cmd.Context(), cmd, repository, args)
+	if err != nil {
+		return errors.Join(errors.Errorf("Cannot approve Pull Request"), err)
+	}
+
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Approving pullrequest %s", pullRequestID) {
 		return nil
 	}
 	var participant user.Participant
@@ -65,13 +68,12 @@ func approveProcess(cmd *cobra.Command, args []string) (err error) {
 	err = profile.Post(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s/approve", args[0]),
+		repository.GetPath("pullrequests", pullRequestID, "approve"),
 		nil,
 		&participant,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to approve pullrequest %s: %s\n", args[0], err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to approve Pull Request %s", pullRequestID), err)
 	}
 	return profile.Print(cmd.Context(), cmd, participant)
 }

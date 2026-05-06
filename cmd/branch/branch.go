@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/commit"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/go-git/go-git/v5"

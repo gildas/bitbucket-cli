@@ -1,6 +1,6 @@
 package profile_test
 
-import "bitbucket.org/gildas_cherruel/bb/cmd/profile"
+import "github.com/gildas/bitbucket-cli/cmd/profile"
 
 func (suite *ProfileSuite) TestCanUnmarshalErrorAboutPrivileges() {
 	var bberr profile.BitBucketError

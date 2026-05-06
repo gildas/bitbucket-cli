@@ -5,16 +5,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/commit"
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/activity"
-	"bitbucket.org/gildas_cherruel/bb/cmd/pullrequest/comment"
-	"bitbucket.org/gildas_cherruel/bb/cmd/user"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/bitbucket-cli/cmd/commit"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/pullrequest/activity"
+	"github.com/gildas/bitbucket-cli/cmd/pullrequest/comment"
+	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
+	"github.com/gildas/bitbucket-cli/cmd/pullrequest/task"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/bitbucket-cli/cmd/user"
+	"github.com/gildas/bitbucket-cli/cmd/workspace"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -122,6 +126,7 @@ var columns = common.Columns[PullRequest]{
 func init() {
 	Command.AddCommand(comment.Command)
 	Command.AddCommand(activity.Command)
+	Command.AddCommand(task.Command)
 }
 
 // GetHeaders gets the header for a table
@@ -199,6 +204,49 @@ func (pullrequest PullRequest) String() string {
 	return pullrequest.Title
 }
 
+// GetPullRequestIDFromArgs gets the pullrequest ID from the command arguments or, if not provided, from the only open pullrequestA
+func GetPullRequestIDFromArgs(ctx context.Context, cmd *cobra.Command, repository *repository.Repository, args []string) (pullRequestID string, err error) {
+	if len(args) == 0 {
+		pullRequestIDs, err := prcommon.GetPullRequestIDsFromRepositoryWithState(cmd.Context(), cmd, repository, "OPEN")
+		if err != nil {
+			return "", err
+		}
+		if len(pullRequestIDs) == 0 {
+			return "", errors.Errorf("No open pullrequest found for repository %s", repository.FullName)
+		}
+		if len(pullRequestIDs) > 1 {
+			return "", errors.Errorf("Too many pullrequests to merge: %s", strings.Join(pullRequestIDs, ", "))
+		}
+		return pullRequestIDs[0], nil
+	}
+	if _, err := strconv.Atoi(args[0]); err != nil {
+		return "", errors.ArgumentInvalid.With("pullrequest-id", args[0])
+	}
+	return args[0], nil
+}
+
+// GetReviewerNicknames gets the reviewer nicknames for the current Workspace
+func GetReviewerNicknames(ctx context.Context, cmd *cobra.Command, args []string, toComplete string) (nicknames []string, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child(nil, "getreviewers")
+
+	if cmd == nil {
+		fmt.Fprintln(os.Stderr, "cmd is nil")
+		return []string{}, errors.ArgumentMissing.With("cmd")
+	}
+
+	log.Infof("Getting reviewer nicknames for profile %s", profile.Current)
+	pullrequestWorkspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
+	if err != nil {
+		log.Errorf("Failed to get repository: %s", err)
+		return []string{}, err
+	}
+	log.Infof("Getting members of workspace %s", pullrequestWorkspace)
+	members, _ := pullrequestWorkspace.GetMembers(ctx, cmd)
+	nicknames = core.Map(members, func(member workspace.Member) string { return member.User.Nickname })
+	core.Sort(nicknames, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+	return common.FilterValidArgs(nicknames, args, toComplete), nil
+}
+
 // MarshalJSON implements the json.Marshaler interface.
 func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 	type surrogate PullRequest
@@ -213,26 +261,4 @@ func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 		UpdatedOn: pullrequest.UpdatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
-}
-
-// GetReviewerNicknames gets the reviewer nicknames for the current Workspace
-func GetReviewerNicknames(context context.Context, cmd *cobra.Command, args []string, toComplete string) (nicknames []string, err error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "getreviewers")
-
-	if cmd == nil {
-		fmt.Fprintln(os.Stderr, "cmd is nil")
-		return []string{}, errors.ArgumentMissing.With("cmd")
-	}
-
-	log.Infof("Getting reviewer nicknames for profile %s", profile.Current)
-	pullrequestWorkspace, err := workspace.GetWorkspaceFromCommandOrGit(cmd.Context(), cmd)
-	if err != nil {
-		log.Errorf("Failed to get repository: %s", err)
-		return []string{}, err
-	}
-	log.Infof("Getting members of workspace %s", pullrequestWorkspace)
-	members, _ := pullrequestWorkspace.GetMembers(context, cmd)
-	nicknames = core.Map(members, func(member workspace.Member) string { return member.User.Nickname })
-	core.Sort(nicknames, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
-	return common.FilterValidArgs(nicknames, args, toComplete), nil
 }

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -20,14 +21,12 @@ var uploadCmd = &cobra.Command{
 }
 
 var uploadOptions struct {
-	Repository string
-	Progress   bool
+	Progress bool
 }
 
 func init() {
 	Command.AddCommand(uploadCmd)
 
-	uploadCmd.Flags().StringVar(&uploadOptions.Repository, "repository", "", "Repository to upload artifacts to. Defaults to the current repository")
 	uploadCmd.Flags().BoolVar(&uploadOptions.Progress, "progress", false, "Show progress")
 }
 
@@ -39,15 +38,15 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	repository, err := repository.GetRepository(log.ToContext(cmd.Context()), cmd)
+	if err != nil {
+		return err
+	}
+
 	var merr errors.MultiError
 	for _, artifactName := range args {
-		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading artifact %s to %s", artifactName, downloadOptions.Destination) {
-			err := profile.Upload(
-				log.ToContext(cmd.Context()),
-				cmd,
-				"downloads",
-				args[0],
-			)
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading artifact %s", artifactName) {
+			err := profile.Upload(log.ToContext(cmd.Context()), cmd, repository.GetPath("downloads"), args[0])
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to upload artifact %s: %s\n", artifactName, err)
@@ -56,7 +55,7 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 					merr.Append(err)
 				}
 			}
-			log.Infof("Artifact %s downloaded", artifactName)
+			log.Infof("Artifact %s uploaded", artifactName)
 		}
 	}
 	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {

@@ -26,13 +26,13 @@ If you find a bug, please check if the issue you are addressing has already been
 
 ### 2. Target the `dev` Branch
 
-All Pull Requests **must** be targeted at the `dev` branch. 
+All Pull Requests **must** be targeted at the `dev` branch.
 > [!IMPORTANT]
 > PRs opened against the `master` branch will be closed or you will be asked to retarget them to `dev`.
 
 ### 3. Signed Commits
 
-Integrity is key. **All commits in Pull Requests must be signed** (GPG, SSH, or X.509). 
+Integrity is key. **All commits in Pull Requests must be signed** (GPG, SSH, or X.509).
 
 * PRs containing unsigned commits will be closed or asked to be retargeted once the commits are signed.
 * If you aren't sure how to do this, check out [GitHub's guide on signing commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification).

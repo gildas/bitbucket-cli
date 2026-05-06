@@ -1,0 +1,17 @@
+{
+  "type": "workspace_access",
+  "administrator": true,
+  "workspace": {
+    "type": "workspace_base",
+    "uuid": "{12345678-9abc-def0-1234-56789abcdef0}",
+    "slug": "myworkspace",
+    "links": {
+      "avatar": {
+        "href": "https://bitbucket.org/workspaces/myworkspace/avatar/"
+      },
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/workspaces/myworkspace"
+      }
+    }
+  }
+}

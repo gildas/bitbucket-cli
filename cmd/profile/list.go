@@ -1,7 +1,7 @@
 package profile
 
 import (
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -9,10 +9,11 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "list all profiles",
-	Args:  cobra.NoArgs,
-	RunE:  listProcess,
+	Use:     "list",
+	Short:   "list all profiles",
+	Args:    cobra.NoArgs,
+	PreRunE: disableUnsupportedFlags,
+	RunE:    listProcess,
 }
 
 var listOptions struct {
@@ -29,6 +30,7 @@ func init() {
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
+	listCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {

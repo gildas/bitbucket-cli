@@ -5,8 +5,9 @@ import (
 	"io"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -55,7 +56,11 @@ func patchProcess(cmd *cobra.Command, args []string) error {
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing patch between commit %s and %s", args[0], args[1])) {
 		return nil
 	}
-	patch, err := profile.GetRaw(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("patch/%s..%s", args[0], args[1]))
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+	patch, err := profile.GetRaw(log.ToContext(cmd.Context()), cmd, repository.GetPath("patch", fmt.Sprintf("%s..%s", args[0], args[1])))
 	if err != nil {
 		return err
 	}

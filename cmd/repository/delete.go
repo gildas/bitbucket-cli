@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/go-errors"
-	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -19,26 +17,22 @@ var deleteCmd = &cobra.Command{
 	Short:             "delete repositories by their <slug> or <uuid>.",
 	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: deleteValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              deleteProcess,
-}
-
-var deleteOptions struct {
-	Workspace *flags.EnumFlag
 }
 
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
-	deleteCmd.Flags().Var(deleteOptions.Workspace, "workspace", "Workspace to delete repositories from")
-	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.Workspace.CompletionFunc("workspace"))
+	deleteCmd.Flags().MarkHidden("repository")
+	deleteCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	slugs, err := GetRepositorySlugs(cmd.Context(), cmd, deleteOptions.Workspace.String())
+	slugs, err := GetRepositorySlugs(cmd.Context(), cmd)
 	if err != nil {
 		cobra.CompErrorln(err.Error())
 		return []string{}, cobra.ShellCompDirectiveError
@@ -54,22 +48,21 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if len(deleteOptions.Workspace.Value) == 0 {
-		deleteOptions.Workspace.Value = profile.DefaultWorkspace
-		if len(deleteOptions.Workspace.Value) == 0 {
-			return errors.ArgumentMissing.With("workspace")
-		}
-	}
-
 	var merr errors.MultiError
 	for _, repositorySlug := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting repository %s", repositorySlug) {
-			err := profile.Delete(
-				log.ToContext(cmd.Context()),
-				cmd,
-				fmt.Sprintf("/repositories/%s/%s", deleteOptions.Workspace, repositorySlug),
-				nil,
-			)
+			repository, err := GetRepositoryBySlugOrID(cmd.Context(), cmd, repositorySlug)
+			if err != nil {
+				if profile.ShouldStopOnError(cmd) {
+					return errors.Join(
+						errors.Errorf("failed to get repository: %s", repositorySlug),
+						err,
+					)
+				}
+				merr.Append(err)
+				continue
+			}
+			err = profile.Delete(log.ToContext(cmd.Context()), cmd, repository.GetPath(), nil)
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
 					fmt.Fprintf(os.Stderr, "Failed to delete repository %s: %s\n", repositorySlug, err)
@@ -78,8 +71,8 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 					merr.Append(err)
 				}
 			}
+			log.Infof("Repository %s deleted", repository.GetPath())
 		}
-		log.Infof("Repository %s deleted", repositorySlug)
 	}
 	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
 		fmt.Fprintf(os.Stderr, "Failed to delete these repositories: %s\n", merr)

@@ -7,11 +7,10 @@ import (
 	"os"
 	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/workspace"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/workspace"
 	"github.com/gildas/go-errors"
-	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -30,11 +29,11 @@ var updateCmd = &cobra.Command{
 	Short:             "update a project by its <project-key>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: updateValidArgs,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              updateProcess,
 }
 
 var updateOptions struct {
-	Workspace   *flags.EnumFlag
 	Name        string
 	Key         string
 	Description string
@@ -46,8 +45,6 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.Workspace = flags.NewEnumFlagWithFunc("", workspace.GetWorkspaceSlugs)
-	updateCmd.Flags().Var(updateOptions.Workspace, "workspace", "Workspace to update projects from")
 	updateCmd.Flags().StringVar(&updateOptions.Name, "name", "", "Name of the project")
 	updateCmd.Flags().StringVar(&updateOptions.Key, "key", "", "Key of the project")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the project")
@@ -55,7 +52,7 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.AvatarPath, "avatar-file", "", "Avatar of the project")
 	updateCmd.Flags().BoolVar(&updateOptions.IsPrivate, "is-private", false, "Is the project private")
 	updateCmd.MarkFlagsMutuallyExclusive("avatar-url", "avatar-file")
-	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.Workspace.CompletionFunc("workspace"))
+	updateCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -79,7 +76,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	workspace, err := GetWorkspace(cmd, profile)
+	workspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
 	if err != nil {
 		return err
 	}

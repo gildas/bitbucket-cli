@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/user"
-	wkcommon "bitbucket.org/gildas_cherruel/bb/cmd/workspace/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/user"
+	wkcommon "github.com/gildas/bitbucket-cli/cmd/workspace/common"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/spf13/cobra"
@@ -80,6 +80,24 @@ func (permission Permission) GetRow(headers []string) []string {
 // implements core.TypeCarrier
 func (permission Permission) GetType() string {
 	return "workspace_membership"
+}
+
+// disableUnsupportedFlags disables the flags that are not supported by the workspace permission command
+func disableUnsupportedFlags(cmd *cobra.Command, args []string) error {
+	if cmd.Flags().Changed("repository") {
+		return fmt.Errorf("the --repository flag is not supported by the workspace permission command")
+	}
+	if cmd.Flags().Changed("workspace") {
+		return fmt.Errorf("the --workspace flag is not supported by the workspace permission command")
+	}
+	return nil
+}
+
+// hideUnsupportedFlags hides the flags that are not supported by the workspace command
+func hideUnsupportedFlags(cmd *cobra.Command, args []string) {
+	cmd.Flags().MarkHidden("repository")
+	cmd.Flags().MarkHidden("workspace")
+	cmd.Parent().HelpFunc()(cmd, args)
 }
 
 // MarshalJSON marshals the permission to JSON

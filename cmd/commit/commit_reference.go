@@ -3,7 +3,7 @@ package commit
 import (
 	"encoding/json"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-errors"
 )
 

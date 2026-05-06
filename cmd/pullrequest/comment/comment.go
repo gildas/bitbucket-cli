@@ -7,9 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
-	"bitbucket.org/gildas_cherruel/bb/cmd/profile"
-	"bitbucket.org/gildas_cherruel/bb/cmd/user"
+	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/bitbucket-cli/cmd/user"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -17,18 +18,25 @@ import (
 )
 
 type Comment struct {
-	Type        string                `json:"type"             mapstructure:"type"`
-	ID          int                   `json:"id"               mapstructure:"id"`
-	Content     common.RenderedText   `json:"content"          mapstructure:"content"`
-	User        user.User             `json:"user"             mapstructure:"user"`
-	Anchor      *common.FileAnchor    `json:"inline,omitempty" mapstructure:"inline"`
-	Parent      *Comment              `json:"parent,omitempty" mapstructure:"parent"`
-	CreatedOn   time.Time             `json:"created_on"       mapstructure:"created_on"`
-	UpdatedOn   time.Time             `json:"updated_on"       mapstructure:"updated_on"`
-	IsDeleted   bool                  `json:"deleted"          mapstructure:"deleted"`
-	IsPending   bool                  `json:"pending"          mapstructure:"pending"`
-	PullRequest *PullRequestReference `json:"pullrequest"      mapstructure:"pullrequest"`
-	Links       common.Links          `json:"links"            mapstructure:"links"`
+	Type        string                `json:"type"                 mapstructure:"type"`
+	ID          int                   `json:"id"                   mapstructure:"id"`
+	Content     common.RenderedText   `json:"content"              mapstructure:"content"`
+	User        user.User             `json:"user"                 mapstructure:"user"`
+	Anchor      *common.FileAnchor    `json:"inline,omitempty"     mapstructure:"inline"`
+	Parent      *Comment              `json:"parent,omitempty"     mapstructure:"parent"`
+	CreatedOn   time.Time             `json:"created_on"           mapstructure:"created_on"`
+	UpdatedOn   time.Time             `json:"updated_on"           mapstructure:"updated_on"`
+	IsDeleted   bool                  `json:"deleted"              mapstructure:"deleted"`
+	IsPending   bool                  `json:"pending"              mapstructure:"pending"`
+	Resolution  *Resolution           `json:"resolution,omitempty" mapstructure:"resolution"`
+	PullRequest *PullRequestReference `json:"pullrequest"          mapstructure:"pullrequest"`
+	Links       common.Links          `json:"links"                mapstructure:"links"`
+}
+
+type Resolution struct {
+	Type      string    `json:"type"       mapstructure:"type"`
+	User      user.User `json:"user"       mapstructure:"user"`
+	CreatedOn time.Time `json:"created_on" mapstructure:"created_on"`
 }
 
 type PullRequestReference struct {
@@ -36,6 +44,10 @@ type PullRequestReference struct {
 	ID    int          `json:"id"    mapstructure:"id"`
 	Title string       `json:"title" mapstructure:"title"`
 	Links common.Links `json:"links" mapstructure:"links"`
+}
+
+type ParentReference struct {
+	ID int64 `json:"id" mapstructure:"id"`
 }
 
 // Command represents this folder's command
@@ -77,6 +89,9 @@ var columns = common.Columns[Comment]{
 	}},
 	{Name: "pending", DefaultSorter: false, Compare: func(a, b Comment) bool {
 		return a.IsPending == b.IsPending
+	}},
+	{Name: "resolution", DefaultSorter: false, Compare: func(a, b Comment) bool {
+		return (a.Resolution != nil) && (b.Resolution == nil)
 	}},
 	{Name: "pullrequest", DefaultSorter: false, Compare: func(a, b Comment) bool {
 		if a.PullRequest != nil && b.PullRequest != nil {
@@ -130,6 +145,21 @@ func (comment Comment) GetRow(headers []string) []string {
 			row = append(row, fmt.Sprintf("%t", comment.IsDeleted))
 		case "pending":
 			row = append(row, fmt.Sprintf("%t", comment.IsPending))
+		case "resolution":
+			if comment.Resolution != nil {
+				switch {
+				case comment.Resolution.User.Name != "" && !comment.Resolution.CreatedOn.IsZero():
+					row = append(row, fmt.Sprintf("resolved by %s on %s", comment.Resolution.User.Name, comment.Resolution.CreatedOn.Format("2006-01-02 15:04:05")))
+				case comment.Resolution.User.Name != "":
+					row = append(row, fmt.Sprintf("resolved by %s", comment.Resolution.User.Name))
+				case !comment.Resolution.CreatedOn.IsZero():
+					row = append(row, fmt.Sprintf("resolved on %s", comment.Resolution.CreatedOn.Format("2006-01-02 15:04:05")))
+				default:
+					row = append(row, "resolved")
+				}
+			} else {
+				row = append(row, "unresolved")
+			}
 		case "pullrequest":
 			if comment.PullRequest != nil {
 				row = append(row, fmt.Sprintf("%s (%d)", comment.PullRequest.Title, comment.PullRequest.ID))
@@ -156,6 +186,26 @@ func (comment Comment) String() string {
 }
 
 // MarshalJSON implements the json.Marshaler interface.
+func (resolution Resolution) MarshalJSON() (data []byte, err error) {
+	type surrogate Resolution
+
+	var createdOn *string
+	if !resolution.CreatedOn.IsZero() {
+		formatted := resolution.CreatedOn.Format(time.RFC3339)
+		createdOn = &formatted
+	}
+
+	data, err = json.Marshal(struct {
+		surrogate
+		CreatedOn *string `json:"created_on,omitempty"`
+	}{
+		surrogate: surrogate(resolution),
+		CreatedOn: createdOn,
+	})
+	return data, errors.JSONMarshalError.Wrap(err)
+}
+
+// MarshalJSON implements the json.Marshaler interface.
 func (comment Comment) MarshalJSON() (data []byte, err error) {
 	type surrogate Comment
 
@@ -172,15 +222,26 @@ func (comment Comment) MarshalJSON() (data []byte, err error) {
 }
 
 // GetPullRequestCommentIDs gets the IDs of the comments for a pullrequest
-func GetPullRequestCommentIDs(context context.Context, cmd *cobra.Command, PullRequestID string) (ids []string, err error) {
-	log := logger.Must(logger.FromContext(context)).Child("pullrequest", "getids")
+func GetPullRequestCommentIDs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (ids []string, err error) {
+	log := logger.Must(logger.FromContext(context)).Child("comment", "getids")
 
-	comments, err := profile.GetAll[Comment](context, cmd, fmt.Sprintf("pullrequests/%s/comments", PullRequestID))
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	var pullRequestID string
+	if cmd.Flag("pullrequest") != nil {
+		pullRequestID = cmd.Flag("pullrequest").Value.String()
+	} else {
+		return nil, errors.New("pullrequest flag is required")
+	}
+
+	comments, err := profile.GetAll[Comment](context, cmd, repository.GetPath(fmt.Sprintf("pullrequests/%s/comments", pullRequestID)))
 	if err != nil {
 		log.Errorf("Failed to get pullrequests", err)
-		return []string{}, err
+		return nil, err
 	}
-	return core.Map(comments, func(comment Comment) string {
-		return fmt.Sprintf("%d", comment.ID)
-	}), nil
+	ids = core.Map(comments, func(comment Comment) string { return fmt.Sprintf("%d", comment.ID) })
+	return common.FilterValidArgs(ids, args, toComplete), nil
 }

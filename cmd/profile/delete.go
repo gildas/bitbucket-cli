@@ -3,7 +3,7 @@ package profile
 import (
 	"strings"
 
-	"bitbucket.org/gildas_cherruel/bb/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -15,6 +15,7 @@ var deleteCmd = &cobra.Command{
 	Short:             "delete a profile by its <profile-name>.",
 	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: ValidProfileNames,
+	PreRunE:           disableUnsupportedFlags,
 	RunE:              deleteProcess,
 }
 
@@ -33,6 +34,7 @@ func init() {
 	deleteCmd.Flags().BoolVar(&deleteOptions.WarnOnError, "warn-on-error", false, "Warn on error")
 	deleteCmd.Flags().BoolVar(&deleteOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
 	deleteCmd.MarkFlagsMutuallyExclusive("stop-on-error", "warn-on-error", "ignore-errors")
+	deleteCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
 func deleteProcess(cmd *cobra.Command, args []string) (err error) {

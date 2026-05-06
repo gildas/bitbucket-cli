@@ -51,13 +51,15 @@ scoop install bitbucket-cli
 If you have Go installed, you can install `bb` with:
 
 ```bash
-go install github.com/gildas/bitbucket-cli/cmd/bb@latest
+go install github.com/gildas/bitbucket-cli@latest
+mv $GOPATH/bin/bitbucket-cli $GOPATH/bin/bb
 ```
 
 This method also allows you to install `bb` from the development (`dev`) branch with:
 
 ```bash
-go install github.com/gildas/bitbucket-cli/cmd/bb@dev
+go install github.com/gildas/bitbucket-cli@dev
+mv $GOPATH/bin/bitbucket-cli $GOPATH/bin/bb
 ```
 
 ### Binaries
@@ -89,6 +91,17 @@ All commands that would modify something on Bitbucket now allow you to preview t
 ```bash
 bb repo delete myrepository3 --dry-run
 ```
+
+Most commands will support the `--workspace` and `--repository` flags to specify the workspace and repository to use. If not provided, the workspace and repository will be determined from the git configuration or the profile configuration (in that order). The workspace and repository can be combined in the `--repository` flag in the form `workspace/repository`. For example:
+
+```bash
+bb repo list --workspace myworkspace
+bb pullrequest list --repository myrepository
+bb pullrequest list --workspace myworkspace --repository myrepository
+bb pullrequest list --repository myworkspace/myrepository
+```
+
+The `--workspace` flag is also dynamically auto-completed with the workspaces you have access to.
 
 `get` and `list` commands support the `--columns` flag to specify which columns to display in the output. You can pass a comma-separated list of columns, repeat the flag, or use `all` to display all columns. If you do not provide this flag, the default columns are displayed.
 
@@ -387,18 +400,16 @@ bb workspace permission list myworkspace
 
 ### Projects
 
-You can list projects with the `bb project list` command. If the `--workspace` flag is not provided, the default workspace of the profile is used (if the profile does not have a default workspace, the command will fail):
+You can list projects with the `bb project list` command:
 
 ```bash
-bb project list --workspace myworkspace
+bb project list
 ```
-
-The `--workspace` flag is also dynamically auto-completed with the workspaces you have access to.
 
 You can also get the details of a project with the `bb project get` or `bb project show` command:
 
 ```bash
-bb project get myproject --workspace myworkspace
+bb project get myproject
 ```
 
 You can create a project with the `bb project create` command:
@@ -424,10 +435,12 @@ bb project delete myproject
 
 #### Project Default Reviewers
 
-You can list the default reviewers of a project with the `bb project reviewer list` command. In addition to the `--workspace`, if the `--project` flag is not provided, the default project of the workspace is used (if the workspace does not have a default project, the command will fail):
+You can list the default reviewers of a project with the `bb project reviewer list` command. Similarly to the `--workspace`, if the `--project` flag is not provided, the default project of the workspace is used (if the workspace does not have a default project, the command will fail):
 
 ```bash
 bb project reviewer list --workspace myworkspace --project myproject
+bb project reviewer list --project myproject
+bb project reviewer list
 ```
 
 You can add a default reviewer to a project with the `bb project reviewer add` command:
@@ -447,10 +460,7 @@ bb project reviewer remove userUUID
  You can get the details of a default reviewer with the `bb project reviewer get` or `bb project reviewer show` command:
 
 ```bash
-bb project reviewer get \
-  --workspace myworkspace \
-  --project myproject \
-  userUUID
+bb project reviewer get --project myproject userUUID
 ```
 
 ### Repositories
@@ -466,7 +476,8 @@ If you do not provide a workspace, the command will attempt to list all reposito
 You can narrow down the list of repositories with the `--role`, `--project`, `--project-key`, `--has-issues`, `--has-wiki`, `--is-private`, `--language`, and `--main-branch` flags:
 
 ```bash
-bb repo list --workspace myworkspace \
+bb repo list \
+  --workspace myworkspace \
   --role        owner \
   --project     myproject \
   --has-issues  true \
@@ -478,10 +489,10 @@ bb repo list --workspace myworkspace \
 
 All filterers are optional and combined with an AND operator.
 
-You can also get the details of a repository with the `bb repo get` or `bb repo show` command. If the `--workspace` flag is not provided, the default workspace of the profile is used (if the profile does not have a default workspace, the command will fail):
+You can also get the details of a repository with the `bb repo get` or `bb repo show` command:
 
 ```bash
-bb repo get --workspace myworkspace myrepository
+bb repo get myrepository
 ```
 
 You can clone a repository with the `bb repo clone` command:
@@ -549,7 +560,7 @@ If the `--project` flag is not provided, the repository will be created in the d
 You can update a repository with the `bb repo update` command:
 
 ```bash
-bb repo update --workspace myworkspace myrepository \
+bb repo update myrepository \
   --private \
   --fork-policy no_public_forks
 ```
@@ -557,7 +568,7 @@ bb repo update --workspace myworkspace myrepository \
 You can delete a repository with the `bb repo delete` command:
 
 ```bash
-bb repo delete --workspace myworkspace myrepository
+bb repo delete myrepository
 ```
 
 You can fork a repository with the `bb repo fork` command:
@@ -572,9 +583,7 @@ bb repo fork myrepository \
 You can list the forks of a repository with the `bb repo get --forks` command:
 
 ```bash
-bb repo get myrepository \
-  --workspace myworkspace \
-  --forks
+bb repo get myrepository --forks
 ```
 
 ### Branches
@@ -585,24 +594,12 @@ You can list branches with the `bb branch list` command:
 bb branch list
 ```
 
-By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
-
-```bash
-bb branch list --repository myrepository --workspace myworkspace
-```
-
 ### Commits
 
 You can list commits with the `bb commit list` command:
 
 ```bash
 bb commit list
-```
-
-By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
-
-```bash
-bb commit list --repository myrepository --workspace myworkspace
 ```
 
 You can get the details of a commit with the `bb commit get` or `bb commit show` command:
@@ -651,12 +648,6 @@ You can list tags with the `bb tag list` command:
 bb tag list
 ```
 
-By default the current repository is used, you can specify a repository with the `--repository` flag. You can also specify a workspace with the `--workspace` flag:
-
-```bash
-bb tag list --repository myrepository --workspace myworkspace
-```
-
 You can get the details of a tag with the `bb tag get` or `bb tag show` command:
 
 ```bash
@@ -685,6 +676,12 @@ You can list pull requests with the `bb pullrequest list` command:
 
 ```bash
 bb pullrequest list
+```
+
+You can get the list of pull requests for a given commit hash (it must be the full hash) with the `--commit` flag:
+
+```bash
+bb pullrequest list --commit ae86d5323477989fab3bf3879cd1234543565753
 ```
 
 You can create a pull request with the `bb pullrequest create` command:
@@ -736,11 +733,15 @@ You can `approve`or `unapprove` a pull request with the `bb pullrequest approve`
 bb pullrequest approve 1
 ```
 
+If no pull request is provided, the command will try to approve the opened pull request with the current branch.
+
 You can `decline` a pull request with the `bb pullrequest decline` command:
 
 ```bash
 bb pullrequest decline 1
 ```
+
+If no pull request is provided, the command will try to decline the opened pull request with the current branch.
 
 You can `merge` a pull request with the `bb pullrequest merge` command:
 
@@ -748,7 +749,79 @@ You can `merge` a pull request with the `bb pullrequest merge` command:
 bb pullrequest merge 1
 ```
 
-If no pull request is provided, the command will try to merge the pull request with the current branch.
+If no pull request is provided, the command will try to merge the opened pull request with the current branch.
+
+You can also merge the pull request asynchronously with the `--async` flag:
+
+```bash
+bb pullrequest merge 1 --async
+```
+
+In that case, you will receive a merge task ID in return, and you can check the status of the merge task with the `bb pullrequest merge-status` command:
+
+```bash
+bb pullrequest merge-status 1 --task-id 6a0ddb61-40cf-4224-b9e8-bbb5852c66ba
+```
+
+If no pull request is provided, the command will try to request the merge status of the opened pull request with the current branch.
+
+You can request changes on a pull request with the `bb pullrequest request-changes` command:
+
+```bash
+bb pullrequest request-changes 1
+```
+
+If no pull request is provided, the command will try to request changes on the opened pull request with the current branch.
+
+To remove the request for changes, you can use the `bb pullrequest remove-request-changes` command:
+
+```bash
+bb pullrequest remove-request-changes 1
+```
+
+If no pull request is provided, the command will try to remove the request for changes on the opened pull request with the current branch.
+
+You can see the activities of a pull request with the `bb pullrequest activities` command:
+
+```bash
+bb pullrequest activities 1
+```
+
+If no pull request is provided, the command will try to list the activities of the opened pull request with the current branch.
+
+You can list the commits of a pull request with the `bb pullrequest commits` command:
+
+```bash
+bb pullrequest commits 1
+```
+
+If no pull request is provided, the command will try to list the commits of the opened pull request with the current branch.
+
+You can see the diff of a pull request with the `bb pullrequest diff` command:
+
+```bash
+bb pullrequest diff 1
+```
+
+If no pull request is provided, the command will try to show the diff of the opened pull request with the current branch.
+
+You can get the diffstat of a pull request with the `bb pullrequest diff --stat` command:
+
+```bash
+bb pullrequest diff --stat 1
+```
+
+If no pull request is provided, the command will try to show the diffstat of the opened pull request with the current branch.
+
+You can also get the patch of a pull request with the `bb pullrequest patch` command:
+
+```bash
+bb pullrequest patch 1
+```
+
+If no pull request is provided, the command will try to show the patch of the opened pull request with the current branch.
+
+#### Pull Request Comments
 
 You can list the comments of a pull request with the `bb pullrequest comment list` command:
 
@@ -794,6 +867,47 @@ You can delete a comment with the `bb pullrequest comment delete` command:
 
 ```bash
 bb pullrequest comment delete --pullrequest 1 452466
+```
+
+#### Pull Request Tasks
+
+You can list the tasks of a pull request with the `bb pullrequest task list` command:
+
+```bash
+bb pullrequest task list --pullrequest 1
+```
+
+You can add a task to a pull request with the `bb pullrequest task create` or `bb pullrequest task add` command:
+
+```bash
+bb pullrequest task create --pullrequest 1 \
+  --content "My task"
+```
+
+You can reference a comment in a task with the `--comment` flag:
+
+```bash
+bb pullrequest task create --pullrequest 1 \
+  --content "My task" \
+  --comment 452466
+```
+
+You can complete a task with the `bb pullrequest task update` command:
+
+```bashbb pullrequest task update --pullrequest 1 7643545 \
+  --state RESOLVED
+```
+
+You can also re-open a task with the same command:
+
+```bashbb pullrequest task update --pullrequest 1 7643545 \
+  --state UNRESOLVED
+```
+
+You can delete a task with the `bb pullrequest task delete` command:
+
+```bash
+bb pullrequest task delete --pullrequest 1 7643545
 ```
 
 ### Issues
