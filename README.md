@@ -51,13 +51,15 @@ scoop install bitbucket-cli
 If you have Go installed, you can install `bb` with:
 
 ```bash
-go install github.com/gildas/bitbucket-cli/cmd/bb@latest
+go install github.com/gildas/bitbucket-cli@latest
+mv $GOPATH/bin/bitbucket-cli $GOPATH/bin/bb
 ```
 
 This method also allows you to install `bb` from the development (`dev`) branch with:
 
 ```bash
-go install github.com/gildas/bitbucket-cli/cmd/bb@dev
+go install github.com/gildas/bitbucket-cli@dev
+mv $GOPATH/bin/bitbucket-cli $GOPATH/bin/bb
 ```
 
 ### Binaries
