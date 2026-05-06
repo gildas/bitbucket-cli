@@ -1,3 +1,775 @@
+- semver: 0.18.0
+  date: 2026-05-06T19:18:12.045232628+09:00
+  packager: Gildas Cherruel <gildas@breizh.org>
+  changes:
+    - commit: 3c1143f89ca17d7d2dbeb922d5605d9e94bac711
+      note: 'Issue #88: Updated Documentation'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: e744cdff0acf4765e94e6900a0206737ea674265
+      note: 'Issue #88: Migrated package paths to github'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: c425d762574fa83f166b28a589aeccdb401e5c2c
+      note: 'Updated Documentation for issues #80, #84, #85, #86'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 0195fc14185edfa55a7f2ad6c89eaf7dabee6d12
+      note: 'Issue #86: Added pullrequest task commands'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 1a746d74fd30930a030a66072940365ed3fb2bf0
+      note: 'Issue #86: pullrequests can be searched with a commit hash'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 536bb99123e31b64076cdcf7b91a82ffa2fd452e
+      note: 'Issue #86: Added pullrequest async merge and its status check'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 649d826725c8332cef77708b153107504e95ca88
+      note: 'Issue #80: missing proper URI path for creating Pull Requests'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 83312edb7d4757748104b8dc639c47cc9110a015
+      note: 'Issue #86: Added pullrequest remove-request-changes'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: d52174688618f465f71d74bc2162ed7586cce49f
+      note: 'Issue #86: Added pullrequest request-changes'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 6d844b7b62c2c92f13a9571278ffac2c9f75a4fe
+      note: 'Issue #86: Added pullrequest patch'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: b142bbe89b30740f5a7978cd25556c29ecdb4e63
+      note: 'Issue #86: Added pullrequest diff and diffstat'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 5dd42b01bf0d8fd1001b612bb0eae53bfa3f042a
+      note: 'Issue #86: Added pullrequest commits'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 022ca8c2bdb4a97ab5b75c65491e0afea82da684
+      note: 'Issue #85: Updated unit tests'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 91b48814ac54cd93097e416d40dbce63fb79ad05
+      note: 'Issue #85: Added new pr activities command'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 892034306ce8c367ce2f33b50abb903739fbf75e
+      note: 'Issue #84: factorized code'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: bab2b05e4a88476d2757c84914e2d1efb9431070
+      note: 'Issue #84: Find out PR ID automatically as needed'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 3b8e1357fab8435fec3cae61aaa8ead6d769598b
+      note: 'Issue #80: fetches only bitbucket.org repositories from the Git configuration'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 41f636206f6631f5d117981a08de0182f9860a2b
+      note: 'Issue #83: There is no --vault-key flag on Windows'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: d6566276916b55b5a060cd9c464a99c46aec1d72
+      note: 'Issue #80: --repository and --workspace are now global flags, endpoints are calculated with the Repository funcs'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 9bfc90d4e1dcd19c9f1b9431135a43b83d15d76a
+      note: 'Issue #80: removed repository calculation from the Profile client'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 4869e909b8a0468a7799059d5b28052a20458e70
+      note: By default workspace list does not contain any Workspace name
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 9d17760d9e9dfb77196c03512d78b42a536e35be
+      note: Added missing columns and sort to workspace list command
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: d87c1eec8ec7e720701e51ebdd7b8a505bebf462
+      note: 'Issue #80: workspace and repository should be fetched by their slug name or UUID'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: d30d199fe35ff990186f995c1a9e252301d90419
+      note: 'Issue #80: Added unified --workspace and --repository to commands'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 4bbd6455e20c16acb681b4447408b68103b4c3e0
+      note: Added a CONTRIBUTING Document
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 24821297ad301008adeba42bef473268fa5cd565
+      note: More profile fields to redact in logs
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: bc25a02bb31cc22c46b98652603283603827dbec
+      note: |-
+        fix: handle empty resolution object from Bitbucket API
+
+        - GetRow: gracefully render "resolved" when resolution is {} (empty
+          object) instead of showing "resolved by  on 0001-01-01..."
+        - MarshalJSON: omit created_on when zero instead of emitting
+          "0001-01-01T00:00:00Z"
+      author:
+        name: Mike Ramirez
+        email: mike@labelgrid.com
+      committer:
+        name: Mike Ramirez
+        email: mike@labelgrid.com
+    - commit: 1a01e61ef7d655196b8574f0dffed42e2598f848
+      note: |-
+        Add resolution field to PullRequestComment
+
+        The Bitbucket REST API v2.0 returns a resolution object on PR comments,
+        but the CLI was dropping it at deserialization. This adds:
+
+        - Resolution struct (type, user, created_on)
+        - Resolution field on Comment struct
+        - Column, sorting, and table row support
+        - MarshalJSON for consistent time formatting
+
+        Closes #75
+      author:
+        name: Mike Ramirez
+        email: mike@labelgrid.com
+      committer:
+        name: Mike Ramirez
+        email: mike@labelgrid.com
+- semver: 0.17.7
+  date: 2026-04-06T01:22:03.36962108+09:00
+  packager: Gildas Cherruel <gildas@breizh.org>
+  changes:
+    - commit: cd0ac763314e6dfc5c1478e97f243445a6c02d08
+      note: Upgraded to GO 1.26
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: f3dc1bb726ebe048e1226e498c59f9fe63a447d6
+      note: More Unit tests
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: f733964ab19e1aaab676d4d9350cf843489993cb
+      note: Added marshalers
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 6fec4a8fed4e09865193c88b83e6410242bf49cc
+      note: Moved Pipeline variable to its own file
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: c724e1d6af8764119533613f25709d0799ffc69c
+      note: Nickname is optional in User
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 1864c46e1b88258dcb0a479e30e7d178a565f423
+      note: Commit Reference should marshal its type
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 1cc99611c6a9714462eea8d8faf7375b5459e21c
+      note: Deleted coverage file
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 563a7b10125aaec1b7bae003843b99ecb159384c
+      note: Use Commit References in PullRequest and Endpoint
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: dae0e6ca2c1eecd9b033ba43d60549007794c2a0
+      note: 'Makefile: refactored test rules'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 4f36f9f9f78a08dd611e1adf8a4e21617568eb9b
+      note: Fixed --dry-run aliases (--noop and --whatif)
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 04eed2bcefa5e2a0546dce88c1e6ad9a2ff540f2
+      note: 'Issue #72: Added Documentation'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 149c1237d7c50acdea7f62fa2fb050006207bd71
+      note: 'Issue #73: Added WhatIf to list commands'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: caf297298c03e5d86e6ca5d9a4c7fb2558878ff0
+      note: 'Issue #73: Added --dry-run to get commands'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: af002265a7861bf7aa85faf98f85118622c50eff
+      note: 'Issue #69: Added WhatIf'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 4ad37ad24c7d8f1e4bc1bb1b5165fe6be87a42f8
+      note: 'Issue #71: Added WhatIf'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 897705103a9695eefa4aaba69c765777ccb41bce
+      note: 'Issue #70: Added WhatIf'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: af8119efaee27079f057318450bd9ce7aac85f8f
+      note: 'Issue #72: Added commit patch command'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: fd4faeb2f12276c82395975b304b9e7e185e6af1
+      note: 'Issue #71: Added commit ancestor command'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: dceea601842190f810f4f1c4a0560c20f4b47981
+      note: 'Issue #70: Added Documentation'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 34e53add9d9cffa1a6c6f180de9c163da2c91143
+      note: 'Issue #70: Added commit diff command'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 6a8b19758e27d1e3a74b5c03af25f6517d7fd79c
+      note: 'Issue #69: Added documentation'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: b58a7319a70752a96975463aec895b2a8077b10f
+      note: Commit list should use the date as the default sorter and commit get gets a struct back instead of a commit
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 4ff07c845557876a603c4e512ddd202beea6b931
+      note: 'Issue #69: Added completion for --commit in tag create command. Tag should also use a CommitReference'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: c1cadb7dc3c63f7877555589d8a26c380c7d4d8d
+      note: More repository omitempty fields
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 8c00a9bf2b189f3a9404b059334469c4a9dadfac
+      note: split commit and its reference type
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 4f7ec2bade5b29fa8579cc34388dd57d0edb8d8e
+      note: 'Issue #68: Added completion to --commit and --tag in pipeline trigger'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 4e7b758cc7adaaeb4aac9a3e7c73264149abce55
+      note: Added commit get command
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: e0f6d61f0fda0c2030aaab76df7045b2911abc64
+      note: Added more commit getter
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 98d560c4cf71797f546f5c7957fd9de370148bd0
+      note: Added --query to branch list
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 0fd631378055beeb88a5259f453ce5286f419d8e
+      note: 'Issue #67: More documentation'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: c18bcace275cde5743f5e94ba90548620f923ee1
+      note: 'Issue #69: Added tag commands'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 18e0188864e54fdd0c78bd2398f7772ced35e7cd
+      note: Better error
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 73f12341cbbb4dd361e47a3c3d7296c7f31c914f
+      note: 'Issue #68: Added completion to --branch in pipeline trigger'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 7e2864e89bb718b4f32759553a5132feea6230bb
+      note: Commit is optional on Pipeline's targets
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 349e7028a3dde0c4b955840122ee71d9753af927
+      note: Moved GetBrancheNames to the branch folder
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 9130e1a15ec3ca147d25ba492212b503ecee3352
+      note: Do not print URL as url.URL structure
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 7bec3e340a2ebaa361acf94a3509e9035f5ec7dc
+      note: 'Issue #66: fixed the argument checks when --no-vault is provided while creating/updating a profile'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 89444129a10cb724ceb6553e0966dfb93f1d3253
+      note: 'Snapcraft: specified which branch to build from'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: bdbfa4a2c0f0d9d3de53d01b2ef357e94327c766
+      note: 'Issue #56: report GetMe and GetEffectiveDefaultReviewers errors together'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+- semver: 0.17.6
+  date: 2026-03-20T15:40:45.323028322+09:00
+  packager: Gildas Cherruel <gildas@breizh.org>
+  changes:
+    - commit: 0fa64d3ce631dbe348b074b475a654a6e8cfe51e
+      note: 'imported unit tests from PR #61 into Profile''s unit test'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: a4953a1d02f7ef92fa3d2a02dcfb2f5044ad12a7
+      note: 'profile: preserve initial query params when following paginated Next'
+      author:
+        name: daberni
+        email: bernhard.danecker@gmail.com
+      committer:
+        name: Bernhard Danecker
+        email: bernhard.danecker@troii.com
+    - commit: e9f093c94206f43f0e8c7427641e0fe5fcc7bc38
+      note: Address GH Copilot suggestion
+      author:
+        name: George L. Yermulnik
+        email: yz@yz.kiev.ua
+      committer:
+        name: George L. Yermulnik
+        email: yz@yz.kiev.ua
+    - commit: c02ef5997cbddf18cfc6ac461a5a6ee51c4623f2
+      note: Address GH Copilot suggestion
+      author:
+        name: George L. Yermulnik
+        email: yz@yz.kiev.ua
+      committer:
+        name: George L. Yermulnik
+        email: yz@yz.kiev.ua
+    - commit: 56e3548b79c617cea8cc06d9816eb720fae98dd7
+      note: 'docs: Update README with API tokens info and deprecation notice for App passwords'
+      author:
+        name: George L. Yermulnik
+        email: yz@yz.kiev.ua
+      committer:
+        name: George L. Yermulnik
+        email: yz@yz.kiev.ua
+    - commit: 53d2e3a0bca35fbde4578ae5a769fd163df526ad
+      note: 'Issue #57: Updated Documentation'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 21794d913d8f5556be04f85769c2a89d7df4208c
+      note: |-
+        Address PR review: fix logging, per-iteration pagelen, and local sort
+
+        - Log effectivePageLength and limit instead of raw pageLength
+        - Adjust pagelen on subsequent pages to only fetch remaining items
+          when limit is set, avoiding over-fetching on the last request
+        - Only apply local sort when --sort is explicitly provided, preserving
+          the server-side created_on descending order by default
+      author:
+        name: Mike Ramirez
+        email: mike@labelgrid.com
+      committer:
+        name: Mike Ramirez
+        email: mike@labelgrid.com
+    - commit: 82e584464dfc7a690e38a2b9c12e2c8d8bfb8a19
+      note: |-
+        Address PR review: clarify --sort description, cap pagelen to limit
+
+        - Update --sort flag description to clarify it applies a local sort on
+          fetched results, not server-side sorting
+        - Cap pagelen to min(pageLength, limit) so --limit 5 only fetches 5
+          items from the API instead of a full page of 50
+
+        Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+      author:
+        name: Mike Ramirez
+        email: mike@labelgrid.com
+      committer:
+        name: Mike Ramirez
+        email: mike@labelgrid.com
+    - commit: 206a255d0f0f067d93d325479e2f935d66981756
+      note: |-
+        Add --limit flag and default sort to pipeline list
+
+        Pipeline list hangs on repositories with many pipelines because GetAll
+        fetches every page before returning. This adds a --limit flag to cap
+        total results and breaks the pagination loop early. Also defaults to
+        sort=-created_on so newest pipelines are returned first.
+
+        Fixes #57
+
+        Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+      author:
+        name: Mike Ramirez
+        email: mike@labelgrid.com
+      committer:
+        name: Mike Ramirez
+        email: mike@labelgrid.com
+    - commit: 0bd428070d3903e1770f4085a6b2650b4449463b
+      note: More precise error
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 69c23064a9ac5e6313eced4a9903a6f539497125
+      note: Pass the log to the context when calling funcs
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 2d2e29b4c3a7a5789c6cc4980f39717c00d0c2f6
+      note: |-
+        Fix pullrequest update --destination failing with nil repository
+
+        When changing destination branch, the Destination.Repository becomes nil,
+        causing FetchWorkspace to fail with 'Argument repository is missing'.
+
+        Add nil check with fallback to GetWorkspaceFromCommandOrGit.
+      author:
+        name: Felipe Pina
+        email: felipe.pina@toptal.com
+      committer:
+        name: Felipe Pina
+        email: felipe.pina@toptal.com
+    - commit: 1f3d199ebaf8385307b66e1e741a7ec3abfc77c3
+      note: Add --parent flag support for threaded comment replies
+      author:
+        name: Felipe Pina
+        email: felipe.pina@toptal.com
+      committer:
+        name: Felipe Pina
+        email: felipe.pina@toptal.com
+- semver: 0.17.5
+  date: 2026-02-14T20:54:39.763388733+09:00
+  packager: Gildas Cherruel <gildas@breizh.org>
+  changes:
+    - commit: 23086a920cfb9c97e90c1751eb94d63128d3f257
+      note: 'Issue #43: If the client cannot access /User, ignore the result and do not filter returned reviewers'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+- semver: 0.17.4
+  date: 2026-02-09T09:17:15.234553452+09:00
+  packager: Gildas Cherruel <gildas@breizh.org>
+  changes:
+    - commit: f5d7feb30a91aa56be2264783946df184f350721
+      note: typo
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 463c73ca71c29af6ba6efbcb4ddf0b5ae91a6e03
+      note: typo
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 2f771248cfc8f9925dc5ad11fd3a1de60b5e61c3
+      note: 'Issue #45: Added support for PullRequest reference target for Pipeline'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 0b3447005e83bb72b6a681ccdd02a0a2399600ba
+      note: Do not marshal the parent of the repository if there is none
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 92148129e1d630be0bd495d0df3b10d786fa27fb
+      note: In case the parents of a commit is empty, do not marshal the array
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 6fcba33467eff18d70eb712dec87c03ec65270d7
+      note: User cache should use the profile name to make the key unique
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: f5816af11b075b47e5e73430bda8d3c1c60b3de0
+      note: 'Issue #43: Remove the author from the default reviewers'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
 - semver: 0.17.3
   date: 2026-02-03T09:37:07.588364526+09:00
   packager: Gildas Cherruel <gildas@breizh.org>

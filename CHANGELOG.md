@@ -1,3 +1,115 @@
+0.18.0
+=============
+2026-05-06
+
+* Issue #88: Updated Documentation (3c1143f8)
+* Issue #88: Migrated package paths to github (e744cdff)
+* Updated Documentation for issues #80, #84, #85, #86 (c425d762)
+* Issue #86: Added pullrequest task commands (0195fc14)
+* Issue #86: pullrequests can be searched with a commit hash (1a746d74)
+* Issue #86: Added pullrequest async merge and its status check (536bb991)
+* Issue #80: missing proper URI path for creating Pull Requests (649d8267)
+* Issue #86: Added pullrequest remove-request-changes (83312edb)
+* Issue #86: Added pullrequest request-changes (d5217468)
+* Issue #86: Added pullrequest patch (6d844b7b)
+* Issue #86: Added pullrequest diff and diffstat (b142bbe8)
+* Issue #86: Added pullrequest commits (5dd42b01)
+* Issue #85: Updated unit tests (022ca8c2)
+* Issue #85: Added new pr activities command (91b48814)
+* Issue #84: factorized code (89203430)
+* Issue #84: Find out PR ID automatically as needed (bab2b05e)
+* Issue #80: fetches only bitbucket.org repositories from the Git configuration (3b8e1357)
+* Issue #83: There is no --vault-key flag on Windows (41f63620)
+* Issue #80: --repository and --workspace are now global flags, endpoints are calculated with the Repository funcs (d6566276)
+* Issue #80: removed repository calculation from the Profile client (9bfc90d4)
+* By default workspace list does not contain any Workspace name (4869e909)
+* Added missing columns and sort to workspace list command (9d17760d)
+* Issue #80: workspace and repository should be fetched by their slug name or UUID (d87c1eec)
+* Issue #80: Added unified --workspace and --repository to commands (d30d199f)
+* Added a CONTRIBUTING Document (4bbd6455)
+* More profile fields to redact in logs (24821297)
+* fix: handle empty resolution object from Bitbucket API (bc25a02b)
+* Add resolution field to PullRequestComment (1a01e61e)
+
+0.17.7
+=============
+2026-04-05
+
+* Upgraded to GO 1.26 (cd0ac763)
+* More Unit tests (f3dc1bb7)
+* Added marshalers (f733964a)
+* Moved Pipeline variable to its own file (6fec4a8f)
+* Nickname is optional in User (c724e1d6)
+* Commit Reference should marshal its type (1864c46e)
+* Deleted coverage file (1cc99611)
+* Use Commit References in PullRequest and Endpoint (563a7b10)
+* Makefile: refactored test rules (dae0e6ca)
+* Fixed --dry-run aliases (--noop and --whatif) (4f36f9f9)
+* Issue #72: Added Documentation (04eed2bc)
+* Issue #73: Added WhatIf to list commands (149c1237)
+* Issue #73: Added --dry-run to get commands (caf29729)
+* Issue #69: Added WhatIf (af002265)
+* Issue #71: Added WhatIf (4ad37ad2)
+* Issue #70: Added WhatIf (89770510)
+* Issue #72: Added commit patch command (af8119ef)
+* Issue #71: Added commit ancestor command (fd4faeb2)
+* Issue #70: Added Documentation (dceea601)
+* Issue #70: Added commit diff command (34e53add)
+* Issue #69: Added documentation (6a8b1975)
+* Commit list should use the date as the default sorter and commit get gets a struct back instead of a commit (b58a7319)
+* Issue #69: Added completion for --commit in tag create command. Tag should also use a CommitReference (4ff07c84)
+* More repository omitempty fields (c1cadb7d)
+* split commit and its reference type (8c00a9bf)
+* Issue #68: Added completion to --commit and --tag in pipeline trigger (4f7ec2ba)
+* Added commit get command (4e7b758c)
+* Added more commit getter (e0f6d61f)
+* Added --query to branch list (98d560c4)
+* Issue #67: More documentation (0fd63137)
+* Issue #69: Added tag commands (c18bcace)
+* Better error (18e01888)
+* Issue #68: Added completion to --branch in pipeline trigger (73f12341)
+* Commit is optional on Pipeline's targets (7e2864e8)
+* Moved GetBrancheNames to the branch folder (349e7028)
+* Do not print URL as url.URL structure (9130e1a1)
+* Issue #66: fixed the argument checks when --no-vault is provided while creating/updating a profile (7bec3e34)
+* Snapcraft: specified which branch to build from (89444129)
+* Issue #56: report GetMe and GetEffectiveDefaultReviewers errors together (bdbfa4a2)
+
+0.17.6
+=============
+2026-03-20
+
+* imported unit tests from PR #61 into Profile's unit test (0fa64d3c)
+* profile: preserve initial query params when following paginated Next (a4953a1d)
+* Address GH Copilot suggestion (e9f093c9)
+* Address GH Copilot suggestion (c02ef599)
+* docs: Update README with API tokens info and deprecation notice for App passwords (56e3548b)
+* Issue #57: Updated Documentation (53d2e3a0)
+* Address PR review: fix logging, per-iteration pagelen, and local sort (21794d91)
+* Address PR review: clarify --sort description, cap pagelen to limit (82e58446)
+* Add --limit flag and default sort to pipeline list (206a255d)
+* More precise error (0bd42807)
+* Pass the log to the context when calling funcs (69c23064)
+* Fix pullrequest update --destination failing with nil repository (2d2e29b4)
+* Add --parent flag support for threaded comment replies (1f3d199e)
+
+0.17.5
+=============
+2026-02-14
+
+* Issue #43: If the client cannot access /User, ignore the result and do not filter returned reviewers (23086a92)
+
+0.17.4
+=============
+2026-02-09
+
+* typo (f5d7feb3)
+* typo (463c73ca)
+* Issue #45: Added support for PullRequest reference target for Pipeline (2f771248)
+* Do not marshal the parent of the repository if there is none (0b344700)
+* In case the parents of a commit is empty, do not marshal the array (92148129)
+* User cache should use the profile name to make the key unique (6fcba334)
+* Issue #43: Remove the author from the default reviewers (f5816af1)
 
 0.17.3
 =============
@@ -416,5 +528,3 @@
 * Cobra Skeleton (22fae567)
 * Initial Skeleton (b216ab1d)
 * Initial commit (f0cea3fc)
-
-

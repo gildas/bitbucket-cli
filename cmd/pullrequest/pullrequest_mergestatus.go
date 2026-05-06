@@ -28,13 +28,13 @@ func NewPullRequestMergeStatusFromLocation(location string) (mergeStatus *PullRe
 		return nil, errors.Errorf("Failed to get the merge task URL from the Location header in the response from Bitbucket")
 	}
 	parts := strings.Split(location, "/")
-	if len(parts) < 2 {
+	if len(parts) < 12 {
 		return nil, errors.Errorf("Invalid merge task URL: %s", location)
 	}
 	taskID := parts[len(parts)-1]
-	pullrequestID, err := strconv.Atoi(parts[len(parts)-5])
+	pullrequestID, err := strconv.Atoi(parts[len(parts)-4])
 	if err != nil {
-		return nil, errors.Errorf("Invalid pull request ID: %s", parts[len(parts)-5])
+		return nil, errors.Errorf("Invalid pull request ID: %s", parts[len(parts)-4])
 	}
 	return &PullRequestMergeStatus{ID: taskID, PullRequest: PullRequest{ID: uint64(pullrequestID)}}, nil
 }

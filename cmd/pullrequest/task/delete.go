@@ -6,7 +6,7 @@ import (
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
-	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
+	prcommon "github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"

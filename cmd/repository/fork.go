@@ -105,7 +105,7 @@ func forkProcess(cmd *cobra.Command, args []string) error {
 	}
 	var forked Repository
 
-	err = profile.Post(log.ToContext(cmd.Context()), cmd, repository.GetPath("fork"), payload, &forked)
+	err = profile.Post(log.ToContext(cmd.Context()), cmd, repository.GetPath("forks"), payload, &forked)
 	if err != nil {
 		return err
 	}

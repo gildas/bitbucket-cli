@@ -45,7 +45,7 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 
 	var merr errors.MultiError
 	for _, artifactName := range args {
-		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading artifact %s to %s", artifactName, downloadOptions.Destination) {
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading artifact %s", artifactName) {
 			err := profile.Upload(log.ToContext(cmd.Context()), cmd, repository.GetPath("downloads"), args[0])
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
@@ -55,7 +55,7 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 					merr.Append(err)
 				}
 			}
-			log.Infof("Artifact %s downloaded", artifactName)
+			log.Infof("Artifact %s uploaded", artifactName)
 		}
 	}
 	if !merr.IsEmpty() && profile.ShouldWarnOnError(cmd) {
