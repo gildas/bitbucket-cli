@@ -6,6 +6,7 @@ import (
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
@@ -42,12 +43,17 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
-	uripath := "components"
-	if len(listOptions.Query) > 0 {
-		uripath = fmt.Sprintf("components?q=%s", url.QueryEscape(listOptions.Query))
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
 	}
 
-	log.Infof("Listing all issues")
+	uripath := repository.GetPath("components")
+	if len(listOptions.Query) > 0 {
+		uripath = fmt.Sprintf("%s?q=%s", uripath, url.QueryEscape(listOptions.Query))
+	}
+
+	log.Infof("Listing all components")
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing components") {
 		return nil
 	}
