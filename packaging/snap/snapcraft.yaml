@@ -48,3 +48,5 @@ parts:
     source:      https://github.com/gildas/bitbucket-cli
     source-branch: master
     build-snaps: [go/latest/stable]
+    override-build: |
+      go build -o $SNAPCRAFT_PART_INSTALL/bin/bb .
