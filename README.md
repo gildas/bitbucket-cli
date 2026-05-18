@@ -23,6 +23,14 @@ sudo snap alias bitbucket-cli bb
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bitbucket-cli)
 
+You can also install `bb` on Arch Linux from the [AUR](https://aur.archlinux.org/packages/bitbucket-cli-bin):
+
+```bash
+paru -S bitbucket-cli-bin
+# or
+yay -S bitbucket-cli-bin
+```
+
 ### macOS
 
 You can get `bb` from [Homebrew](https://brew.sh) with:
