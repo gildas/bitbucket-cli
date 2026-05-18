@@ -94,7 +94,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
-		fmt.Sprintf("pullrequests/%s", args[0]),
+		repository.GetPath("pullrequests", args[0]),
 		&pullrequest,
 	)
 	if err != nil {
