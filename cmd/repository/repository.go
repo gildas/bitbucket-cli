@@ -355,6 +355,25 @@ func GetRepositoryFromGit(context context.Context, cmd *cobra.Command, profile *
 	return
 }
 
+// GetWorkspace gets the workspace of the repository
+func (repository Repository) GetWorkspace(ctx context.Context, cmd *cobra.Command) (*workspace.Workspace, error) {
+	log := logger.Must(logger.FromContext(ctx)).Child("repository", "get_workspace")
+
+	if repository.Workspace != nil && !repository.Workspace.ID.IsNil() && len(repository.Workspace.Slug) > 0 {
+		log.Debugf("Getting workspace of repository %s/%s from cache", repository.Workspace.Slug, repository.Slug)
+		return repository.Workspace, nil
+	}
+
+	if len(repository.FullName) > 0 {
+		log.Debugf("Getting workspace of repository %s/%s from full name", repository.FullName, repository.Slug)
+		components := strings.Split(repository.FullName, "/")
+		if len(components) == 2 {
+			return workspace.GetWorkspaceBySlugOrID(ctx, cmd, components[0])
+		}
+	}
+	return workspace.GetWorkspace(ctx, cmd)
+}
+
 // disableUnsupportedFlags disables the flags that are not supported by the repository command
 func disableUnsupportedFlags(cmd *cobra.Command, args []string) error {
 	if cmd.Flags().Changed("repository") {

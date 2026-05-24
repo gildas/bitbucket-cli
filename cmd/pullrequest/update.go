@@ -90,7 +90,6 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	var pullrequest PullRequest
 
 	log.Infof("Fetching pullrequest %s", args[0])
-
 	err = profile.Get(
 		log.ToContext(cmd.Context()),
 		cmd,
@@ -102,7 +101,8 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 	log = log.Record("pullrequest", pullrequest.ID)
-	log.Record("pullrequest", pullrequest).Debugf("Fetched pullrequest %s", args[0])
+	log.Infof("Fetched pullrequest %s", args[0])
+	log.Record("pullrequest", pullrequest).Debugf("Pullrequest %s details", args[0])
 
 	updateWanted := false
 
@@ -129,15 +129,19 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 
 	var pullrequestWorkspace *workspace.Workspace
 	if pullrequest.Destination.Repository != nil {
-		pullrequestWorkspace, err = workspace.GetWorkspaceBySlugOrID(cmd.Context(), cmd, pullrequest.Destination.Repository.Workspace.Slug)
+		log.Infof("Getting workspace of pullrequest destination repository %s", pullrequest.Destination.Repository.FullName)
+		log.Record("repository", pullrequest.Destination.Repository).Debugf("Pullrequest destination repository details")
+		pullrequestWorkspace, err = pullrequest.Destination.Repository.GetWorkspace(cmd.Context(), cmd)
 	} else {
-		pullrequestWorkspace, err = workspace.GetWorkspace(cmd.Context(), cmd)
+		log.Infof("Getting current workspace")
+		pullrequestWorkspace, err = repository.GetWorkspace(cmd.Context(), cmd)
 	}
 	if err != nil {
 		log.Errorf("Failed to get workspace of pullrequest destination repository", err)
 		fmt.Fprintf(os.Stderr, "Failed to get workspace of pullrequest destination repository: %s\n", err)
 		os.Exit(1)
 	}
+	log.Infof("Pullrequest workspace: %s", pullrequestWorkspace)
 
 	isMember := func(member workspace.Member, id string) bool {
 		if id, err := common.ParseUUID(id); err == nil {
