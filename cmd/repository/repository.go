@@ -24,26 +24,26 @@ import (
 )
 
 type Repository struct {
-	ID                   common.UUID         `json:"uuid"                  mapstructure:"uuid"`
-	Name                 string              `json:"name,omitempty"                  mapstructure:"name"`
-	FullName             string              `json:"full_name,omitempty"             mapstructure:"full_name"`
-	Slug                 string              `json:"slug,omitempty"                  mapstructure:"slug"`
-	Owner                user.User           `json:"owner,omitempty"                 mapstructure:"owner"`
-	Workspace            workspace.Workspace `json:"workspace,omitempty"             mapstructure:"workspace"`
-	Project              project.Project     `json:"project,omitempty"               mapstructure:"project"`
-	HasIssues            bool                `json:"has_issues"            mapstructure:"has_issues"`
-	HasWiki              bool                `json:"has_wiki"              mapstructure:"has_wiki"`
-	IsPrivate            bool                `json:"is_private"            mapstructure:"is_private"`
-	ForkPolicy           string              `json:"fork_policy,omitempty" mapstructure:"fork_policy"`
-	Size                 int64               `json:"size,omitempty"                  mapstructure:"size"`
-	Language             string              `json:"language,omitempty"    mapstructure:"language"`
-	MainBranch           string              `json:"-"                     mapstructure:"-"`
-	DefaultMergeStrategy string              `json:"-"                     mapstructure:"-"`
-	BranchingModel       string              `json:"-"                     mapstructure:"-"`
-	Parent               *Repository         `json:"parent,omitempty"      mapstructure:"parent"`
-	Links                common.Links        `json:"links"                 mapstructure:"links"`
-	CreatedOn            time.Time           `json:"created_on"            mapstructure:"created_on"`
-	UpdatedOn            time.Time           `json:"updated_on"            mapstructure:"updated_on"`
+	ID                   common.UUID          `json:"uuid"                  mapstructure:"uuid"`
+	Name                 string               `json:"name,omitempty"                  mapstructure:"name"`
+	FullName             string               `json:"full_name,omitempty"             mapstructure:"full_name"`
+	Slug                 string               `json:"slug,omitempty"                  mapstructure:"slug"`
+	Owner                user.User            `json:"owner,omitempty"                 mapstructure:"owner"`
+	Workspace            *workspace.Workspace `json:"workspace,omitempty"             mapstructure:"workspace"`
+	Project              project.Project      `json:"project,omitempty"               mapstructure:"project"`
+	HasIssues            bool                 `json:"has_issues"            mapstructure:"has_issues"`
+	HasWiki              bool                 `json:"has_wiki"              mapstructure:"has_wiki"`
+	IsPrivate            bool                 `json:"is_private"            mapstructure:"is_private"`
+	ForkPolicy           string               `json:"fork_policy,omitempty" mapstructure:"fork_policy"`
+	Size                 int64                `json:"size,omitempty"                  mapstructure:"size"`
+	Language             string               `json:"language,omitempty"    mapstructure:"language"`
+	MainBranch           string               `json:"-"                     mapstructure:"-"`
+	DefaultMergeStrategy string               `json:"-"                     mapstructure:"-"`
+	BranchingModel       string               `json:"-"                     mapstructure:"-"`
+	Parent               *Repository          `json:"parent,omitempty"      mapstructure:"parent"`
+	Links                common.Links         `json:"links"                 mapstructure:"links"`
+	CreatedOn            time.Time            `json:"created_on"            mapstructure:"created_on"`
+	UpdatedOn            time.Time            `json:"updated_on"            mapstructure:"updated_on"`
 }
 
 /*
@@ -395,7 +395,6 @@ func (repository *Repository) Validate() error {
 func (repository Repository) MarshalJSON() (data []byte, err error) {
 	type surrogate Repository
 	var owner *user.User
-	var wspace *workspace.Workspace
 	var proj *project.Project
 	var br *branch
 	var createdOn string
@@ -406,9 +405,6 @@ func (repository Repository) MarshalJSON() (data []byte, err error) {
 
 	if !repository.Owner.ID.IsNil() {
 		owner = &repository.Owner
-	}
-	if !repository.Workspace.ID.IsNil() {
-		wspace = &repository.Workspace
 	}
 	if !repository.Project.ID.IsNil() {
 		proj = &repository.Project
@@ -438,20 +434,18 @@ func (repository Repository) MarshalJSON() (data []byte, err error) {
 	data, err = json.Marshal(struct {
 		Type string `json:"type"`
 		surrogate
-		Owner      *user.User           `json:"owner,omitempty"`
-		Workspace  *workspace.Workspace `json:"workspace,omitempty"`
-		Project    *project.Project     `json:"project,omitempty"`
-		MainBranch *branch              `json:"mainbranch,omitempty"`
-		CreatedOn  string               `json:"created_on,omitempty"`
-		UpdatedOn  string               `json:"updated_on,omitempty"`
-		HasIssues  *bool                `json:"has_issues,omitempty"`
-		HasWiki    *bool                `json:"has_wiki,omitempty"`
-		IsPrivate  *bool                `json:"is_private,omitempty"`
+		Owner      *user.User       `json:"owner,omitempty"`
+		Project    *project.Project `json:"project,omitempty"`
+		MainBranch *branch          `json:"mainbranch,omitempty"`
+		CreatedOn  string           `json:"created_on,omitempty"`
+		UpdatedOn  string           `json:"updated_on,omitempty"`
+		HasIssues  *bool            `json:"has_issues,omitempty"`
+		HasWiki    *bool            `json:"has_wiki,omitempty"`
+		IsPrivate  *bool            `json:"is_private,omitempty"`
 	}{
 		Type:       repository.GetType(),
 		surrogate:  surrogate(repository),
 		Owner:      owner,
-		Workspace:  wspace,
 		Project:    proj,
 		MainBranch: br,
 		CreatedOn:  createdOn,

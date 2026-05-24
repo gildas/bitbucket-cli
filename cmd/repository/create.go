@@ -86,7 +86,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return err
 	}
-	repository := Repository{Workspace: *workspace, Slug: args[0]}
+	repository := Repository{Workspace: workspace, Slug: args[0]}
 
 	log.Record("payload", payload).Infof("Creating repository %s in project %s", repository.GetPath(), createOptions.Project)
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating repository %s in project %s", repository.GetPath(), createOptions.Project) {
