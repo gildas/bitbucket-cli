@@ -1140,12 +1140,14 @@ You can create a GPG key with the `bb gpg-key create` command:
 
 ```bash
 bb gpg-key create \
-  --user <user> \
+  --user <user-id> \
   --name <keyname> \
   --key <key>
 ```
 
-The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin. If the `--user` flag is not provided, the key is created for the user associated with the current profile.
+The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin.
+
+If the `--user` flag is not provided, the key is created for the user associated with the current profile. If it is provided, it must be the UUID of the user, not the username.
 
 You can delete one or more GPG keys with the `bb gpg-key delete` command:
 
@@ -1175,12 +1177,14 @@ You can create an SSH key with the `bb ssh-key create` command:
 
 ```bash
 bb ssh-key create \
-  --user <user> \
+  --user <user-id> \
   --name <keyname> \
   --key <key>
 ```
 
-The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin. If the `--user` flag is not provided, the key is created for the user associated with the current profile.
+The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin.
+
+If the `--user` flag is not provided, the key is created for the user associated with the current profile. If it is provided, it must be the UUID of the user, not the username.
 
 You can delete one or more SSH keys with the `bb ssh-key delete` command:
 
