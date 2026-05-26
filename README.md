@@ -210,8 +210,8 @@ By default, the password or client secret is stored in the vault of the operatin
 
 Profiles support the following authentications:
 
-- [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-) with the `--client-id`, `--client-secret`, and `--callback-port` flags.
-- [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-) with the `--client-id` and `--client-secret` flags.
+- [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-) with the `--client-id`, `--client-secret`, and `--callback-port` flags. See the [Adding an OAUTH 2.0 Profile](#adding-an-oauth-2-0-profile) section for more information about how to create an OAuth client and authorize the profile.
+- [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-) with the `--client-id` and `--client-secret` flags. See the [Adding an OAUTH 2.0 Profile](#adding-an-oauth-2-0-profile) section for more information about how to create an OAuth client.
 - [API tokens](https://support.atlassian.com/bitbucket-cloud/docs/api-tokens/) with the `--user` and `--password` flags. The user is the **Atlassian account email** and the password is the API token in this case.
 - ~~[App passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/) with the `--user` and `--password` flags.~~ [App passwords are deprecated by Atlassian in favour of API tokens as of June 9, 2025 and will stop working entirely on June 9, 2026](https://www.atlassian.com/blog/bitbucket/bitbucket-cloud-transitions-to-api-tokens-enhancing-security-with-app-password-deprecation). Use API tokens instead.
 - [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags.
@@ -316,7 +316,9 @@ bb --config ~/.bb/config.json workspace list
 
 #### Adding an OAUTH 2.0 Profile
 
-To add an OAuth 2.0 profile, you need to create an OAuth consumer on Bitbucket. First, go to the settings page <https://bitbucket.org/xxxx/workspace/settings> of the Bitbucket workspace you want a consumer for (where `xxxx` is the workspace name/ID). On that page, click on the `OAuth consumers` link in the `Access management` section. Then click on the `Add consumer` button. Fill in the form.
+To add an OAuth 2.0 profile, you need to create an OAuth consumer on Bitbucket. First, go to the settings page <https://bitbucket.org/xxxx/workspace/settings> of the Bitbucket workspace you want a consumer for (where `xxxx` is the workspace name/ID). On that page, click on the `OAuth clients` link in the `Apps and features` section. Then click on the `Create OAuth client` button. Fill in the form.
+
+![OAuth clients](images/bitbucket-add-oauth.png)
 
 To use an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to fill in the `Callback URL` with a link like <http://localhost:yyyy> (where `yyyy` is the port you want to use and provide to the `--callback-port` flag of `bb profile create`) and **do not** enable the check box for `This is a private consumer`.
 
