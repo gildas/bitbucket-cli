@@ -1276,7 +1276,7 @@ You can instruct `bb` to log its activity by using the `--log` flag:
 bb --log tmp/bb.log workspace list
 ```
 
-or with the environment variable `BB_LOG`:
+or with the environment variable `LOG_DESTINATION`:
 
 ```bash
 LOG_DESTINATION=tmp/bb.log bb workspace list
