@@ -194,15 +194,18 @@ $ bb pr list --state all
 
 ```bash
 bb profile create \
-  --name myprofile \
-  --client-id <your-client-id> \
-  --client-secret <your-client-secret> \
-  --callback-port 8080
+  --name              myprofile \
+  --default-workspace myworkspace \
+  --client-id         <your-client-id> \
+  --client-secret     <your-client-secret> \
+  --callback-port     8080
 ```
+
+You should define the default workspace for the profile with the `--default-workspace` flag. This will allow you to use `bb` without specifying the workspace every time.
 
 You can also pass the `--default` flag to make this profile the default one, or pass a `--output` flag to change the profile output format.
 
-You can also pass the `--default-workspace` and/or `--default-project` flags to set the default workspace and/or project for this profile.
+You can also pass the `--default-project` flag to set the default project for this profile.
 
 You can also pass the `--progress` flag to display a progress bar when upload/downloading artifacts and attachments.
 
