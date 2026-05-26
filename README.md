@@ -1266,6 +1266,44 @@ On macOS, you can add the completion to the brew functions:
 bb completion zsh > "$(brew --prefix)/share/zsh/site-functions/_bb"
 ```
 
+### Obtaining logs for debugging
+
+If you encounter an issue with `bb`, you can obtain logs to help with debugging.
+
+You can instruct `bb` to log its activity by using the `--log` flag:
+
+```bash
+bb --log tmp/bb.log workspace list
+```
+
+or with the environment variable `BB_LOG`:
+
+```bash
+LOG_DESTINATION=tmp/bb.log bb workspace list
+```
+
+`bb` will create the log file as needed (but it will not create the parent directories). By default, the log level is set to `info`, but you can set it to `debug` to get more detailed logs:
+
+```bash
+LOG_LEVEL=DEBUG bb --log tmp/bb.log workspace list
+```
+
+You can also set these environment variables in a `.env` file in the current directory, and `bb` will automatically load them:
+
+```bash
+LOG_DESTINATION=tmp/bb.log
+LOG_LEVEL=DEBUG
+```
+
+If you set the log level to debug or more, `bb` will also log the source of the log message (file and line number, function name).
+
+`bb` will write log messages following the format in [gildas/go-logger](https://github.com/gildas/go-logger). You can find some extra information about the log configuration in the documentation of that package. You can use [gildas/lv](https://github.com/gildas/lv) or [The Bunyan log viewer](https://github.com/trentm/node-bunyan) to view the logs in a human readable format.
+
+**Notes**:
+
+- `bb` tries hard to not log sensitive information, but be careful when sharing the logs, and make sure to remove any sensitive information before sharing them. You can open an [issue](https://github.com/gildas/bitbucket-cli/issues) if you feel like `bb` is logging sensitive information it should not. (We will do our best to fix it as soon as possible)
+- When sending the logs to our team, please send the JSON version, not the pretty printed version, as it will be easier to analyze.
+
 ## TODO
 
 We will add more commands in the future. If you have any suggestions, please open an issue.
