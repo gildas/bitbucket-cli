@@ -86,7 +86,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	if len(updateOptions.CloneProtocol.String()) > 0 {
 		updateOptions.Profile.CloneProtocol = updateOptions.CloneProtocol.String()
 	}
-	log.Infof("Checking if profile %s exists (Valid Names: %v)", args[0], Profiles.Names())
+	log.Infof("Loading profile %s (Valid Names: %v)", args[0], Profiles.Names())
 	profile, found := Profiles.Find(args[0])
 	if !found {
 		return errors.NotFound.With("profile", args[0])
@@ -95,6 +95,12 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	log.Record("profile", profile).Debugf("Updating profile %s", profile.Name)
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating profile %s", profile.Name) {
 		return nil
+	}
+
+	// If we use the OS Vault, we need to clear the client secret and password from the profile before updating
+	if !updateOptions.NoVault {
+		profile.ClientSecret = ""
+		profile.Password = ""
 	}
 
 	// We need to check updates to the vault key early, so we can store the client secret and password in the vault if provided
