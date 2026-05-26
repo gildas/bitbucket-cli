@@ -190,6 +190,22 @@ $ bb pr list --state all
 
 ### Profiles
 
+#### Setting up OAUTH 2.0
+
+To add an OAuth 2.0 profile, you need to create an OAuth consumer on Bitbucket. First, go to the settings page <https://bitbucket.org/xxxx/workspace/settings> of the Bitbucket workspace you want a consumer for (where `xxxx` is the workspace name/ID). On that page, click on the `OAuth clients` link in the `Apps and features` section. Then click on the `Create OAuth client` button. Fill in the form.
+
+![OAuth clients](images/bitbucket-add-oauth.png)
+
+To use an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to fill in the `Callback URL` with a link like <http://localhost:yyyy> (where `yyyy` is the port you want to use and provide to the `--callback-port` flag of `bb profile create`) and **do not** enable the check box for `This is a private consumer`.
+
+To use an [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-), you will need to enable the check box for `This is a private consumer` and add a _dummy_ `Callback URL`.
+
+In both cases, you will need to fill in the permissions you want to grant to the consumer.
+
+Once you hit the `Save` button, your OAuth consumer will be created and you can use the credentials (client identifier and secret) provided to configure your profile with `bb`.
+
+#### Creating Profiles
+
 `bb` uses profiles to store your Bitbucket credentials. You can create a profile with the `bb profile create` command:
 
 ```bash
@@ -203,7 +219,7 @@ bb profile create \
 
 You should define the default workspace for the profile with the `--default-workspace` flag. This will allow you to use `bb` without specifying the workspace every time.
 
-You can also pass the `--default` flag to make this profile the default one, or pass a `--output` flag to change the profile output format.
+You can also pass the `--default` flag to make this profile the default one, or pass a `--output` flag to change the profile output format. If you use only one profile, it will be used as the default profile.
 
 You can also pass the `--default-project` flag to set the default project for this profile.
 
@@ -211,13 +227,21 @@ You can also pass the `--progress` flag to display a progress bar when upload/do
 
 By default, the password or client secret is stored in the vault of the operating system (Windows Credential Manager, macOS Keychain, or Linux Secret Service). You can pass the `--no-vault` flag to disable this feature and store the password or client secret in plain text in the configuration file. This is not recommended, but can be useful for testing purposes.
 
+Once the profile is created in `bb`, for an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to authorize the profile with the following command:
+
+```bash
+bb profile authorize myprofile
+```
+
+You can also use the `--verbose` to get some information about the authorization process.
+
 Profiles support the following authentications:
 
 - [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-) with the `--client-id`, `--client-secret`, and `--callback-port` flags. See the [Adding an OAUTH 2.0 Profile](#adding-an-oauth-2-0-profile) section for more information about how to create an OAuth client and authorize the profile.
 - [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-) with the `--client-id` and `--client-secret` flags. See the [Adding an OAUTH 2.0 Profile](#adding-an-oauth-2-0-profile) section for more information about how to create an OAuth client.
 - [API tokens](https://support.atlassian.com/bitbucket-cloud/docs/api-tokens/) with the `--user` and `--password` flags. The user is the **Atlassian account email** and the password is the API token in this case.
 - ~~[App passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/) with the `--user` and `--password` flags.~~ [App passwords are deprecated by Atlassian in favour of API tokens as of June 9, 2025 and will stop working entirely on June 9, 2026](https://www.atlassian.com/blog/bitbucket/bitbucket-cloud-transitions-to-api-tokens-enhancing-security-with-app-password-deprecation). Use API tokens instead.
-- [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags.
+- [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags. Using access tokens requires a Premium plan on Bitbucket Cloud.
 
 Permission Scopes:
 
@@ -316,28 +340,6 @@ export BB_CONFIG=~/.bb/config.json
 ```bash
 bb --config ~/.bb/config.json workspace list
 ```
-
-#### Adding an OAUTH 2.0 Profile
-
-To add an OAuth 2.0 profile, you need to create an OAuth consumer on Bitbucket. First, go to the settings page <https://bitbucket.org/xxxx/workspace/settings> of the Bitbucket workspace you want a consumer for (where `xxxx` is the workspace name/ID). On that page, click on the `OAuth clients` link in the `Apps and features` section. Then click on the `Create OAuth client` button. Fill in the form.
-
-![OAuth clients](images/bitbucket-add-oauth.png)
-
-To use an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to fill in the `Callback URL` with a link like <http://localhost:yyyy> (where `yyyy` is the port you want to use and provide to the `--callback-port` flag of `bb profile create`) and **do not** enable the check box for `This is a private consumer`.
-
-To use an [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-), you will need to enable the check box for `This is a private consumer` and add a _dummy_ `Callback URL`.
-
-In both cases, you will need to fill in the permissions you want to grant to the consumer.
-
-Once you hit the `Save` button, your OAuth consumer will be created and you can use the credentials (client identifier and secret) provided to configure your profile with `bb`.
-
-Once the profile is created in `bb`, for an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to authorize the profile with the following command:
-
-```bash
-bb profile authorize myprofile
-```
-
-You can also use the `--verbose` to get some information about the authorization process.
 
 ### Users
 
