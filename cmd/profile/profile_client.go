@@ -349,7 +349,7 @@ func (profile *Profile) CodeGrantCallback(resultchan chan error) http.Handler {
 			resultchan <- err
 			return
 		}
-		profile.saveAccessToken(result.Data)
+		profile.saveAccessToken(r.Context(), result.Data)
 		_, _ = w.Write([]byte("Authorization Code received. You can close this window."))
 		resultchan <- nil
 	})
@@ -358,26 +358,33 @@ func (profile *Profile) CodeGrantCallback(resultchan chan error) http.Handler {
 func (profile *Profile) authorize(context context.Context) (authorization string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "authorize")
 
-	if err := profile.loadAccessToken(); err == nil {
+	if err := profile.loadAccessToken(context); err == nil {
 		if !profile.isTokenExpired() {
 			log.Infof("Using access token for profile %s", profile.Name)
 			log.Debugf("Token expires on %s in %s", profile.TokenExpires.Format(time.RFC3339), time.Until(profile.TokenExpires))
-			return request.BearerAuthorization(profile.AccessToken), nil
+			return request.BearerAuthorization(profile.accessToken), nil
 		}
 	}
+
 	payload := map[string]string{}
-	if len(profile.RefreshToken) > 0 {
-		log.Warnf("Access token for profile %s is expired", profile.Name)
+	if len(profile.refreshToken) > 0 {
+		log.Warnf("Access token for profile %s expired %s ago and we have a refresh token", profile.Name, time.Since(profile.TokenExpires))
 		payload["grant_type"] = "refresh_token"
-		payload["refresh_token"] = profile.RefreshToken
+		payload["refresh_token"] = profile.refreshToken
 	} else {
+		log.Warnf("Access token for profile %s expired %s ago and we don't have a refresh token, we need to re-authorize the profile", profile.Name, time.Since(profile.TokenExpires))
 		payload["grant_type"] = "client_credentials"
 	}
 
+	// Get the client secret from the vault if it is empty
+	clientSecret, err := profile.GetClientSecret(context)
+	if err != nil {
+		return "", err
+	}
 	log.Infof("Authorizing profile %s", profile.Name)
 	result, err := request.Send(&request.Options{
 		Method:        http.MethodPost,
-		Authorization: request.BasicAuthorization(profile.ClientID, profile.ClientSecret),
+		Authorization: request.BasicAuthorization(profile.ClientID, clientSecret),
 		URL:           core.Must(url.Parse("https://bitbucket.org/site/oauth2/access_token")),
 		Payload:       payload,
 		Timeout:       30 * time.Second,
@@ -399,17 +406,19 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 		}
 		return
 	}
-	profile.saveAccessToken(result.Data)
-	return request.BearerAuthorization(profile.AccessToken), nil
+	profile.saveAccessToken(context, result.Data)
+	return request.BearerAuthorization(profile.accessToken), nil
 }
 
 func (profile *Profile) send(context context.Context, cmd *cobra.Command, options *request.Options, uripath string, response any) (result *request.Content, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, strings.ToLower(options.Method))
 
 	if len(profile.User) > 0 {
-		options.Authorization = request.BasicAuthorization(profile.User, profile.Password)
-	} else if len(profile.AccessToken) > 0 {
-		options.Authorization = request.BearerAuthorization(profile.AccessToken)
+		password, err := profile.GetPassword(context)
+		if err != nil {
+			return nil, err
+		}
+		options.Authorization = request.BasicAuthorization(profile.User, password)
 	} else if options.Authorization, err = profile.authorize(context); err != nil {
 		return nil, err
 	}
