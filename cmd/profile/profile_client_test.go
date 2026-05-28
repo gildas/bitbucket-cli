@@ -45,7 +45,7 @@ func (suite *ProfileSuite) TestGetAll_OriginalQueryIsPreservedForNextMissingPara
 
 	apiRoot, err := url.Parse(server.URL)
 	suite.Require().NoError(err)
-	profile.Current = &profile.Profile{APIRoot: apiRoot, DefaultPageLength: 0, AccessToken: "fake-token"}
+	profile.Current = &profile.Profile{APIRoot: apiRoot, DefaultPageLength: 0}
 
 	cmd := &cobra.Command{}
 	cmd.Flags().String("profile", "", "")
@@ -89,7 +89,7 @@ func (suite *ProfileSuite) TestGetAll_DoesNotOverwriteExistingNextParams() {
 
 	apiRoot, err := url.Parse(server.URL)
 	suite.Require().NoError(err)
-	profile.Current = &profile.Profile{APIRoot: apiRoot, DefaultPageLength: 0, AccessToken: "fake-token"}
+	profile.Current = &profile.Profile{APIRoot: apiRoot, DefaultPageLength: 0}
 
 	cmd := &cobra.Command{}
 	cmd.Flags().String("profile", "", "")

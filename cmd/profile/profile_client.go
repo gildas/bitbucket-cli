@@ -349,7 +349,16 @@ func (profile *Profile) CodeGrantCallback(resultchan chan error) http.Handler {
 			resultchan <- err
 			return
 		}
-		profile.saveAccessToken(r.Context(), result.Data)
+		if _, err := profile.saveAccessToken(r.Context(), result.Data); err != nil {
+			log.Errorf("Failed to save access token for profile %s: %v", profile.Name, err)
+			if errors.Is(err, errors.JSONUnmarshalError) {
+				http.Error(w, "Failed to parse access token response from BitBucket: "+err.Error(), http.StatusBadRequest)
+			} else {
+				http.Error(w, "Failed to save access token for profile "+profile.Name+": "+err.Error(), http.StatusInternalServerError)
+			}
+			resultchan <- err
+			return
+		}
 		_, _ = w.Write([]byte("Authorization Code received. You can close this window."))
 		resultchan <- nil
 	})
@@ -361,18 +370,18 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 	if err := profile.loadAccessToken(context); err == nil {
 		if !profile.isTokenExpired() {
 			log.Infof("Using access token for profile %s", profile.Name)
-			log.Debugf("Token expires on %s in %s", profile.TokenExpires.Format(time.RFC3339), time.Until(profile.TokenExpires))
-			return request.BearerAuthorization(profile.accessToken), nil
+			log.Debugf("Token expires on %s in %s", profile.token.GetExpiresOn().Format(time.RFC3339), profile.token.GetExpiresIn())
+			return request.BearerAuthorization(profile.token.AccessToken), nil
 		}
 	}
 
 	payload := map[string]string{}
-	if len(profile.refreshToken) > 0 {
-		log.Warnf("Access token for profile %s expired %s ago and we have a refresh token", profile.Name, time.Since(profile.TokenExpires))
+	if profile.token != nil && len(profile.token.RefreshToken) > 0 {
+		log.Warnf("Access token for profile %s expired %s ago and we have a refresh token", profile.Name, profile.token.GetExpiredSince())
 		payload["grant_type"] = "refresh_token"
-		payload["refresh_token"] = profile.refreshToken
+		payload["refresh_token"] = profile.token.RefreshToken
 	} else {
-		log.Warnf("Access token for profile %s expired %s ago and we don't have a refresh token, we need to re-authorize the profile", profile.Name, time.Since(profile.TokenExpires))
+		log.Warnf("Access token for profile %s expired %s ago and we don't have a refresh token, we need to re-authorize the profile", profile.Name, profile.token.GetExpiredSince())
 		payload["grant_type"] = "client_credentials"
 	}
 
@@ -406,8 +415,11 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 		}
 		return
 	}
-	profile.saveAccessToken(context, result.Data)
-	return request.BearerAuthorization(profile.accessToken), nil
+	accessToken, err := profile.saveAccessToken(context, result.Data)
+	if err != nil {
+		return "", err
+	}
+	return request.BearerAuthorization(accessToken), err
 }
 
 func (profile *Profile) send(context context.Context, cmd *cobra.Command, options *request.Options, uripath string, response any) (result *request.Content, err error) {
