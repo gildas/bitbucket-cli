@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"path/filepath"
+	"runtime"
 	"strings"
-	"time"
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-core"
@@ -32,18 +31,16 @@ type Profile struct {
 	DefaultPageLength int                    `json:"defaultPageLength,omitempty" mapstructure:"defaultPageLength,omitempty" yaml:",omitempty"`
 	OutputFormat      string                 `json:"outputFormat,omitempty"      mapstructure:"outputFormat,omitempty"      yaml:",omitempty"`
 	Progress          bool                   `json:"progress,omitempty"          mapstructure:"progress,omitempty"          yaml:",omitempty"`
+	CloneProtocol     string                 `json:"cloneProtocol,omitempty"     mapstructure:"cloneProtocol,omitempty"     yaml:",omitempty"`
+	CloneUser         string                 `json:"cloneUser,omitempty"         mapstructure:"cloneUser,omitempty"         yaml:",omitempty"`
 	VaultKey          string                 `json:"vaultKey,omitempty"          mapstructure:"vaultKey,omitempty"          yaml:",omitempty"`
 	User              string                 `json:"user,omitempty"              mapstructure:"user"                        yaml:",omitempty"`
 	Password          string                 `json:"password,omitempty"          mapstructure:"password"                    yaml:",omitempty"`
 	ClientID          string                 `json:"clientID,omitempty"          mapstructure:"clientID"                    yaml:",omitempty"`
 	ClientSecret      string                 `json:"clientSecret,omitempty"      mapstructure:"clientSecret"                yaml:",omitempty"`
 	CallbackPort      uint16                 `json:"callbackPort,omitempty"      mapstructure:"callbackPort"                yaml:",omitempty"`
-	AccessToken       string                 `json:"accessToken,omitempty"       mapstructure:"accessToken"                 yaml:",omitempty"`
-	RefreshToken      string                 `json:"-"                           mapstructure:"refreshToken"                yaml:"-"`
-	TokenExpires      time.Time              `json:"-"                           mapstructure:"tokenExpires"                yaml:"-"`
-	TokenScopes       []string               `json:"-"                           mapstructure:"tokenScopes"                 yaml:"-"`
-	CloneProtocol     string                 `json:"cloneProtocol,omitempty"     mapstructure:"cloneProtocol,omitempty"     yaml:",omitempty"`
-	CloneUser         string                 `json:"cloneUser,omitempty"         mapstructure:"cloneUser,omitempty"         yaml:",omitempty"`
+	AccessToken       string                 `json:"accessToken,omitempty"       mapstructure:"accessToken,omitempty"       yaml:",omitempty"`
+	token             *Token                 `json:"-"                           mapstructure:"-"                           yaml:"-"`
 }
 
 // Current is the current profile
@@ -83,9 +80,6 @@ var columns = common.Columns[*Profile]{
 	}},
 	{Name: "accesstoken", DefaultSorter: false, Compare: func(a, b *Profile) bool {
 		return strings.Compare(strings.ToLower(a.AccessToken), strings.ToLower(b.AccessToken)) == -1
-	}},
-	{Name: "tokenexpires", DefaultSorter: false, Compare: func(a, b *Profile) bool {
-		return a.TokenExpires.Before(b.TokenExpires)
 	}},
 	{Name: "apiRoot", DefaultSorter: false, Compare: func(a, b *Profile) bool {
 		return a.APIRoot != nil && b.APIRoot != nil && strings.Compare(strings.ToLower(a.APIRoot.String()), strings.ToLower(b.APIRoot.String())) == -1
@@ -176,12 +170,6 @@ func (profile Profile) GetRow(headers []string) []string {
 			} else {
 				row = append(row, " ")
 			}
-		case "tokenexpires":
-			if !profile.TokenExpires.IsZero() {
-				row = append(row, profile.TokenExpires.Format("2006-01-02 15:04:05"))
-			} else {
-				row = append(row, " ")
-			}
 		}
 	}
 	return row
@@ -207,14 +195,38 @@ func (profile Profile) Redact() any {
 	if len(redacted.AccessToken) > 0 {
 		redacted.AccessToken = logger.RedactWithHash(redacted.AccessToken)
 	}
-	if len(redacted.RefreshToken) > 0 {
-		redacted.RefreshToken = logger.RedactWithHash(redacted.RefreshToken)
-	}
 	if len(redacted.CloneUser) > 0 {
 		redacted.CloneUser = logger.RedactWithHash(redacted.CloneUser)
 	}
-	redacted.TokenScopes = nil
 	return redacted
+}
+
+// GetClientSecret gets the client secret from the profile, either from the vault or from the profile
+func (profile *Profile) GetClientSecret(ctx context.Context) (clientSecret string, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child("profile", "getClientSecret")
+	if len(profile.ClientSecret) > 0 {
+		log.Debugf("Client secret for profile %s is set in the profile", profile.Name)
+		return profile.ClientSecret, nil
+	}
+	if credential, err := profile.GetCredentialFromVault(profile.VaultKey, profile.ClientID); err == nil {
+		log.Debugf("Loaded client secret for clientID %s from the vault", profile.ClientID)
+		return credential.Password, nil
+	}
+	return "", errors.Join(errors.Errorf("Profile %s does not have a client secret", profile.Name), err)
+}
+
+// GetPassword gets the password from the profile, either from the vault or from the profile
+func (profile *Profile) GetPassword(ctx context.Context) (password string, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child("profile", "getPassword")
+	if len(profile.Password) > 0 {
+		log.Debugf("Password for profile %s is set in the profile", profile.Name)
+		return profile.Password, nil
+	}
+	if credential, err := profile.GetCredentialFromVault(profile.VaultKey, profile.User); err == nil {
+		log.Debugf("Loaded password for user %s from the vault", profile.User)
+		return credential.Password, nil
+	}
+	return "", errors.Join(errors.Errorf("Profile %s does not have a password", profile.Name), err)
 }
 
 // Update updates this profile with the given one
@@ -231,29 +243,25 @@ func (profile *Profile) Update(other Profile) error {
 	if len(other.OutputFormat) > 0 {
 		profile.OutputFormat = other.OutputFormat
 	}
-	if len(other.User) > 0 {
+	if len(other.AccessToken) > 0 && other.AccessToken != profile.AccessToken {
+		profile.AccessToken = other.AccessToken
+	}
+	if len(other.User) > 0 && other.User != profile.User {
 		profile.User = other.User
 	}
-	if len(other.Password) > 0 {
+	if len(other.Password) > 0 && other.Password != profile.Password {
 		profile.Password = other.Password
 	}
-	if len(other.ClientID) > 0 {
+	if len(other.ClientID) > 0 && other.ClientID != profile.ClientID {
 		profile.ClientID = other.ClientID
-		profile.RefreshToken = ""
-		profile.TokenExpires = time.Time{}
-		profile.TokenScopes = []string{}
+		profile.token = nil
 	}
-	if len(other.ClientSecret) > 0 {
+	if len(other.ClientSecret) > 0 && other.ClientSecret != profile.ClientSecret {
 		profile.ClientSecret = other.ClientSecret
+		profile.token = nil
 	}
 	if other.CallbackPort > 0 {
 		profile.CallbackPort = other.CallbackPort
-	}
-	if len(other.AccessToken) > 0 {
-		profile.AccessToken = other.AccessToken
-		profile.RefreshToken = ""
-		profile.TokenExpires = time.Time{}
-		profile.TokenScopes = []string{}
 	}
 	if len(other.DefaultWorkspace) > 0 {
 		profile.DefaultWorkspace = other.DefaultWorkspace
@@ -268,40 +276,6 @@ func (profile *Profile) Update(other Profile) error {
 		profile.CloneUser = other.CloneUser
 	}
 	return profile.Validate()
-}
-
-// Validate validates a Profile
-func (profile *Profile) Validate() error {
-	var merr errors.MultiError
-
-	if len(profile.Name) == 0 {
-		merr.Append(errors.ArgumentMissing.With("name"))
-	}
-	// We must have either an access token, a user, or a clientID
-	// password and clientSecret are now retrieved from the vault
-	if len(profile.AccessToken) == 0 && len(profile.ClientID) == 0 && len(profile.User) == 0 {
-		merr.Append(errors.ArgumentMissing.With("accessToken, user, or clientID"))
-	}
-	if len(profile.ClientSecret) > 0 || len(profile.Password) > 0 {
-		profile.VaultKey = ""
-	} else if len(profile.VaultKey) == 0 {
-		profile.VaultKey = "bitbucket-cli"
-	}
-	if len(profile.CloneProtocol) == 0 {
-		profile.CloneProtocol = "git"
-	}
-	if profile.CloneProtocol != "git" && profile.CloneProtocol != "https" && profile.CloneProtocol != "ssh" {
-		merr.Append(errors.ArgumentInvalid.With("cloneProtocol", profile.CloneProtocol))
-	}
-	if len(profile.OutputFormat) == 0 {
-		profile.OutputFormat = "table"
-	}
-	if profile.DefaultPageLength == 0 {
-		profile.DefaultPageLength = DefaultPageLength
-	} else if profile.DefaultPageLength < 0 || profile.DefaultPageLength > 100 {
-		merr.Append(errors.Errorf("Default Page Length must be between 0 and 100 (value: %d)", profile.DefaultPageLength))
-	}
-	return merr.AsError()
 }
 
 // ShouldStopOnError tells if the command should stop on error
@@ -473,6 +447,35 @@ func (profile Profile) PrintTable(context context.Context, cmd *cobra.Command, p
 	return nil
 }
 
+// Validate validates a Profile
+func (profile *Profile) Validate() error {
+	var merr errors.MultiError
+
+	if len(profile.Name) == 0 {
+		merr.Append(errors.ArgumentMissing.With("name"))
+	}
+
+	if len(profile.VaultKey) == 0 && runtime.GOOS != "windows" {
+		profile.VaultKey = "bitbucket-cli"
+	}
+
+	if len(profile.CloneProtocol) == 0 {
+		profile.CloneProtocol = "git"
+	}
+	if profile.CloneProtocol != "git" && profile.CloneProtocol != "https" && profile.CloneProtocol != "ssh" {
+		merr.Append(errors.ArgumentInvalid.With("cloneProtocol", profile.CloneProtocol))
+	}
+	if len(profile.OutputFormat) == 0 {
+		profile.OutputFormat = "table"
+	}
+	if profile.DefaultPageLength == 0 {
+		profile.DefaultPageLength = DefaultPageLength
+	} else if profile.DefaultPageLength < 0 || profile.DefaultPageLength > 100 {
+		merr.Append(errors.Errorf("Default Page Length must be between 0 and 100 (value: %d)", profile.DefaultPageLength))
+	}
+	return merr.AsError()
+}
+
 // MarshalJSON marshals this profile to JSON
 //
 // implements json.Marshaler
@@ -516,99 +519,6 @@ func (profile *Profile) UnmarshalJSON(data []byte) error {
 	*profile = Profile(inner.surrogate)
 	profile.APIRoot = (*url.URL)(inner.APIRoot)
 	return errors.JSONUnmarshalError.Wrap(profile.Validate())
-}
-
-// loadAccessToken loads the access token from the cache
-func (profile *Profile) loadAccessToken() (err error) {
-	cacheDir, err := os.UserCacheDir()
-	if err == nil {
-		accessTokenFile := filepath.Join(cacheDir, "bitbucket", "access-token-"+profile.Name)
-		data, err := os.ReadFile(accessTokenFile)
-		if err == nil {
-			var token struct {
-				TokenType    string         `json:"token_type"`
-				AccessToken  string         `json:"access_token"`
-				RefreshToken string         `json:"refresh_token"`
-				ExpiresOn    core.Timestamp `json:"expires_on"`
-				Scope        string         `json:"scope"`
-			}
-			if err = json.Unmarshal(data, &token); err == nil {
-				profile.AccessToken = token.AccessToken
-				profile.RefreshToken = token.RefreshToken
-				profile.TokenExpires = time.Time(token.ExpiresOn)
-				profile.TokenScopes = strings.Split(token.Scope, " ")
-				return err
-			}
-		}
-		return err
-	}
-	return
-}
-
-// isTokenExpired tells if the token is expired
-func (profile *Profile) isTokenExpired() bool {
-	return profile.TokenExpires.Before(time.Now())
-}
-
-// saveAccessToken saves the access token to the cache
-func (profile *Profile) saveAccessToken(data []byte) {
-	var payload []byte = data
-	if err := profile.setFromBitbucketTokenData(data); err == nil {
-		payload = profile.getTokenData()
-	} else {
-		profile.AccessToken = string(data)
-	}
-	if cacheDir, err := os.UserCacheDir(); err == nil {
-		cachePath := filepath.Join(cacheDir, "bitbucket")
-		if err := os.MkdirAll(cachePath, 0700); err == nil {
-			cacheFile := filepath.Join(cachePath, "access-token-"+profile.Name)
-			if err := os.WriteFile(cacheFile, payload, 0600); err == nil {
-				return
-			}
-		}
-	}
-}
-
-// setFromBitbucketTokenData sets the profile token information from the BitBucket token data
-//
-// The original data carries an expiration duration, that needs to be converted to a time.Time
-func (profile *Profile) setFromBitbucketTokenData(data []byte) (err error) {
-	var token struct {
-		TokenType    string `json:"token_type"`
-		State        string `json:"state"`
-		AccessToken  string `json:"access_token"`
-		RefreshToken string `json:"refresh_token"`
-		ExpiresIn    int64  `json:"expires_in"`
-		Scopes       string `json:"scopes"`
-	}
-	if err = json.Unmarshal(data, &token); err == nil {
-		profile.AccessToken = token.AccessToken
-		profile.RefreshToken = token.RefreshToken
-		profile.TokenExpires = time.Now().Add(time.Duration(token.ExpiresIn) * time.Second)
-		profile.TokenScopes = strings.Split(token.Scopes, " ")
-	}
-	return
-}
-
-// getTokenData gets the token data from the profile
-//
-// This data carries an expiration date as a timestamp
-func (profile *Profile) getTokenData() (data []byte) {
-	token := struct {
-		TokenType    string         `json:"token_type"`
-		AccessToken  string         `json:"access_token"`
-		RefreshToken string         `json:"refresh_token"`
-		ExpiresOn    core.Timestamp `json:"expires_on"`
-		Scopes       string         `json:"scopes"`
-	}{
-		TokenType:    "bearer",
-		AccessToken:  profile.AccessToken,
-		RefreshToken: profile.RefreshToken,
-		ExpiresOn:    core.Timestamp(profile.TokenExpires),
-		Scopes:       strings.Join(profile.TokenScopes, " "),
-	}
-	data, _ = json.Marshal(token)
-	return
 }
 
 // getWorkspaceSlugs gets the slugs of all workspaces

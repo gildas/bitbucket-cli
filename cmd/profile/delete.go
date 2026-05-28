@@ -68,13 +68,13 @@ func deleteProcess(cmd *cobra.Command, args []string) (err error) {
 					log.Infof("Deleting credential for profile %s", profile.Name)
 					if len(profile.ClientID) > 0 {
 						_ = profile.DeleteCredentialFromVault(profile.VaultKey, profile.ClientID)
-						log.Debugf("Deleted client secret for clientID %s from the vault", profile.ClientID)
+						log.Debugf("Deleted client secret for clientID %s from the %s vault", profile.ClientID, profile.VaultKey)
 					} else if len(profile.User) > 0 {
 						_ = profile.DeleteCredentialFromVault(profile.VaultKey, profile.User)
-						log.Debugf("Deleted user secret for user %s from the vault", profile.User)
+						log.Debugf("Deleted user password for user %s from the %s vault", profile.User, profile.VaultKey)
 					} else if len(profile.Name) > 0 {
 						_ = profile.DeleteCredentialFromVault(profile.VaultKey, profile.Name)
-						log.Debugf("Deleted name secret for profile %s from the vault", profile.Name)
+						log.Debugf("Deleted name secret for profile %s from the %s vault", profile.Name, profile.VaultKey)
 					}
 				}
 			}
