@@ -143,6 +143,11 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	if len(profile.AccessToken) > 0 || len(profile.ClientSecret) > 0 || len(profile.Password) > 0 {
+		log.Infof("Profile %s stored its credentials in plain text, we should keep it that way", profile.Name)
+		updateOptions.NoVault = true
+	}
+
 	// We need to check updates to the vault key early, so we can store the client secret and password in the vault if provided
 	if runtime.GOOS != "windows" && !cmd.Flag("vault-key").Changed {
 		if len(profile.VaultKey) == 0 {
