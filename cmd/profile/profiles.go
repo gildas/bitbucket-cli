@@ -72,15 +72,7 @@ func (profiles profiles) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(profiles) {
 		return []string{}
 	}
-	profile := profiles[index]
-	return []string{
-		profile.Name,
-		profile.Description,
-		fmt.Sprintf("%v", profile.Default),
-		profile.User,
-		profile.ClientID,
-		profile.AccessToken,
-	}
+	return profiles[index].GetRow(headers)
 }
 
 // Size gets the number of elements

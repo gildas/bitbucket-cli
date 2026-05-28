@@ -94,6 +94,30 @@ var columns = common.Columns[*Profile]{
 	{Name: "callbackport", DefaultSorter: false, Compare: func(a, b *Profile) bool {
 		return a.CallbackPort < b.CallbackPort
 	}},
+	{Name: "outputformat", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.OutputFormat), strings.ToLower(b.OutputFormat)) == -1
+	}},
+	{Name: "defaultpagelength", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return a.DefaultPageLength < b.DefaultPageLength
+	}},
+	{Name: "cloneprotocol", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.CloneProtocol), strings.ToLower(b.CloneProtocol)) == -1
+	}},
+	{Name: "cloneuser", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.CloneUser), strings.ToLower(b.CloneUser)) == -1
+	}},
+	{Name: "sshkeyfilename", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.SshKeyFilename), strings.ToLower(b.SshKeyFilename)) == -1
+	}},
+	{Name: "vaultkey", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.VaultKey), strings.ToLower(b.VaultKey)) == -1
+	}},
+	{Name: "errorprocessing", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.ErrorProcessing.String()), strings.ToLower(b.ErrorProcessing.String())) == -1
+	}},
+	{Name: "progress", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return a.Progress == b.Progress
+	}},
 }
 
 // GetProfileFromCommand gets the profile from the command line
@@ -171,6 +195,24 @@ func (profile Profile) GetRow(headers []string) []string {
 			} else {
 				row = append(row, " ")
 			}
+		case "outputformat":
+			row = append(row, profile.OutputFormat)
+		case "defaultpagelength":
+			row = append(row, fmt.Sprintf("%d", profile.DefaultPageLength))
+		case "cloneprotocol":
+			row = append(row, profile.CloneProtocol)
+		case "cloneuser":
+			row = append(row, profile.CloneUser)
+		case "sshkeyfilename":
+			row = append(row, profile.SshKeyFilename)
+		case "vaultkey":
+			row = append(row, profile.VaultKey)
+		case "errorprocessing":
+			row = append(row, profile.ErrorProcessing.String())
+		case "progress":
+			row = append(row, fmt.Sprintf("%t", profile.Progress))
+		default:
+			row = append(row, " ")
 		}
 	}
 	return row
