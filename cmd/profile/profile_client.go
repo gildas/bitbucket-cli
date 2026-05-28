@@ -29,63 +29,63 @@ type PaginatedResources[T any] struct {
 }
 
 // Post posts a resource
-func (profile *Profile) Post(context context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
+func (profile *Profile) Post(ctx context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
 	options := &request.Options{Method: http.MethodPost, Payload: body}
-	_, err = profile.send(context, cmd, options, uripath, response)
+	_, err = profile.send(ctx, cmd, options, uripath, response)
 	return
 }
 
 // PostWithResult posts a resource and returns the raw result
-func (profile *Profile) PostWithResult(context context.Context, cmd *cobra.Command, uripath string, body interface{}) (result *request.Content, err error) {
+func (profile *Profile) PostWithResult(ctx context.Context, cmd *cobra.Command, uripath string, body interface{}) (result *request.Content, err error) {
 	options := &request.Options{Method: http.MethodPost, Payload: body}
-	return profile.send(context, cmd, options, uripath, nil)
+	return profile.send(ctx, cmd, options, uripath, nil)
 }
 
 // Get gets a resource
-func (profile *Profile) Get(context context.Context, cmd *cobra.Command, uripath string, response interface{}) (err error) {
+func (profile *Profile) Get(ctx context.Context, cmd *cobra.Command, uripath string, response interface{}) (err error) {
 	options := &request.Options{Method: http.MethodGet}
-	_, err = profile.send(context, cmd, options, uripath, response)
+	_, err = profile.send(ctx, cmd, options, uripath, response)
 	return
 }
 
 // GetRaw gets a resource without unmarshaling it
-func (profile *Profile) GetRaw(context context.Context, cmd *cobra.Command, uripath string) (raw io.Reader, err error) {
+func (profile *Profile) GetRaw(ctx context.Context, cmd *cobra.Command, uripath string) (raw io.Reader, err error) {
 	options := &request.Options{
 		Method: http.MethodGet,
 		Accept: "*/*",
 	}
-	result, err := profile.send(context, cmd, options, uripath, nil)
+	result, err := profile.send(ctx, cmd, options, uripath, nil)
 	return result.Reader(), err
 }
 
 // Put puts/updates a resource
-func (profile *Profile) Put(context context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
+func (profile *Profile) Put(ctx context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
 	options := &request.Options{Method: http.MethodPut, Payload: body}
-	_, err = profile.send(context, cmd, options, uripath, response)
+	_, err = profile.send(ctx, cmd, options, uripath, response)
 	return
 }
 
 // Delete deletes a resource
-func (profile *Profile) Delete(context context.Context, cmd *cobra.Command, uripath string, response interface{}) (err error) {
+func (profile *Profile) Delete(ctx context.Context, cmd *cobra.Command, uripath string, response interface{}) (err error) {
 	options := &request.Options{Method: http.MethodDelete}
-	_, err = profile.send(context, cmd, options, uripath, response)
+	_, err = profile.send(ctx, cmd, options, uripath, response)
 	return
 }
 
 // Patch patches a resource
-func (profile *Profile) Patch(context context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
+func (profile *Profile) Patch(ctx context.Context, cmd *cobra.Command, uripath string, body interface{}, response interface{}) (err error) {
 	options := &request.Options{Method: http.MethodPatch, Payload: body}
-	_, err = profile.send(context, cmd, options, uripath, response)
+	_, err = profile.send(ctx, cmd, options, uripath, response)
 	return
 }
 
 // GetAllResources gets all resources of the given type
 //
 // The Current profile will be set to the profile of the command
-func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) (resources []T, err error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "getall")
+func GetAll[T any](ctx context.Context, cmd *cobra.Command, uripath string) (resources []T, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child(nil, "getall")
 
-	profile, err := GetProfileFromCommand(context, cmd)
+	profile, err := GetProfileFromCommand(ctx, cmd)
 	if err != nil {
 		log.Errorf("Failed to get profile.", err)
 		return nil, err
@@ -135,7 +135,7 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 		var paginated PaginatedResources[T]
 
 		err = profile.Get(
-			context,
+			ctx,
 			cmd,
 			uripath,
 			&paginated,
@@ -186,8 +186,8 @@ func GetAll[T any](context context.Context, cmd *cobra.Command, uripath string) 
 //
 // If the profile has its Progress flag set to true, it will show a progress bar.
 // Otherwise, if the command has a flag --progress, it will show a progress bar.
-func (profile *Profile) Download(context context.Context, cmd *cobra.Command, uripath, destination string) (err error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "download")
+func (profile *Profile) Download(ctx context.Context, cmd *cobra.Command, uripath, destination string) (err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child(nil, "download")
 
 	if len(destination) == 0 {
 		destination = "."
@@ -216,7 +216,7 @@ func (profile *Profile) Download(context context.Context, cmd *cobra.Command, ur
 	if showProgress {
 		options.ProgressWriter = profile.getProgressWriter(1, "Downloading")
 	}
-	result, err := profile.send(context, cmd, options, uripath, writer)
+	result, err := profile.send(ctx, cmd, options, uripath, writer)
 	if err != nil {
 		_ = writer.Close()
 		return err
@@ -242,7 +242,7 @@ func (profile *Profile) Download(context context.Context, cmd *cobra.Command, ur
 //
 // If the profile has its Progress flag set to true, it will show a progress bar.
 // Otherwise, if the command has a flag --progress, it will show a progress bar.
-func (profile *Profile) Upload(context context.Context, cmd *cobra.Command, uripath, source string) (err error) {
+func (profile *Profile) Upload(ctx context.Context, cmd *cobra.Command, uripath, source string) (err error) {
 	reader, err := os.Open(source)
 	if err != nil {
 		return errors.RuntimeError.Wrap(err)
@@ -269,7 +269,7 @@ func (profile *Profile) Upload(context context.Context, cmd *cobra.Command, urip
 		}
 		options.ProgressWriter = profile.getProgressWriter(size, "Upoading")
 	}
-	_, err = profile.send(context, cmd, options, uripath, nil)
+	_, err = profile.send(ctx, cmd, options, uripath, nil)
 	return
 }
 
@@ -364,10 +364,10 @@ func (profile *Profile) CodeGrantCallback(resultchan chan error) http.Handler {
 	})
 }
 
-func (profile *Profile) authorize(context context.Context) (authorization string, err error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, "authorize")
+func (profile *Profile) authorize(ctx context.Context) (authorization string, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child(nil, "authorize")
 
-	if err := profile.loadAccessToken(context); err == nil {
+	if err := profile.loadAccessToken(ctx); err == nil {
 		if !profile.isTokenExpired() {
 			log.Infof("Using access token for profile %s", profile.Name)
 			log.Debugf("Token expires on %s in %s", profile.token.GetExpiresOn().Format(time.RFC3339), profile.token.GetExpiresIn())
@@ -386,7 +386,7 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 	}
 
 	// Get the client secret from the vault if it is empty
-	clientSecret, err := profile.GetClientSecret(context)
+	clientSecret, err := profile.GetClientSecret(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -415,23 +415,23 @@ func (profile *Profile) authorize(context context.Context) (authorization string
 		}
 		return
 	}
-	accessToken, err := profile.saveAccessToken(context, result.Data)
+	accessToken, err := profile.saveAccessToken(ctx, result.Data)
 	if err != nil {
 		return "", err
 	}
 	return request.BearerAuthorization(accessToken), err
 }
 
-func (profile *Profile) send(context context.Context, cmd *cobra.Command, options *request.Options, uripath string, response any) (result *request.Content, err error) {
-	log := logger.Must(logger.FromContext(context)).Child(nil, strings.ToLower(options.Method))
+func (profile *Profile) send(ctx context.Context, cmd *cobra.Command, options *request.Options, uripath string, response any) (result *request.Content, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child(nil, strings.ToLower(options.Method))
 
 	if len(profile.User) > 0 {
-		password, err := profile.GetPassword(context)
+		password, err := profile.GetPassword(ctx)
 		if err != nil {
 			return nil, err
 		}
 		options.Authorization = request.BasicAuthorization(profile.User, password)
-	} else if options.Authorization, err = profile.authorize(context); err != nil {
+	} else if options.Authorization, err = profile.authorize(ctx); err != nil {
 		return nil, err
 	}
 
