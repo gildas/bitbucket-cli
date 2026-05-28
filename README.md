@@ -223,6 +223,8 @@ You can also pass the `--default` flag to make this profile the default one, or 
 
 You can also pass the `--default-project` flag to set the default project for this profile.
 
+You can also pass the `--default-ssh-key-file` flag to set the default SSH key file to use when cloning repositories with the `ssh` protocol.
+
 You can also pass the `--progress` flag to display a progress bar when upload/downloading artifacts and attachments.
 
 By default, the password or client secret is stored in the vault of the operating system (Windows Credential Manager, macOS Keychain, or Linux Secret Service). You can pass the `--no-vault` flag to disable this feature and store the password or client secret in plain text in the configuration file. This is not recommended, but can be useful for testing purposes.
