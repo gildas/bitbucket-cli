@@ -30,6 +30,7 @@ var updateOptions struct {
 	DefaultProject   *flags.EnumFlag
 	OutputFormat     *flags.EnumFlag
 	CloneProtocol    *flags.EnumFlag
+	ToVault          bool
 	NoVault          bool
 }
 
@@ -51,6 +52,7 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.ClientID, "client-id", "", "Client ID of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.ClientSecret, "client-secret", "", "Client Secret of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.AccessToken, "access-token", "", "Access Token of the profile")
+	updateCmd.Flags().BoolVar(&updateOptions.ToVault, "to-vault", false, "Store credentials in the vault. This will remove any credentials from the profile and store them in the vault. If the vault key is not provided, it will use the existing vault key of the profile or the default vault key if not set.")
 	updateCmd.Flags().BoolVar(&updateOptions.NoVault, "no-vault", false, "Do not use a vault for storing credentials")
 	updateCmd.Flags().Var(updateOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
 	updateCmd.Flags().Var(updateOptions.DefaultProject, "default-project", "Default project of the profile")
@@ -63,6 +65,12 @@ func init() {
 	updateCmd.MarkFlagsRequiredTogether("user", "password")
 	updateCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	updateCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
+	updateCmd.MarkFlagsMutuallyExclusive("to-vault", "no-vault")
+	updateCmd.MarkFlagsMutuallyExclusive("to-vault", "access-token")
+	updateCmd.MarkFlagsMutuallyExclusive("to-vault", "client-id")
+	updateCmd.MarkFlagsMutuallyExclusive("to-vault", "client-secret")
+	updateCmd.MarkFlagsMutuallyExclusive("to-vault", "user")
+	updateCmd.MarkFlagsMutuallyExclusive("to-vault", "password")
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.DefaultWorkspace.CompletionFunc("default-workspace"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.DefaultProject.CompletionFunc("default-project"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.CloneProtocol.CompletionFunc("clone-protocol"))
@@ -97,10 +105,42 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// If we use the OS Vault, we need to clear the client secret and password from the profile before updating
-	if !updateOptions.NoVault {
-		profile.ClientSecret = ""
-		profile.Password = ""
+	if updateOptions.ToVault {
+		updateOptions.NoVault = false
+		if len(profile.ClientSecret) > 0 {
+			vaultKey := profile.VaultKey
+			if cmd.Flag("vault-key").Changed && len(updateOptions.VaultKey) > 0 {
+				vaultKey = updateOptions.VaultKey
+			}
+			if err := profile.SetCredentialInVault(vaultKey, profile.ClientID, profile.ClientSecret); err != nil {
+				return errors.Join(errors.Errorf("Failed to store client secret in the vault"), err)
+			}
+			log.Infof("Stored client secret in the vault for %s", profile.ClientID)
+			profile.ClientSecret = ""
+			updateOptions.ClientSecret = ""
+		} else if len(profile.Password) > 0 {
+			vaultKey := profile.VaultKey
+			if cmd.Flag("vault-key").Changed && len(updateOptions.VaultKey) > 0 {
+				vaultKey = updateOptions.VaultKey
+			}
+			if err := profile.SetCredentialInVault(vaultKey, profile.User, profile.Password); err != nil {
+				return errors.Join(errors.Errorf("Failed to store user password in the vault"), err)
+			}
+			log.Infof("Stored user password in the vault for %s", profile.User)
+			profile.Password = ""
+			updateOptions.Password = ""
+		} else if len(profile.AccessToken) > 0 {
+			vaultKey := profile.VaultKey
+			if cmd.Flag("vault-key").Changed && len(updateOptions.VaultKey) > 0 {
+				vaultKey = updateOptions.VaultKey
+			}
+			if err := profile.SetCredentialInVault(vaultKey, profile.Name, profile.AccessToken); err != nil {
+				return errors.Join(errors.Errorf("Failed to store access token in the vault"), err)
+			}
+			log.Infof("Stored access token in the vault for %s", profile.Name)
+			profile.AccessToken = ""
+			updateOptions.AccessToken = ""
+		}
 	}
 
 	// We need to check updates to the vault key early, so we can store the client secret and password in the vault if provided
@@ -123,7 +163,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 			}
 		}
 	}
-	if len(updateOptions.Password) > 0 {
+	if cmd.Flag("password").Changed && len(updateOptions.Password) > 0 {
 		user := profile.User
 		if cmd.Flag("user").Changed && len(updateOptions.User) > 0 {
 			user = updateOptions.User
