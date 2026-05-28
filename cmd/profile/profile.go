@@ -33,6 +33,7 @@ type Profile struct {
 	Progress          bool                   `json:"progress,omitempty"          mapstructure:"progress,omitempty"          yaml:",omitempty"`
 	CloneProtocol     string                 `json:"cloneProtocol,omitempty"     mapstructure:"cloneProtocol,omitempty"     yaml:",omitempty"`
 	CloneUser         string                 `json:"cloneUser,omitempty"         mapstructure:"cloneUser,omitempty"         yaml:",omitempty"`
+	SshKeyFilename    string                 `json:"sshKeyFilename,omitempty"    mapstructure:"sshKeyFilename,omitempty"    yaml:",omitempty"`
 	VaultKey          string                 `json:"vaultKey,omitempty"          mapstructure:"vaultKey,omitempty"          yaml:",omitempty"`
 	User              string                 `json:"user,omitempty"              mapstructure:"user"                        yaml:",omitempty"`
 	Password          string                 `json:"password,omitempty"          mapstructure:"password"                    yaml:",omitempty"`
@@ -274,6 +275,9 @@ func (profile *Profile) Update(other Profile) error {
 	}
 	if len(other.CloneUser) > 0 {
 		profile.CloneUser = other.CloneUser
+	}
+	if len(other.SshKeyFilename) > 0 {
+		profile.SshKeyFilename = other.SshKeyFilename
 	}
 	return profile.Validate()
 }
