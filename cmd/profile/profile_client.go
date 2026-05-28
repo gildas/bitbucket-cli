@@ -320,10 +320,19 @@ func (profile *Profile) CodeGrantCallback(resultchan chan error) http.Handler {
 		}
 		log.Infof("Received code %s", code)
 
+		// Get the client secret from the vault if it is empty
+		clientSecret, err := profile.GetClientSecret(r.Context())
+		if err != nil {
+			log.Errorf("Failed to get client secret for profile %s: %v", profile.Name, err)
+			http.Error(w, "Failed to get client secret for profile "+profile.Name+": "+err.Error(), http.StatusUnauthorized)
+			resultchan <- err
+			return
+		}
+
 		log.Infof("Requesting authorization token for profile %s", profile.Name)
 		result, err := request.Send(&request.Options{
 			Method:        http.MethodPost,
-			Authorization: request.BasicAuthorization(profile.ClientID, profile.ClientSecret),
+			Authorization: request.BasicAuthorization(profile.ClientID, clientSecret),
 			URL:           core.Must(url.Parse("https://bitbucket.org/site/oauth2/access_token")),
 			Payload:       map[string]string{"grant_type": "authorization_code", "code": code},
 			Timeout:       30 * time.Second,
