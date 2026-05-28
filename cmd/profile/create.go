@@ -62,6 +62,7 @@ func init() {
 	createCmd.Flags().Var(&createOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
 	createCmd.Flags().BoolVar(&createOptions.Progress, "progress", false, "Show progress during upload/download operations.")
 	_ = createCmd.MarkFlagRequired("name")
+	_ = createCmd.MarkFlagFilename("--default-ssh-key-file")
 	createCmd.MarkFlagsRequiredTogether("user", "password")
 	createCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	createCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
