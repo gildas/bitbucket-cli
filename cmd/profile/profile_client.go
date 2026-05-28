@@ -381,7 +381,11 @@ func (profile *Profile) authorize(ctx context.Context) (authorization string, er
 		payload["grant_type"] = "refresh_token"
 		payload["refresh_token"] = profile.token.RefreshToken
 	} else {
-		log.Warnf("Access token for profile %s expired %s ago and we don't have a refresh token, we need to re-authorize the profile", profile.Name, profile.token.GetExpiredSince())
+		if profile.token != nil {
+			log.Warnf("Access token for profile %s expired %s ago but we don't have a refresh token", profile.Name, profile.token.GetExpiredSince())
+		} else {
+			log.Warnf("No access token found for profile %s, we need to authorize the profile", profile.Name)
+		}
 		payload["grant_type"] = "client_credentials"
 	}
 
