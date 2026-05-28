@@ -204,7 +204,7 @@ In both cases, you will need to fill in the permissions you want to grant to the
 
 Once you hit the `Save` button, your OAuth consumer will be created and you can use the credentials (client identifier and secret) provided to configure your profile with `bb`.
 
-#### Creating Profiles
+#### Managing Profiles
 
 `bb` uses profiles to store your Bitbucket credentials. You can create a profile with the `bb profile create` command:
 
@@ -241,7 +241,7 @@ Profiles support the following authentications:
 - [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-) with the `--client-id` and `--client-secret` flags. See the [Setting Up an OAUTH 2.0 Profile](#setting-up-oauth-20) section for more information about how to create an OAuth client.
 - [API tokens](https://support.atlassian.com/bitbucket-cloud/docs/api-tokens/) with the `--user` and `--password` flags. The user is the **Atlassian account email** and the password is the API token in this case.
 - ~~[App passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/) with the `--user` and `--password` flags.~~ [App passwords are deprecated by Atlassian in favour of API tokens as of June 9, 2025 and will stop working entirely on June 9, 2026](https://www.atlassian.com/blog/bitbucket/bitbucket-cloud-transitions-to-api-tokens-enhancing-security-with-app-password-deprecation). Use API tokens instead.
-- [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags. Using access tokens requires a Premium plan on Bitbucket Cloud.
+- [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags. Using Project/Workspace Access Tokens requires a Premium plan on Bitbucket Cloud. Using Repository Access Tokens does not require a Premium plan, but the token will only have access to the repository it was created for.
 
 Permission Scopes:
 
@@ -285,6 +285,22 @@ bb profile update myprofile \
   --client-id <your-client-id> \
   --client-secret <your-client-secret>
 ```
+
+If the profile was not using the vault to store the credentials and you update it with new credentials, the updated profile will keep using plain text to store the credentials. If the profile was using the vault and you update it with new credentials, the updated profile will keep using the vault to store the credentials.
+
+You can move the profile credentials to the vault with the `bb profile update`:
+
+```bash
+bb profile update myprofile --to-vault
+```
+
+During that process, you cannot change the credentials. But you can specify the vault key for non Windows OS with the `--vault-key` flag:
+
+```bash
+bb profile update myprofile --to-vault --vault-key my-vault-key
+```
+
+The default vault key is `bitbucket-cli`.
 
 You can delete a profile with the `bb profile delete` command:
 
@@ -1306,13 +1322,14 @@ LOG_DESTINATION=tmp/bb.log
 LOG_LEVEL=DEBUG
 ```
 
-If you set the log level to debug or more, `bb` will also log the source of the log message (file and line number, function name).
+If you set the log level to DEBUG or more, `bb` will also log the source of the log message (file and line number, function name).
 
 `bb` will write log messages following the format in [gildas/go-logger](https://github.com/gildas/go-logger). You can find some extra information about the log configuration in the documentation of that package. You can use [gildas/lv](https://github.com/gildas/lv) or [The Bunyan log viewer](https://github.com/trentm/node-bunyan) to view the logs in a human readable format.
 
 **Notes**:
 
 - `bb` tries hard to not log sensitive information, but be careful when sharing the logs, and make sure to remove any sensitive information before sharing them. You can open an [issue](https://github.com/gildas/bitbucket-cli/issues) if you feel like `bb` is logging sensitive information it should not. (We will do our best to fix it as soon as possible)
+- If you set the log level to `TRACE`, the logs will contain the full HTTP requests and responses, including headers and body. This can be useful for debugging, but it can also contain sensitive information, so be careful when sharing these logs.
 - When sending the logs to our team, please send the JSON version, not the pretty printed version, as it will be easier to analyze.
 
 ## TODO
