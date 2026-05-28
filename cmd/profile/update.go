@@ -107,11 +107,12 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 
 	if updateOptions.ToVault {
 		updateOptions.NoVault = false
+		vaultKey := profile.VaultKey
+		if runtime.GOOS != "windows" && cmd.Flag("vault-key").Changed && len(updateOptions.VaultKey) > 0 {
+			vaultKey = updateOptions.VaultKey
+		}
+
 		if len(profile.ClientSecret) > 0 {
-			vaultKey := profile.VaultKey
-			if cmd.Flag("vault-key").Changed && len(updateOptions.VaultKey) > 0 {
-				vaultKey = updateOptions.VaultKey
-			}
 			if err := profile.SetCredentialInVault(vaultKey, profile.ClientID, profile.ClientSecret); err != nil {
 				return errors.Join(errors.Errorf("Failed to store client secret in the vault"), err)
 			}
@@ -119,10 +120,6 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 			profile.ClientSecret = ""
 			updateOptions.ClientSecret = ""
 		} else if len(profile.Password) > 0 {
-			vaultKey := profile.VaultKey
-			if cmd.Flag("vault-key").Changed && len(updateOptions.VaultKey) > 0 {
-				vaultKey = updateOptions.VaultKey
-			}
 			if err := profile.SetCredentialInVault(vaultKey, profile.User, profile.Password); err != nil {
 				return errors.Join(errors.Errorf("Failed to store user password in the vault"), err)
 			}
@@ -130,10 +127,6 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 			profile.Password = ""
 			updateOptions.Password = ""
 		} else if len(profile.AccessToken) > 0 {
-			vaultKey := profile.VaultKey
-			if cmd.Flag("vault-key").Changed && len(updateOptions.VaultKey) > 0 {
-				vaultKey = updateOptions.VaultKey
-			}
 			if err := profile.SetCredentialInVault(vaultKey, profile.Name, profile.AccessToken); err != nil {
 				return errors.Join(errors.Errorf("Failed to store access token in the vault"), err)
 			}
