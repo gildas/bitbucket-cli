@@ -148,6 +148,58 @@ func (suite *PipelineSuite) TestCanUnmarshalWithPullRequest() {
 	suite.Assert().False(target.PullRequest.IsDraft)
 }
 
+func (suite *PipelineSuite) TestCanUnmarshalTargetPullRequestRef() {
+	payload := suite.LoadTestData("pipeline-target-pullrequest-ref.json")
+
+	target, err := pipeline.UnmarshalTarget(payload)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(target)
+
+	prTarget, ok := target.(*pipeline.PullRequestReferenceTarget)
+	suite.Require().True(ok)
+	suite.Assert().Equal("pull-requests", prTarget.Selector.Type)
+	suite.Assert().Equal("**", prTarget.Selector.Pattern)
+	// suite.Assert().Equal("my-pipeline", prTarget.Selector.ImportedFrom.PipelineName)
+	// suite.Assert().Equal("618bcbabdbaddeafcddeedcf81248645beefa2e0", prTarget.Selector.ImportedFrom.Revision)
+	// suite.Assert().Equal(uuid.MustParse("36c260e3-a39d-4b25-a078-e02c00c202ba"), uuid.UUID(prTarget.Selector.ImportedFrom.RepoUUID))
+	suite.Assert().Equal("feature/my-branch", prTarget.Source)
+	suite.Assert().Equal("elevate-main", prTarget.Destination)
+	suite.Assert().Equal("abcdef1234567890abcdef1234567890abcdef12", prTarget.Commit.Hash)
+	suite.Assert().Equal("abc123def456", prTarget.DestinationCommit.Hash)
+	suite.Assert().Equal(uint64(62), prTarget.PullRequest.ID)
+	suite.Assert().Equal("feat(elevate): something about elevate", prTarget.PullRequest.Title)
+	suite.Assert().False(prTarget.PullRequest.IsDraft)
+	suite.Assert().True(prTarget.PullRequest.IsQueued)
+}
+
+func (suite *PipelineSuite) TestCanUnmarshalTargetCommitRef() {
+	payload := suite.LoadTestData("pipeline-target-commit-ref.json")
+
+	target, err := pipeline.UnmarshalTarget(payload)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(target)
+
+	commitTarget, ok := target.(*pipeline.CommitReferenceTarget)
+	suite.Require().True(ok)
+	suite.Assert().Equal("tags", commitTarget.Selector.Type)
+	suite.Assert().Equal("hotfix-*", commitTarget.Selector.Pattern)
+	suite.Assert().Equal("abcdef1234567890abcdef1234567890abcdef12", commitTarget.Commit.Hash)
+}
+
+func (suite *PipelineSuite) TestCanUnmarshalTargetRefBranch() {
+	payload := suite.LoadTestData("pipeline-target-ref.json")
+
+	target, err := pipeline.UnmarshalTarget(payload)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(target)
+
+	refTarget, ok := target.(*pipeline.ReferenceTarget)
+	suite.Require().True(ok)
+	suite.Assert().Equal("branch", refTarget.ReferenceType)
+	suite.Assert().Equal("master", refTarget.ReferenceName)
+	suite.Assert().Equal("abc123def456", refTarget.Commit.Hash)
+}
+
 func (suite *PipelineSuite) TestCanMarshal() {
 	expected := suite.LoadTestData("pipeline.json")
 	pipeline := &pipeline.Pipeline{
@@ -277,7 +329,7 @@ func (suite *PipelineSuite) TestCanMarshalTriggerBodyWithVariables() {
 }
 
 func (suite *PipelineSuite) TestCanMarshalTriggerBodyWithPullRequestTarget() {
-	expected := `{"target":{"type":"pipeline_pullrequest_target","source":"release","destination":"main","destination_commit":{"type":"commit","hash":"def456ghi789"},"commit":{"type":"commit","hash":"abc123def456"},"pullrequest":{"id":62}}}`
+	expected := `{"target":{"type":"pipeline_pullrequest_target","source":"release","destination":"main","destination_commit":{"type":"commit","hash":"def456ghi789"},"commit":{"type":"commit","hash":"abc123def456"},"pullrequest":{"type":"pullrequest","id":62}}}`
 	body := pipeline.TriggerBody{
 		Target: pipeline.PullRequestReferenceTarget{
 			Source:            "release",
