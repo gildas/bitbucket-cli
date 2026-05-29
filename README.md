@@ -190,31 +190,60 @@ $ bb pr list --state all
 
 ### Profiles
 
+#### Setting up OAUTH 2.0
+
+To add an OAuth 2.0 profile, you need to create an OAuth consumer on Bitbucket. First, go to the settings page <https://bitbucket.org/xxxx/workspace/settings> of the Bitbucket workspace you want a consumer for (where `xxxx` is the workspace name/ID). On that page, click on the `OAuth clients` link in the `Apps and features` section. Then click on the `Create OAuth client` button. Fill in the form.
+
+![OAuth clients](images/bitbucket-add-oauth.png)
+
+To use an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to fill in the `Callback URL` with a link like <http://localhost:yyyy> (where `yyyy` is the port you want to use and provide to the `--callback-port` flag of `bb profile create`) and **do not** enable the check box for `This is a private consumer`.
+
+To use an [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-), you will need to enable the check box for `This is a private consumer` and add a _dummy_ `Callback URL`.
+
+In both cases, you will need to fill in the permissions you want to grant to the consumer.
+
+Once you hit the `Save` button, your OAuth consumer will be created and you can use the credentials (client identifier and secret) provided to configure your profile with `bb`.
+
+#### Managing Profiles
+
 `bb` uses profiles to store your Bitbucket credentials. You can create a profile with the `bb profile create` command:
 
 ```bash
 bb profile create \
-  --name myprofile \
-  --client-id <your-client-id> \
-  --client-secret <your-client-secret> \
-  --callback-port 8080
+  --name              myprofile \
+  --default-workspace myworkspace \
+  --client-id         <your-client-id> \
+  --client-secret     <your-client-secret> \
+  --callback-port     8080
 ```
 
-You can also pass the `--default` flag to make this profile the default one, or pass a `--output` flag to change the profile output format.
+You should define the default workspace for the profile with the `--default-workspace` flag. This will allow you to use `bb` without specifying the workspace every time.
 
-You can also pass the `--default-workspace` and/or `--default-project` flags to set the default workspace and/or project for this profile.
+You can also pass the `--default` flag to make this profile the default one, or pass a `--output` flag to change the profile output format. If you use only one profile, it will be used as the default profile.
+
+You can also pass the `--default-project` flag to set the default project for this profile.
+
+You can also pass the `--default-ssh-key-file` flag to set the default SSH key file to use when cloning repositories with the `ssh` protocol.
 
 You can also pass the `--progress` flag to display a progress bar when upload/downloading artifacts and attachments.
 
 By default, the password or client secret is stored in the vault of the operating system (Windows Credential Manager, macOS Keychain, or Linux Secret Service). You can pass the `--no-vault` flag to disable this feature and store the password or client secret in plain text in the configuration file. This is not recommended, but can be useful for testing purposes.
 
+Once the profile is created in `bb`, for an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to authorize the profile with the following command:
+
+```bash
+bb profile authorize myprofile
+```
+
+You can also use the `--verbose` to get some information about the authorization process.
+
 Profiles support the following authentications:
 
-- [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-) with the `--client-id`, `--client-secret`, and `--callback-port` flags.
-- [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-) with the `--client-id` and `--client-secret` flags.
+- [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-) with the `--client-id`, `--client-secret`, and `--callback-port` flags. See the [Setting Up an OAUTH 2.0 Profile](#setting-up-oauth-20) section for more information about how to create an OAuth client and authorize the profile.
+- [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-) with the `--client-id` and `--client-secret` flags. See the [Setting Up an OAUTH 2.0 Profile](#setting-up-oauth-20) section for more information about how to create an OAuth client.
 - [API tokens](https://support.atlassian.com/bitbucket-cloud/docs/api-tokens/) with the `--user` and `--password` flags. The user is the **Atlassian account email** and the password is the API token in this case.
 - ~~[App passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/) with the `--user` and `--password` flags.~~ [App passwords are deprecated by Atlassian in favour of API tokens as of June 9, 2025 and will stop working entirely on June 9, 2026](https://www.atlassian.com/blog/bitbucket/bitbucket-cloud-transitions-to-api-tokens-enhancing-security-with-app-password-deprecation). Use API tokens instead.
-- [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags.
+- [Repository Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/repository-access-tokens/), [Project Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/project-access-tokens/), [Workspace Access Tokens](https://support.atlassian.com/bitbucket-cloud/docs/workspace-access-tokens/) with the `--access-token` flags. Using Project/Workspace Access Tokens requires a Premium plan on Bitbucket Cloud. Using Repository Access Tokens does not require a Premium plan, but the token will only have access to the repository it was created for.
 
 Permission Scopes:
 
@@ -258,6 +287,22 @@ bb profile update myprofile \
   --client-id <your-client-id> \
   --client-secret <your-client-secret>
 ```
+
+If the profile was not using the vault to store the credentials and you update it with new credentials, the updated profile will keep using plain text to store the credentials. If the profile was using the vault and you update it with new credentials, the updated profile will keep using the vault to store the credentials.
+
+You can move the profile credentials to the vault with the `bb profile update`:
+
+```bash
+bb profile update myprofile --to-vault
+```
+
+During that process, you cannot change the credentials. But you can specify the vault key for non Windows OS with the `--vault-key` flag:
+
+```bash
+bb profile update myprofile --to-vault --vault-key my-vault-key
+```
+
+The default vault key is `bitbucket-cli`.
 
 You can delete a profile with the `bb profile delete` command:
 
@@ -313,26 +358,6 @@ export BB_CONFIG=~/.bb/config.json
 ```bash
 bb --config ~/.bb/config.json workspace list
 ```
-
-#### Adding an OAUTH 2.0 Profile
-
-To add an OAuth 2.0 profile, you need to create an OAuth consumer on Bitbucket. First, go to the settings page <https://bitbucket.org/xxxx/workspace/settings> of the Bitbucket workspace you want a consumer for (where `xxxx` is the workspace name/ID). On that page, click on the `OAuth consumers` link in the `Access management` section. Then click on the `Add consumer` button. Fill in the form.
-
-To use an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to fill in the `Callback URL` with a link like <http://localhost:yyyy> (where `yyyy` is the port you want to use and provide to the `--callback-port` flag of `bb profile create`) and **do not** enable the check box for `This is a private consumer`.
-
-To use an [OAuth 2.0 with Client Credentials](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#3--client-credentials-grant--4-4-), you will need to enable the check box for `This is a private consumer` and add a _dummy_ `Callback URL`.
-
-In both cases, you will need to fill in the permissions you want to grant to the consumer.
-
-Once you hit the `Save` button, your OAuth consumer will be created and you can use the credentials (client identifier and secret) provided to configure your profile with `bb`.
-
-Once the profile is created in `bb`, for an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to authorize the profile with the following command:
-
-```bash
-bb profile authorize myprofile
-```
-
-You can also use the `--verbose` to get some information about the authorization process.
 
 ### Users
 
@@ -1140,12 +1165,14 @@ You can create a GPG key with the `bb gpg-key create` command:
 
 ```bash
 bb gpg-key create \
-  --user <user> \
+  --user <user-id> \
   --name <keyname> \
   --key <key>
 ```
 
-The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin. If the `--user` flag is not provided, the key is created for the user associated with the current profile.
+The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin.
+
+If the `--user` flag is not provided, the key is created for the user associated with the current profile. If it is provided, it must be the UUID of the user, not the username.
 
 You can delete one or more GPG keys with the `bb gpg-key delete` command:
 
@@ -1175,12 +1202,14 @@ You can create an SSH key with the `bb ssh-key create` command:
 
 ```bash
 bb ssh-key create \
-  --user <user> \
+  --user <user-id> \
   --name <keyname> \
   --key <key>
 ```
 
-The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin. If the `--user` flag is not provided, the key is created for the user associated with the current profile.
+The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin.
+
+If the `--user` flag is not provided, the key is created for the user associated with the current profile. If it is provided, it must be the UUID of the user, not the username.
 
 You can delete one or more SSH keys with the `bb ssh-key delete` command:
 
@@ -1265,6 +1294,45 @@ On macOS, you can add the completion to the brew functions:
 ```bash
 bb completion zsh > "$(brew --prefix)/share/zsh/site-functions/_bb"
 ```
+
+### Obtaining logs for debugging
+
+If you encounter an issue with `bb`, you can obtain logs to help with debugging.
+
+You can instruct `bb` to log its activity by using the `--log` flag:
+
+```bash
+bb --log tmp/bb.log workspace list
+```
+
+or with the environment variable `LOG_DESTINATION`:
+
+```bash
+LOG_DESTINATION=tmp/bb.log bb workspace list
+```
+
+`bb` will create the log file as needed (but it will not create the parent directories). By default, the log level is set to `info`, but you can set it to `debug` to get more detailed logs:
+
+```bash
+LOG_LEVEL=DEBUG bb --log tmp/bb.log workspace list
+```
+
+You can also set these environment variables in a `.env` file in the current directory, and `bb` will automatically load them:
+
+```bash
+LOG_DESTINATION=tmp/bb.log
+LOG_LEVEL=DEBUG
+```
+
+If you set the log level to DEBUG or more, `bb` will also log the source of the log message (file and line number, function name).
+
+`bb` will write log messages following the format in [gildas/go-logger](https://github.com/gildas/go-logger). You can find some extra information about the log configuration in the documentation of that package. You can use [gildas/lv](https://github.com/gildas/lv) or [The Bunyan log viewer](https://github.com/trentm/node-bunyan) to view the logs in a human readable format.
+
+**Notes**:
+
+- `bb` tries hard to not log sensitive information, but be careful when sharing the logs, and make sure to remove any sensitive information before sharing them. You can open an [issue](https://github.com/gildas/bitbucket-cli/issues) if you feel like `bb` is logging sensitive information it should not. (We will do our best to fix it as soon as possible)
+- If you set the log level to `TRACE`, the logs will contain the full HTTP requests and responses, including headers and body. This can be useful for debugging, but it can also contain sensitive information, so be careful when sharing these logs.
+- When sending the logs to our team, please send the JSON version, not the pretty printed version, as it will be easier to analyze.
 
 ## TODO
 

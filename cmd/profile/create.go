@@ -56,11 +56,13 @@ func init() {
 	createCmd.Flags().Var(createOptions.DefaultProject, "default-project", "Default project of the profile")
 	createCmd.Flags().Var(createOptions.CloneProtocol, "clone-protocol", "Default protocol to use for cloning repositories. Default is git, can be https, git, or ssh")
 	createCmd.Flags().StringVar(&createOptions.CloneUser, "clone-user", "", "Username to use when cloning repositories. Default is the username of the profile.")
+	createCmd.Flags().StringVar(&createOptions.SshKeyFilename, "default-ssh-key-file", "", "Path to the SSH private key file to use when cloning repositories with the ssh protocol.")
 	createCmd.Flags().Var(createOptions.OutputFormat, "output", "Output format (json, yaml, table).")
 	createCmd.Flags().IntVar(&createOptions.DefaultPageLength, "default-page-length", 0, "Default number of items per page to retrieve from Bitbucket (Default: 50).")
 	createCmd.Flags().Var(&createOptions.ErrorProcessing, "error-processing", "Error processing (StopOnError, WanOnError, IgnoreErrors).")
 	createCmd.Flags().BoolVar(&createOptions.Progress, "progress", false, "Show progress during upload/download operations.")
 	_ = createCmd.MarkFlagRequired("name")
+	_ = createCmd.MarkFlagFilename("default-ssh-key-file")
 	createCmd.MarkFlagsRequiredTogether("user", "password")
 	createCmd.MarkFlagsRequiredTogether("client-id", "client-secret")
 	createCmd.MarkFlagsMutuallyExclusive("user", "client-id", "access-token")
@@ -113,10 +115,10 @@ func createProcess(cmd *cobra.Command, args []string) error {
 		if len(createOptions.ClientID) > 0 {
 			if len(createOptions.ClientSecret) > 0 {
 				if err := createOptions.SetCredentialInVault(createOptions.VaultKey, createOptions.ClientID, createOptions.ClientSecret); err != nil {
-					log.Errorf("Failed to store client secret in the vault, the secret will be stored in plain text in the configuration file", err)
-					fmt.Fprintf(os.Stderr, "Failed to store client secret in the vault, the secret will be stored in plain text in the configuration file: %s\n", err)
+					log.Errorf("Failed to store client secret in the %s vault, the secret will be stored in plain text in the configuration file", createOptions.VaultKey, err)
+					fmt.Fprintf(os.Stderr, "Failed to store client secret in the %s vault, the secret will be stored in plain text in the configuration file: %s\n", createOptions.VaultKey, err)
 				} else {
-					log.Infof("Stored client secret in the vault for %s", createOptions.ClientID)
+					log.Infof("Stored client secret in the %s vault for %s", createOptions.VaultKey, createOptions.ClientID)
 					createOptions.ClientSecret = "" // Clear the secret from the profile
 				}
 			} else {
@@ -129,10 +131,10 @@ func createProcess(cmd *cobra.Command, args []string) error {
 		} else if len(createOptions.User) > 0 {
 			if len(createOptions.Password) > 0 {
 				if err := createOptions.SetCredentialInVault(createOptions.VaultKey, createOptions.User, createOptions.Password); err != nil {
-					log.Errorf("Failed to store user password in the vault, the password will be stored in plain text in the configuration file", err)
-					fmt.Fprintf(os.Stderr, "Failed to store user password in the vault, the password will be stored in plain text in the configuration file: %s\n", err)
+					log.Errorf("Failed to store user password in the %s vault, the password will be stored in plain text in the configuration file", createOptions.VaultKey, err)
+					fmt.Fprintf(os.Stderr, "Failed to store user password in the %s vault, the password will be stored in plain text in the configuration file: %s\n", createOptions.VaultKey, err)
 				} else {
-					log.Infof("Stored user password in the vault for %s", createOptions.User)
+					log.Infof("Stored user password in the %s vault for %s", createOptions.VaultKey, createOptions.User)
 					createOptions.Password = "" // Clear the password from the profile
 				}
 			} else {
@@ -144,10 +146,10 @@ func createProcess(cmd *cobra.Command, args []string) error {
 			}
 		} else if len(createOptions.AccessToken) > 0 {
 			if err := createOptions.SetCredentialInVault(createOptions.VaultKey, createOptions.Name, createOptions.AccessToken); err != nil {
-				log.Errorf("Failed to store access token in the vault, the token will be stored in plain text in the configuration file", err)
-				fmt.Fprintf(os.Stderr, "Failed to store access token in the vault, the token will be stored in plain text in the configuration file: %s\n", err)
+				log.Errorf("Failed to store access token in the %s vault, the token will be stored in plain text in the configuration file", createOptions.VaultKey, err)
+				fmt.Fprintf(os.Stderr, "Failed to store access token in the %s vault, the token will be stored in plain text in the configuration file: %s\n", createOptions.VaultKey, err)
 			} else {
-				log.Infof("Stored access token in the vault for %s", createOptions.Name)
+				log.Infof("Stored access token in the %s vault for %s", createOptions.VaultKey, createOptions.Name)
 				createOptions.AccessToken = "" // Clear the access token from the profile
 			}
 		}

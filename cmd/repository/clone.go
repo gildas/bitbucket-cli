@@ -104,7 +104,10 @@ func cloneProcess(cmd *cobra.Command, args []string) (err error) {
 		}
 		options.URL = fmt.Sprintf("ssh://git@bitbucket.org/%s/%s.git", repository.Workspace, repository)
 		if len(cloneOptions.SshKeyFilename) == 0 {
-			if homeDir, err := os.UserHomeDir(); err != nil {
+			if len(profile.SshKeyFilename) > 0 {
+				cloneOptions.SshKeyFilename = profile.SshKeyFilename
+				log.Debugf("SSH key file not specified, using SSH key file from profile: %s", cloneOptions.SshKeyFilename)
+			} else if homeDir, err := os.UserHomeDir(); err != nil {
 				return errors.Wrap(err, "failed to get user home directory")
 			} else {
 				cloneOptions.SshKeyFilename = filepath.Join(homeDir, ".ssh", "id_rsa")

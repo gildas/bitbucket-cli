@@ -24,7 +24,7 @@ func (profiles profiles) Current(context context.Context) *Profile {
 	if gitConfig, err := common.OpenGitConfig(context); err == nil {
 		log.Debugf("Found a git config file")
 		if section, err := common.GetGitSection(context, gitConfig, `bitbucket "cli"`); err == nil {
-			log.Debugf("Found a bitbucket \"cli\" section in git config: %#+v", section)
+			log.Debugf("Found a bitbucket \"cli\" section in git config")
 			if profileName := section.Key("profile").String(); len(profileName) > 0 {
 				log.Debugf("Found a profile in git config: %s", profileName)
 				if profile, found := profiles.Find(profileName); found {
@@ -72,15 +72,7 @@ func (profiles profiles) GetRowAt(index int, headers []string) []string {
 	if index < 0 || index >= len(profiles) {
 		return []string{}
 	}
-	profile := profiles[index]
-	return []string{
-		profile.Name,
-		profile.Description,
-		fmt.Sprintf("%v", profile.Default),
-		profile.User,
-		profile.ClientID,
-		profile.AccessToken,
-	}
+	return profiles[index].GetRow(headers)
 }
 
 // Size gets the number of elements
@@ -148,36 +140,6 @@ func (profiles *profiles) Load(context context.Context) error {
 		return err
 	}
 	log.Debugf("Loaded %d profiles", len(*profiles))
-
-	// Get the secret stuff from the Windows credential manager or linux/macOS keychain if not set
-	for _, profile := range *profiles {
-		if len(profile.ClientID) > 0 {
-			if len(profile.ClientSecret) == 0 {
-				if credential, err := profile.GetCredentialFromVault(profile.VaultKey, profile.ClientID); err == nil {
-					profile.ClientSecret = credential.Password
-					log.Infof("Loaded client secret for clientID %s from the vault", profile.ClientID)
-				} else {
-					log.Errorf("failed to get client secret for profile %s: %v", profile.Name, err)
-				}
-			}
-		} else if len(profile.User) > 0 {
-			if len(profile.Password) == 0 {
-				if credential, err := profile.GetCredentialFromVault(profile.VaultKey, profile.User); err == nil {
-					profile.Password = credential.Password
-					log.Infof("Loaded password for user %s from the vault", profile.User)
-				} else {
-					log.Errorf("failed to get password for profile %s: %v", profile.Name, err)
-				}
-			}
-		} else if len(profile.AccessToken) == 0 {
-			if credential, err := profile.GetCredentialFromVault(profile.VaultKey, profile.Name); err == nil {
-				profile.AccessToken = credential.Password
-				log.Infof("Loaded access token for profile %s from the vault", profile.Name)
-			} else {
-				log.Errorf("failed to get access token for profile %s: %v", profile.Name, err)
-			}
-		}
-	}
 	return nil
 }
 

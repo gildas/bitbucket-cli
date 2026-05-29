@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>bitbucket-cli</id>
-    <version>0.18.0</version>
+    <version>0.18.1</version>
     <owners>Gildas Cherruel</owners>
     <title>bitbucket-cli (Install)</title>
     <authors>Gildas Cherruel</authors>
@@ -18,12 +18,6 @@
     <summary>Command line interface for Bitbucket</summary>
     <description>The Bitbucket Command Line Interface brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.</description>
     <releaseNotes>
-- Most commands now support --workspace and --repository flags to specify the target workspace and repository. By default, they are inferred from the current git repository and the profile.
-- Pull request subcommands infer their pull request ID like merge does
-- New pull request subcommand: bb pullrequest activities to replace bb pullrequest activity list (marked as deprecated)
-- New pull request subcommands: commits, diff, patch, request-changes, task
-- Pull request merge can now be performed with the --async flag to avoid waiting for the merge to complete
-- Pull requests can now be searched by a commit ID with bb pullrequest list --commit commit-id
 - Bug fixes
     </releaseNotes>
   </metadata>

@@ -161,6 +161,15 @@ func GetWorkspace(ctx context.Context, cmd *cobra.Command) (workspace *Workspace
 func GetWorkspaceBySlugOrID(ctx context.Context, cmd *cobra.Command, slugOrID string) (workspace *Workspace, err error) {
 	log := logger.Must(logger.FromContext(ctx)).Child("workspace", "get_by_slug_or_id", "workspace", slugOrID)
 
+	if len(slugOrID) == 0 {
+		return nil, errors.ArgumentMissing.With("workspace slug or ID")
+	}
+
+	if workspace, err = WorkspaceCache.Get(slugOrID); err == nil {
+		log.Debugf("Workspace %s found in cache", slugOrID)
+		return workspace, nil
+	}
+
 	currentProfile, err := profile.GetProfileFromCommand(ctx, cmd)
 	if err != nil {
 		return nil, err
@@ -171,11 +180,6 @@ func GetWorkspaceBySlugOrID(ctx context.Context, cmd *cobra.Command, slugOrID st
 	// In case we got a real UUID, get the Bitbucket UUID
 	if id, err := common.ParseUUID(slugOrID); err == nil {
 		slugOrID = id.String()
-	}
-
-	if workspace, err = WorkspaceCache.Get(slugOrID); err == nil {
-		log.Debugf("Workspace %s found in cache", slugOrID)
-		return workspace, nil
 	}
 
 	err = currentProfile.Get(
