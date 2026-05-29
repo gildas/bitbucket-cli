@@ -10,7 +10,6 @@ import (
 
 // CommitReferenceTarget represents the target of a pipeline (branch, tag, etc.)
 type CommitReferenceTarget struct {
-	Type     string                  `json:"type"               mapstructure:"type"`
 	Selector *common.Selector        `json:"selector,omitempty" mapstructure:"selector"`
 	Commit   *commit.CommitReference `json:"commit,omitempty"   mapstructure:"commit"`
 }

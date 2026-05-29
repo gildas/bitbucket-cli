@@ -169,7 +169,7 @@ func (suite *PipelineSuite) TestCanUnmarshalTargetPullRequestRef() {
 	suite.Assert().Equal(uint64(62), prTarget.PullRequest.ID)
 	suite.Assert().Equal("feat(elevate): something about elevate", prTarget.PullRequest.Title)
 	suite.Assert().False(prTarget.PullRequest.IsDraft)
-	suite.Assert().False(prTarget.PullRequest.IsQueued)
+	suite.Assert().True(prTarget.PullRequest.IsQueued)
 }
 
 func (suite *PipelineSuite) TestCanUnmarshalTargetCommitRef() {
@@ -329,7 +329,7 @@ func (suite *PipelineSuite) TestCanMarshalTriggerBodyWithVariables() {
 }
 
 func (suite *PipelineSuite) TestCanMarshalTriggerBodyWithPullRequestTarget() {
-	expected := `{"target":{"type":"pipeline_pullrequest_target","source":"release","destination":"main","destination_commit":{"type":"commit","hash":"def456ghi789"},"commit":{"type":"commit","hash":"abc123def456"},"pullrequest":{"id":62}}}`
+	expected := `{"target":{"type":"pipeline_pullrequest_target","source":"release","destination":"main","destination_commit":{"type":"commit","hash":"def456ghi789"},"commit":{"type":"commit","hash":"abc123def456"},"pullrequest":{"type":"pullrequest","id":62}}}`
 	body := pipeline.TriggerBody{
 		Target: pipeline.PullRequestReferenceTarget{
 			Source:            "release",
