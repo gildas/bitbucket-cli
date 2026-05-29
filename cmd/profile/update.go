@@ -72,7 +72,7 @@ func init() {
 	updateCmd.MarkFlagsMutuallyExclusive("to-vault", "client-secret")
 	updateCmd.MarkFlagsMutuallyExclusive("to-vault", "user")
 	updateCmd.MarkFlagsMutuallyExclusive("to-vault", "password")
-	_ = updateCmd.MarkFlagFilename("--default-ssh-key-file")
+	_ = updateCmd.MarkFlagFilename("default-ssh-key-file")
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.DefaultWorkspace.CompletionFunc("default-workspace"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.DefaultProject.CompletionFunc("default-project"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.CloneProtocol.CompletionFunc("clone-protocol"))

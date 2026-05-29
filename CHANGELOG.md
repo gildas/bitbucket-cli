@@ -1,3 +1,40 @@
+
+0.18.1
+=============
+2026-05-29
+
+* Issue #102: Missing type (05fd9c0c)
+* Issue #102: Added Commit Reference Target to Pipelines (ede910c5)
+* Issue #98: Added missing columns to Profile type (bb3e1e60)
+* Issue #99: Makred new flag to complete file names (feafd87a)
+* Issue #99: Added --ssh-key-file flag to profile create/update (7e6f7930)
+* Issue #95: Provide a dummy access token in Unit Tests (eab24be8)
+* Issue #95: Access Token is stored by the name of the profile (fcdfb2b8)
+* Issue #95: When sending the credentials to the OS Vault, do not use --vault-key on Windows (79553f06)
+* Issue #95: Grab the client secret from the OS Vault when authenticating with code grant (970a19b7)
+* Issue #95: Do not log a token expiration duration if there is no token (814eea4c)
+* Issue #95: When updating profile credentials, if the profile was not using the OS Vault, it should stay that way (64f3bed0)
+* Issue #95: Making sure the Vault Key is setup on non Windows (1636c1e6)
+* Issue #95: Added flag to send the stored profile credentials to the OS Vault (bc4475b7)
+* Issue #95: delete the Access Token from the OS Vault when deleting profiles (a9f2961c)
+* Issue #95: cosmetics (07696405)
+* Issue #95: Do not load credentials for all profiles during initialization (d5fd5fd2)
+* Issue #95: Moved the running token in its own struct (0cadf2d2)
+* Issue #95: Obtain passwords and secrets from the vault (2bf56f09)
+* Issue #95: Do not save the password/secret of the profile we are updating (c007a469)
+* Issue #94: Fixed section link (7963b7c8)
+* Issue #94: Changed order of profile setup/creation (87044028)
+* Issue #94: Encourage setting the default workspace (c0c2318e)
+* Issue #94: More Documentation about OAUTH client creation (de1af948)
+* Issue #93: Better documentation for ssh-key/gpg-key create (140a650f)
+* docs: fix env var name BB_LOG -> LOG_DESTINATION in README (4ec7f48c)
+* Issue #96: Added Documentation about logging (c7e7dc14)
+* Issue #92: Repository should be able to tell their Workspace (dcb23cf4)
+* Issue #92: Repository's workspace should be optional the struct (d0e1ac9d)
+* Issue #92: Fetching Workspace should try the cache before anything else (45ef589d)
+* Issue #92: missing path join (b833434c)
+* Issue #90: Added proper build instructions (42a847d4)
+
 0.18.0
 =============
 2026-05-06
@@ -528,3 +565,5 @@
 * Cobra Skeleton (22fae567)
 * Initial Skeleton (b216ab1d)
 * Initial commit (f0cea3fc)
+
+
