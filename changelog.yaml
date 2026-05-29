@@ -1,3 +1,260 @@
+- semver: 0.18.1
+  date: 2026-05-30T00:32:09.338845915+09:00
+  packager: Gildas Cherruel <gildas@breizh.org>
+  changes:
+    - commit: 05fd9c0c3cc58e476be7968a69040915333aea1c
+      note: 'Issue #102: Missing type'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: ede910c502941a12a54f263992c1e40d56d7b626
+      note: 'Issue #102: Added Commit Reference Target to Pipelines'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: bb3e1e600646d133c466d275162928be76ca0c68
+      note: 'Issue #98: Added missing columns to Profile type'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: feafd87a6e242950317c07753eb5f6fe4f6cb2fc
+      note: 'Issue #99: Makred new flag to complete file names'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 7e6f7930fb945e5eae1bc91abe74c955cddaf9bc
+      note: 'Issue #99: Added --ssh-key-file flag to profile create/update'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: eab24be85aba52fdcbf86ab512e38133600b5310
+      note: 'Issue #95: Provide a dummy access token in Unit Tests'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: fcdfb2b80be22a33e13890dba528f454f620f8d4
+      note: 'Issue #95: Access Token is stored by the name of the profile'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 79553f0663c3f19a5c1d60c7168e7570d80c95cd
+      note: 'Issue #95: When sending the credentials to the OS Vault, do not use --vault-key on Windows'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 970a19b7d69f880d852d893b530a82f8dc4995bc
+      note: 'Issue #95: Grab the client secret from the OS Vault when authenticating with code grant'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 814eea4c0d32ab72fcbaf12d9c65d99ab3234c36
+      note: 'Issue #95: Do not log a token expiration duration if there is no token'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 64f3bed047557e4c429087c27da9fbbccf95dbe1
+      note: 'Issue #95: When updating profile credentials, if the profile was not using the OS Vault, it should stay that way'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 1636c1e62547cdc16837e8ec0d08e5fdbd97e468
+      note: 'Issue #95: Making sure the Vault Key is setup on non Windows'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: bc4475b727235a0a056721af15e15f32ff02ca16
+      note: 'Issue #95: Added flag to send the stored profile credentials to the OS Vault'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: a9f2961c403b601682a388c99fba151eee72d44b
+      note: 'Issue #95: delete the Access Token from the OS Vault when deleting profiles'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 076964055b23181ed58203029eabecb413fa57c9
+      note: 'Issue #95: cosmetics'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: d5fd5fd29e91cc027972ae259b029beab4c3f7be
+      note: 'Issue #95: Do not load credentials for all profiles during initialization'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 0cadf2d2bb1478c8e16922feb0216ae909da70a6
+      note: 'Issue #95: Moved the running token in its own struct'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 2bf56f0964523e06522ce4b0db2e6c7ddc61cf0f
+      note: 'Issue #95: Obtain passwords and secrets from the vault'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: c007a46937cbfffc6cccdfc8bd7d4d2de487cd66
+      note: 'Issue #95: Do not save the password/secret of the profile we are updating'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 7963b7c88008379adc107d7ac78ece3ee5c435b8
+      note: 'Issue #94: Fixed section link'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 870440280b6daaacf6bd1619f88cd3988036884a
+      note: 'Issue #94: Changed order of profile setup/creation'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: c0c2318e463d821cd14ff1f0fea96990a8d123fa
+      note: 'Issue #94: Encourage setting the default workspace'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: de1af948b684e64cc88d77ff0e16c704844530fe
+      note: 'Issue #94: More Documentation about OAUTH client creation'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 140a650f80dc05a2bc86da0fbbb039a6c5a81913
+      note: 'Issue #93: Better documentation for ssh-key/gpg-key create'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 4ec7f48cdf19558347ad433b14e09def31e80d5d
+      note: |-
+        docs: fix env var name BB_LOG -> LOG_DESTINATION in README
+
+        Agent-Logs-Url: https://github.com/gildas/bitbucket-cli/sessions/e9ebf41b-6110-4b73-8761-32146643ce3b
+
+        Co-authored-by: gildas <56485+gildas@users.noreply.github.com>
+      author:
+        name: copilot-swe-agent[bot]
+        email: 198982749+Copilot@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+    - commit: c7e7dc14dfaad1cf8f31e93d49f5be355f58754d
+      note: 'Issue #96: Added Documentation about logging'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: dcb23cf426060ace391f2ba6f8a01221d48c075e
+      note: 'Issue #92: Repository should be able to tell their Workspace'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: d0e1ac9d2fdfaff695d6d2ac571ba105d12d82b2
+      note: 'Issue #92: Repository''s workspace should be optional the struct'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas
+        email: gildas@breizh.org
+    - commit: 45ef589d60eb5440ccb2f409719688b18d154606
+      note: 'Issue #92: Fetching Workspace should try the cache before anything else'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas
+        email: gildas@breizh.org
+    - commit: b833434c81281b6af611dfbffb46dde223be5b13
+      note: 'Issue #92: missing path join'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+    - commit: 42a847d4254ed4cee3e61bf3ed9af598b27c0b7f
+      note: 'Issue #90: Added proper build instructions'
+      author:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
+      committer:
+        name: Gildas Cherruel
+        email: gildas@breizh.org
 - semver: 0.18.0
   date: 2026-05-06T19:18:12.045232628+09:00
   packager: Gildas Cherruel <gildas@breizh.org>
