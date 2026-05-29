@@ -1,0 +1,12 @@
+{
+	"type": "pipeline_ref_target",
+	"ref_type": "branch",
+	"ref_name": "master",
+	"commit": {
+		"type": "commit",
+		"hash": "abc123def456"
+	},
+	"selector": {
+		"type": "default"
+	}
+}

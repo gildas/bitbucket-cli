@@ -1,0 +1,19 @@
+{
+  "type": "pipeline_commit_target",
+  "selector": {
+    "type": "tags",
+    "pattern": "hotfix-*"
+  },
+  "commit": {
+    "type": "commit",
+    "hash": "abcdef1234567890abcdef1234567890abcdef12",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/commit/abcdef1234567890abcdef1234567890abcdef12"
+      },
+      "html": {
+        "href": "https://bitbucket.org/myworkspace/my-repo/commits/abcdef1234567890abcdef1234567890abcdef12"
+      }
+    }
+  }
+}

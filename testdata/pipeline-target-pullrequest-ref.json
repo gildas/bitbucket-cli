@@ -1,0 +1,53 @@
+{
+  "type": "pipeline_pullrequest_target",
+  "selector": {
+    "type": "pull-requests",
+    "pattern": "**",
+    "imported_from": {
+      "repo_uuid": "{36c260e3-a39d-4b25-a078-e02c00c202ba}",
+      "revision": "618bcbabdbaddeafcddeedcf81248645beefa2e0",
+      "pipelineName": "my-pipeline"
+    }
+  },
+  "commit": {
+    "type": "commit",
+    "hash": "abcdef1234567890abcdef1234567890abcdef12",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/commit/abcdef1234567890abcdef1234567890abcdef12"
+      },
+      "html": {
+        "href": "https://bitbucket.org/myworkspace/my-repo/commits/abcdef1234567890abcdef1234567890abcdef12"
+      }
+    }
+  },
+  "source": "feature/my-branch",
+  "destination": "elevate-main",
+  "destination_commit": {
+    "type": "commit",
+		"hash": "abc123def456",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/commit/abc123def456"
+      },
+      "html": {
+        "href": "https://bitbucket.org/myworkspace/my-repo/commits/abc123def456"
+      }
+    }
+  },
+  "pullrequest": {
+    "type": "pullrequest",
+    "id": 62,
+    "title": "feat(elevate): something about elevate",
+    "draft": false,
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/62"
+      },
+      "html": {
+       "href": "https://bitbucket.org/myworkspace/my-repo/pull-requests/62"
+      }
+    },
+    "queued": false
+  }
+}
