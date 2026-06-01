@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	_ = godotenv.Load()
+	_ = godotenv.Load() // .env is optional; error is expected when the file is absent
 	if len(os.Getenv("LOG_DESTINATION")) == 0 {
 		os.Setenv("LOG_DESTINATION", "nil")
 	}
