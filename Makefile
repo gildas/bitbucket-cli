@@ -44,6 +44,7 @@ TEST_TIMEOUT  ?= 30
 COVERAGE_MODE ?= count
 COVERAGE_OUT  := $(COV_DIR)/coverage.out
 COVERAGE_HTML := $(COV_DIR)/index.html
+COVERAGE_XML  := $(COV_DIR)/coverage.xml
 
 # Tools
 GO      ?= go
@@ -51,6 +52,8 @@ GOOS    != $(GO) env GOOS
 LOGGER   =  bunyan -L -o short
 GOBIN    = $(BIN_DIR)
 GOLINT  ?= golangci-lint
+GOCOV    = $(BIN_DIR)/gocov
+GOCOVXML = $(BIN_DIR)/gocov-xml
 NFPM     = nfpm
 GOMPLATE = gomplate
 PANDOC  ?= pandoc
@@ -108,7 +111,7 @@ else
 endif
 
 # Main Recipes
-.PHONY: all archive build changelog dep fmt gendoc help install lint logview publish run start stop test version vet watch
+.PHONY: all archive build changelog coverage-report dep fmt gendoc help install lint logview publish run start stop test version vet watch
 
 help: Makefile; ## Display this help
 	@$P "$(PROJECT) version $(VERSION) build " $(BUILD) " in $(BRANCH) branch"
@@ -188,7 +191,24 @@ test-failfast: ARGS=-failfast                 ## Run the Unit Tests and stop aft
 test-race:     ARGS=-race                     ## Run the Unit Tests with race detector
 $(TEST_TARGETS): NAME=$(MAKECMDGOALS:test-%=%)
 $(TEST_TARGETS): test
-test: $(COVERAGE_HTML); $(info $(M) Running $(NAME:%=% )tests...) @ ## Run the Unit Tests (make test what='TestSuite/TestMe')
+test tests: ; $(info $(M) Running $(NAME:%=% )tests...) @ ## Run the Unit Tests (make test what='TestSuite/TestMe')
+	$Q mkdir -p $(COV_DIR)
+	$Q $(GO) test \
+			-timeout $(TEST_TIMEOUT)s \
+			-covermode=$(COVERAGE_MODE) \
+			-coverprofile=$(COVERAGE_OUT) \
+			-v $(ARGS) $(TEST_ARG) ./...
+	$Q $(GO) tool cover -html=$(COVERAGE_OUT) -o $(COVERAGE_HTML)
+	$Q if [ -x "$(GOCOV)" ] && [ -x "$(GOCOVXML)" ]; then \
+		$(GOCOV) convert $(COVERAGE_OUT) | $(GOCOVXML) > $(COVERAGE_XML); \
+	fi
+
+coverage-report: $(COVERAGE_OUT) | coverage-tools; @ ## Generate XML coverage report (requires gocov/gocov-xml)
+	$Q if [ -x "$(GOCOV)" ] && [ -x "$(GOCOVXML)" ]; then \
+		$(GOCOV) convert $(COVERAGE_OUT) | $(GOCOVXML) > $(COVERAGE_XML); \
+	else \
+		printf "$(M) coverage tools not installed; run: make coverage-tools\n"; \
+	fi
 
 test-ci:; @ ## Run the unit tests continuously
 	$Q $(MAKE) --no-print-directory watch run="make test"
@@ -378,6 +398,12 @@ watch: $(TMP_DIR); @ ## Run a command continuously: make watch run="go test"
 	  --exec "$(run) || exit 1"
 
 # Download recipes
+.PHONY: coverage-tools
+$(BIN_DIR)/gocov:     PACKAGE=github.com/axw/gocov/gocov@latest
+$(BIN_DIR)/gocov-xml: PACKAGE=github.com/AlekSi/gocov-xml@latest
+
+coverage-tools: | $(GOCOV) $(GOCOVXML)
+
 $(BIN_DIR)/%: | $(BIN_DIR) ; $(info $(M) installing $(PACKAGE)...)
 	$Q env GOBIN=$(BIN_DIR) $(GO) install $(PACKAGE) || status=$$? ; \
 	  exit $$status
