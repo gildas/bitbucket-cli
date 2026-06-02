@@ -31,7 +31,7 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
+	listOptions.IssueID = flags.NewEnumFlagWithFunc(listCmd, "", GetIssueIDs)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.IssueID, "issue", "Issue to list comments from")

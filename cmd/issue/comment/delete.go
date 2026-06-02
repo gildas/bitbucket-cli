@@ -29,7 +29,7 @@ var deleteOptions struct {
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
+	deleteOptions.IssueID = flags.NewEnumFlagWithFunc(deleteCmd, "", GetIssueIDs)
 	deleteCmd.Flags().Var(deleteOptions.IssueID, "issue", "Issue to delete comments from")
 	_ = deleteCmd.MarkFlagRequired("issue")
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.IssueID.CompletionFunc("issue"))

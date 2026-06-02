@@ -29,7 +29,7 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
+	getOptions.IssueID = flags.NewEnumFlagWithFunc(getCmd, "", GetIssueIDs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.IssueID, "issue", "Issue to get comments from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")

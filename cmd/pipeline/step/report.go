@@ -30,7 +30,7 @@ var reportOptions struct {
 func init() {
 	Command.AddCommand(reportCmd)
 
-	reportOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
+	reportOptions.PipelineID = flags.NewEnumFlagWithFunc(reportCmd, "", plcommon.GetPipelineIDs)
 	reportCmd.Flags().Var(reportOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	_ = reportCmd.MarkFlagRequired("pipeline")
 	_ = reportCmd.RegisterFlagCompletionFunc(reportOptions.PipelineID.CompletionFunc("pipeline"))

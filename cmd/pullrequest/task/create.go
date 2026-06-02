@@ -43,8 +43,8 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
-	createOptions.CommentID = flags.NewEnumFlagWithFunc("", comment.GetPullRequestCommentIDs)
+	createOptions.PullRequestID = flags.NewEnumFlagWithFunc(createCmd, "", prcommon.GetPullRequestIDs)
+	createOptions.CommentID = flags.NewEnumFlagWithFunc(createCmd, "", comment.GetPullRequestCommentIDs)
 	createCmd.Flags().Var(createOptions.PullRequestID, "pullrequest", "Pullrequest to create tasks to")
 	createCmd.Flags().StringVar(&createOptions.Content, "content", "", "Content of the task")
 	createCmd.Flags().Var(createOptions.CommentID, "comment", "Comment ID to create task on")

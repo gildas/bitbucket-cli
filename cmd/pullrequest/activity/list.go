@@ -34,7 +34,7 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	listOptions.PullRequestID = flags.NewEnumFlagWithFunc(listCmd, "", prcommon.GetPullRequestIDs)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.PullRequestID, "pullrequest", "pullrequest to list activities from")

@@ -30,7 +30,7 @@ var logOptions struct {
 func init() {
 	Command.AddCommand(logCmd)
 
-	logOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
+	logOptions.PipelineID = flags.NewEnumFlagWithFunc(logCmd, "", plcommon.GetPipelineIDs)
 	logCmd.Flags().Var(logOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	_ = logCmd.MarkFlagRequired("pipeline")
 	_ = logCmd.RegisterFlagCompletionFunc(logOptions.PipelineID.CompletionFunc("pipeline"))

@@ -30,7 +30,7 @@ var casesOptions struct {
 func init() {
 	Command.AddCommand(casesCmd)
 
-	casesOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
+	casesOptions.PipelineID = flags.NewEnumFlagWithFunc(casesCmd, "", plcommon.GetPipelineIDs)
 	casesCmd.Flags().Var(casesOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	_ = casesCmd.MarkFlagRequired("pipeline")
 	_ = casesCmd.RegisterFlagCompletionFunc(casesOptions.PipelineID.CompletionFunc("pipeline"))

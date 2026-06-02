@@ -30,7 +30,7 @@ var deleteOptions struct {
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
+	deleteOptions.Project = flags.NewEnumFlagWithFunc(deleteCmd, "", GetProjectKeys)
 	deleteCmd.Flags().Var(deleteOptions.Project, "project", "Project Key to delete reviewers from")
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.Project.CompletionFunc("project"))
 	deleteCmd.SetHelpFunc(hideUnsupportedFlags)

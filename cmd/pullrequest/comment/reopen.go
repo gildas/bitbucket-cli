@@ -29,7 +29,7 @@ var reopenOptions struct {
 func init() {
 	Command.AddCommand(reopenCmd)
 
-	reopenOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	reopenOptions.PullRequestID = flags.NewEnumFlagWithFunc(reopenCmd, "", prcommon.GetPullRequestIDs)
 	reopenCmd.Flags().Var(reopenOptions.PullRequestID, "pullrequest", "Pullrequest to reopen comments from")
 	_ = reopenCmd.MarkFlagRequired("pullrequest")
 	_ = reopenCmd.RegisterFlagCompletionFunc(reopenOptions.PullRequestID.CompletionFunc("pullrequest"))
@@ -60,7 +60,7 @@ func reopenProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Resolving comment %s from pullrequest %s", args[0], reopenOptions.PullRequestID) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Resolving comment %s from pullrequest %s", args[0], reopenOptions.PullRequestID.Value) {
 		return nil
 	}
 

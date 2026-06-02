@@ -33,7 +33,7 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
+	updateOptions.IssueID = flags.NewEnumFlagWithFunc(updateCmd, "", GetIssueIDs)
 	updateCmd.Flags().Var(updateOptions.IssueID, "issue", "Issue to update comments to")
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the issue")
 	_ = updateCmd.MarkFlagRequired("issue")
@@ -49,7 +49,7 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 	if profile.Current == nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
-	commentIDs, err := GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, deleteOptions.IssueID.Value)
+	commentIDs, err := GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, updateOptions.IssueID.Value)
 	if err != nil {
 		cobra.CompErrorln(err.Error())
 		return []string{}, cobra.ShellCompDirectiveError

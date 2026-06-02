@@ -33,7 +33,7 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
+	listOptions.PipelineID = flags.NewEnumFlagWithFunc(listCmd, "", plcommon.GetPipelineIDs)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.PipelineID, "pipeline", "Pipeline to list steps from")
