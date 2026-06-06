@@ -180,7 +180,7 @@ func (commit Commit) MarshalJSON() (data []byte, err error) {
 	var repo *repository.Repository
 	var date string
 
-	if commit.Author.Type != "" || !commit.Author.User.ID.IsNil() {
+	if !commit.Author.IsEmpty() {
 		author = &commit.Author
 	}
 	if !commit.Repository.ID.IsNil() || len(commit.Repository.FullName) > 0 {
