@@ -207,6 +207,8 @@ test tests: ; $(info $(M) Running $(NAME:%=% )tests...) @ ## Run the Unit Tests 
 coverage-report: $(COVERAGE_OUT) | coverage-tools; @ ## Generate XML coverage report (requires gocov/gocov-xml)
 	$Q if [ -x "$(GOCOV)" ] && [ -x "$(GOCOVXML)" ]; then \
 		$(GOCOV) convert $(COVERAGE_OUT) | $(GOCOVXML) > $(COVERAGE_XML); \
+	else \
+		printf "$(M) coverage tools not installed; run: make coverage-tools\n"; \
 	fi
 
 test-ci:; @ ## Run the unit tests continuously
