@@ -1,7 +1,7 @@
 package common
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -56,9 +56,7 @@ func initializeConfiguration(cmd *cobra.Command) (err error) {
 	if verr, ok := err.(viper.ConfigFileNotFoundError); ok {
 		log.Warnf("Config file not found: %s", verr)
 	} else if err != nil {
-		log.Fatalf("Failed to read config file: %s", err)
-		fmt.Fprintf(os.Stderr, "Failed to read config file: %s\n", err)
-		os.Exit(1)
+		return errors.Join(errors.New("Failed to read config file"), err)
 	} else {
 		log.Infof("Config File: %s", viper.ConfigFileUsed())
 	}
