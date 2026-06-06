@@ -94,6 +94,25 @@ func (suite *CommitSuite) TestCanUnmarshal() {
 	suite.Assert().JSONEq(string(payload), string(data))
 }
 
+func (suite *CommitSuite) TestCanMarshalRawOnlyAuthor() {
+	c := commit.Commit{
+		Hash:    "abc123def456abc123def456abc123def456abc1",
+		Message: "Commit from an external contributor",
+	}
+	c.Author.Raw = "John Doe <john@example.com>"
+
+	data, err := json.Marshal(c)
+	suite.Require().NoError(err)
+
+	var result map[string]any
+	err = json.Unmarshal(data, &result)
+	suite.Require().NoError(err)
+
+	author, ok := result["author"].(map[string]any)
+	suite.Assert().True(ok, "author key must be present when only Raw is set")
+	suite.Assert().Equal("John Doe <john@example.com>", author["raw"])
+}
+
 func (suite *CommitSuite) TestCanMarshalCommitReference() {
 	expected := `{"type": "commit", "hash": "026560720168aa12820a01e8262f6bb60f0639d1"}`
 	reference := commit.CommitReference{Hash: "026560720168aa12820a01e8262f6bb60f0639d1"}
