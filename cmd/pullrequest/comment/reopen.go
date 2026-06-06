@@ -60,7 +60,7 @@ func reopenProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Resolving comment %s from pullrequest %s", args[0], reopenOptions.PullRequestID.Value) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Reopening comment %s from pullrequest %s", args[0], reopenOptions.PullRequestID.Value) {
 		return nil
 	}
 
