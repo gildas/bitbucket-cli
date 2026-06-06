@@ -49,12 +49,13 @@ func init() {
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
+	ctx := log.ToContext(cmd.Context())
 
 	if profile.Current == nil {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	repository, err := repository.GetRepository(ctx, cmd)
 	if err != nil {
 		return err
 	}
@@ -66,11 +67,11 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing pullrequest tasks for pullrequest %s", listOptions.PullRequestID.Value)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Listing pullrequest tasks for pullrequest %s", listOptions.PullRequestID.Value)) {
+	if !common.WhatIf(ctx, cmd, fmt.Sprintf("Listing pullrequest tasks for pullrequest %s", listOptions.PullRequestID.Value)) {
 		return nil
 	}
 
-	tasks, err := profile.GetAll[Task](cmd.Context(), cmd, uripath)
+	tasks, err := profile.GetAll[Task](ctx, cmd, uripath)
 	if err != nil {
 		return err
 	}
@@ -79,5 +80,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	}
 	core.Sort(tasks, columns.SortBy(listOptions.SortBy.Value))
-	return profile.Current.Print(cmd.Context(), cmd, Tasks(tasks))
+	return profile.Current.Print(ctx, cmd, Tasks(tasks))
 }
