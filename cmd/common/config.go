@@ -23,8 +23,8 @@ func initializeLogger(cmd *cobra.Command) {
 	log := logger.Must(logger.FromContext(cmd.Context()))
 
 	// Use persistent flags instead
-	if cmd.Root().PersistentFlags().Changed("log-destination") {
-		log.ResetDestinations(cmd.Root().PersistentFlags().Lookup("log-destination").Value.String())
+	if cmd.Root().PersistentFlags().Changed("log") {
+		log.ResetDestinations(cmd.Root().PersistentFlags().Lookup("log").Value.String())
 	}
 	if cmd.Root().PersistentFlags().Changed("debug") && cmd.Root().PersistentFlags().Lookup("debug").Value.String() == "true" {
 		log.SetFilterLevel(logger.DEBUG)
