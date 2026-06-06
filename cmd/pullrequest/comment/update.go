@@ -18,7 +18,7 @@ type CommentUpdator struct {
 	Content ContentUpdator     `json:"content"           mapstructure:"content"`
 	Anchor  *common.FileAnchor `json:"inline,omitempty"  mapstructure:"inline"`
 	Parent  *ParentReference   `json:"parent,omitempty"  mapstructure:"parent"`
-	Pending bool               `json:"pending,omitempty" mapstructure:"pending"`
+	Pending *bool              `json:"pending,omitempty" mapstructure:"pending"`
 }
 
 type ContentUpdator struct {
@@ -106,8 +106,8 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.RuntimeError.With("Cannot specify from/to without a file")
 	}
 
-	if updateOptions.Pending {
-		payload.Pending = true
+	if cmd.Flag("pending").Changed {
+		payload.Pending = &updateOptions.Pending
 	}
 
 	if updateOptions.ParentID > 0 {

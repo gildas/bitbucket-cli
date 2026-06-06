@@ -18,7 +18,7 @@ type CommentCreator struct {
 	Content ContentCreator     `json:"content"           mapstructure:"content"`
 	Anchor  *common.FileAnchor `json:"inline,omitempty"  mapstructure:"inline"`
 	Parent  *ParentReference   `json:"parent,omitempty"  mapstructure:"parent"`
-	Pending bool               `json:"pending,omitempty" mapstructure:"pending"`
+	Pending *bool              `json:"pending,omitempty" mapstructure:"pending"`
 }
 
 type ContentCreator struct {
@@ -96,8 +96,8 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	} else if createOptions.From > 0 || createOptions.To > 0 {
 		return errors.RuntimeError.With("Cannot specify from/to without a file")
 	}
-	if createOptions.Pending {
-		payload.Pending = true
+	if cmd.Flag("pending").Changed {
+		payload.Pending = &createOptions.Pending
 	}
 
 	log.Record("payload", payload).Infof("Creating pullrequest comment")
