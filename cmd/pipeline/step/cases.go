@@ -41,10 +41,6 @@ func casesValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-
 	stepIDs, err := GetPipelineStepIDs(cmd.Context(), cmd, casesOptions.PipelineID.Value)
 	if err != nil {
 		cobra.CompErrorln(err.Error())

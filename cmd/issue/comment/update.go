@@ -46,9 +46,6 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
 	commentIDs, err := GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, updateOptions.IssueID.Value)
 	if err != nil {
 		cobra.CompErrorln(err.Error())
