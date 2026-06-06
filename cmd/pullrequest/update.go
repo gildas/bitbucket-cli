@@ -41,9 +41,9 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.Destination = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
-	updateOptions.AddReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(GetReviewerNicknames)
-	updateOptions.RemoveReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(GetReviewerNicknames)
+	updateOptions.Destination = flags.NewEnumFlagWithFunc(updateCmd, "", branch.GetBranchNames)
+	updateOptions.AddReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(updateCmd, GetReviewerNicknames)
+	updateOptions.RemoveReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(updateCmd, GetReviewerNicknames)
 
 	updateCmd.Flags().StringVar(&updateOptions.Title, "title", "", "Title of the pullrequest")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the pullrequest")
@@ -60,10 +60,6 @@ func init() {
 func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
 	ids, err := prcommon.GetPullRequestIDsWithState(cmd.Context(), cmd, "ALL")

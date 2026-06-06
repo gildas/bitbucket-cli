@@ -46,6 +46,16 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Listing all issues from repository %s", repository)
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing issues") {
+		return nil
+	}
+
 	filter := ""
 	if !core.Contains(listOptions.States.GetSlice(), "all") {
 		if states := listOptions.States.GetSlice(); len(states) > 0 {
@@ -66,16 +76,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 			filter += "+AND+"
 		}
 		filter += url.QueryEscape(listOptions.Query)
-	}
-
-	repository, err := repository.GetRepository(cmd.Context(), cmd)
-	if err != nil {
-		return err
-	}
-
-	log.Infof("Listing all issues from repository %s with profile %s", repository, profile.Current)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing issues") {
-		return nil
 	}
 
 	issues, err := profile.GetAll[Issue](cmd.Context(), cmd, repository.GetPath("issues")+filter)

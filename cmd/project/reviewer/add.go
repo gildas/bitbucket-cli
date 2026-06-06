@@ -29,7 +29,7 @@ var addOptions struct {
 func init() {
 	Command.AddCommand(addCmd)
 
-	addOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
+	addOptions.Project = flags.NewEnumFlagWithFunc(addCmd, "", GetProjectKeys)
 	addCmd.Flags().Var(addOptions.Project, "project", "Project Key to add reviewers to")
 	_ = addCmd.RegisterFlagCompletionFunc(addOptions.Project.CompletionFunc("project"))
 	addCmd.SetHelpFunc(hideUnsupportedFlags)

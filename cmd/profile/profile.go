@@ -124,18 +124,19 @@ var columns = common.Columns[*Profile]{
 //
 // If the profile is not given, it will use the current profile
 func GetProfileFromCommand(context context.Context, cmd *cobra.Command) (profile *Profile, err error) {
+	log := logger.Must(logger.FromContext(context)).Child("profile", "getProfileFromCommand")
+
+	if err = Profiles.Load(context, cmd); err != nil {
+		return nil, err
+	}
+
 	if cmd.Flag("profile").Changed {
 		var found bool
+		log.Debugf("Command line has profile flag set to %s", cmd.Flag("profile").Value.String())
 		if profile, found = Profiles.Find(cmd.Flag("profile").Value.String()); !found {
 			return nil, errors.ArgumentInvalid.With("profile", cmd.Flag("profile").Value.String())
 		}
 	} else if Current == nil {
-		if len(Profiles) == 0 {
-			err = Profiles.Load(context)
-			if err != nil {
-				return nil, err
-			}
-		}
 		Current = Profiles.Current(context)
 		if Current == nil {
 			return nil, errors.ArgumentMissing.With("profile")

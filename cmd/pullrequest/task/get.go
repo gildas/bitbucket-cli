@@ -30,7 +30,7 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	getOptions.PullRequestID = flags.NewEnumFlagWithFunc(getCmd, "", prcommon.GetPullRequestIDs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.PullRequestID, "pullrequest", "Pullrequest to get tasks from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")

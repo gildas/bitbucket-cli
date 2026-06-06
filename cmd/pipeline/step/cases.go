@@ -30,7 +30,7 @@ var casesOptions struct {
 func init() {
 	Command.AddCommand(casesCmd)
 
-	casesOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
+	casesOptions.PipelineID = flags.NewEnumFlagWithFunc(casesCmd, "", plcommon.GetPipelineIDs)
 	casesCmd.Flags().Var(casesOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	_ = casesCmd.MarkFlagRequired("pipeline")
 	_ = casesCmd.RegisterFlagCompletionFunc(casesOptions.PipelineID.CompletionFunc("pipeline"))
@@ -39,10 +39,6 @@ func init() {
 func casesValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
 	stepIDs, err := GetPipelineStepIDs(cmd.Context(), cmd, casesOptions.PipelineID.Value)

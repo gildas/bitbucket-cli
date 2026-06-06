@@ -45,7 +45,7 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	updateOptions.PullRequestID = flags.NewEnumFlagWithFunc(updateCmd, "", prcommon.GetPullRequestIDs)
 	updateCmd.Flags().Var(updateOptions.PullRequestID, "pullrequest", "Pullrequest to update comments to")
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the pullrequest")
 	updateCmd.Flags().StringVar(&updateOptions.File, "file", "", "File to comment on")
@@ -108,7 +108,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Record("payload", payload).Infof("Updating pullrequest comment")
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating comment %s for pullrequest %s", updateOptions.Comment, updateOptions.PullRequestID) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating comment %s for pullrequest %s", args[0], updateOptions.PullRequestID.Value) {
 		return nil
 	}
 	var comment Comment

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -96,8 +97,13 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string, toC
 		ID int `json:"id" mapstructure:"id"`
 	}
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return []string{}, err
+	}
+
 	log.Infof("Getting all issues")
-	issues, err := profile.GetAll[Issue](context, cmd, "issues")
+	issues, err := profile.GetAll[Issue](context, cmd, repository.GetPath("issues"))
 	if err != nil {
 		log.Errorf("Failed to get issues", err)
 		return []string{}, err
@@ -111,8 +117,13 @@ func GetIssueIDs(context context.Context, cmd *cobra.Command, args []string, toC
 func GetAttachmentNames(context context.Context, cmd *cobra.Command, issueID string) (names []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("issue", "getids")
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return []string{}, err
+	}
+
 	log.Infof("Getting all attachments")
-	attachments, err := profile.GetAll[Attachment](context, cmd, fmt.Sprintf("issues/%s/attachments", issueID))
+	attachments, err := profile.GetAll[Attachment](context, cmd, repository.GetPath("issues", issueID, "attachments"))
 	if err != nil {
 		log.Errorf("Failed to get attachments", err)
 		return []string{}, err

@@ -9,7 +9,6 @@ import (
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-core"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -34,7 +33,7 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	listOptions.PullRequestID = flags.NewEnumFlagWithFunc(listCmd, "", prcommon.GetPullRequestIDs)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.PullRequestID, "pullrequest", "pullrequest to list activities from")
@@ -51,10 +50,6 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
-	}
-
 	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
 		return err
@@ -66,7 +61,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		uripath = fmt.Sprintf("%s?q=%s", uripath, url.QueryEscape(listOptions.Query))
 	}
 
-	log.Infof("Listing all activities from repository %s with profile %s", repository, profile.Current)
+	log.Infof("Listing all activities from repository %s", repository)
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing activities for pullrequest %s in repository %s with profile %s", listOptions.PullRequestID.Value, repository, profile.Current)) {
 		return nil
 	}

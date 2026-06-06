@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"os/exec"
 	"runtime"
 	"time"
@@ -36,6 +35,10 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
+	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+		return err
+	}
+
 	log.Infof("Authorizing profile %s (Valid names: %v)", args[0], Profiles.Names())
 	profile, found := Profiles.Find(args[0])
 	if !found {
@@ -55,7 +58,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 	go func() {
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Errorf("Failed to start server: %v", err)
-			os.Exit(1)
+			resultchan <- err
 		}
 	}()
 

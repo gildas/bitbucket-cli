@@ -30,7 +30,7 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.Commit = flags.NewEnumFlagWithFunc("latest", commit.GetCommitHashes)
+	createOptions.Commit = flags.NewEnumFlagWithFunc(createCmd, "latest", commit.GetCommitHashes)
 	createCmd.Flags().StringVar(&createOptions.Name, "name", "", "Name of the tag")
 	createCmd.Flags().StringVar(&createOptions.Message, "message", "", "Message of the tag")
 	createCmd.Flags().Var(createOptions.Commit, "commit", "Target commit hash for the tag. Defaults to the latest commit")

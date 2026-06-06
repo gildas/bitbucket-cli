@@ -8,7 +8,6 @@ import (
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	wkcommon "github.com/gildas/bitbucket-cli/cmd/workspace/common"
 	"github.com/gildas/go-core"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -61,8 +60,9 @@ func listValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]stri
 func listProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
+	log.Infof("Listing all permissions from workspace %s", args[0])
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing permissions for workspace %s with profile %s", args[0], profile.Current)) {
+		return nil
 	}
 
 	var uripath string
@@ -71,11 +71,6 @@ func listProcess(cmd *cobra.Command, args []string) error {
 		uripath = fmt.Sprintf("/workspaces/%s/permissions?q=%s", args[0], url.QueryEscape(listOptions.Query))
 	} else {
 		uripath = fmt.Sprintf("/workspaces/%s/permissions", args[0])
-	}
-
-	log.Infof("Listing all permissions from workspace %s with profile %s", args[0], profile.Current)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing permissions for workspace %s with profile %s", args[0], profile.Current)) {
-		return nil
 	}
 
 	permissions, err := profile.GetAll[Permission](cmd.Context(), cmd, uripath)

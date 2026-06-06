@@ -35,8 +35,8 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.DefaultWorkspace = flags.NewEnumFlagWithFunc("", getWorkspaceSlugs)
-	createOptions.DefaultProject = flags.NewEnumFlagWithFunc("", getProjectKeys)
+	createOptions.DefaultWorkspace = flags.NewEnumFlagWithFunc(createCmd, "", getWorkspaceSlugs)
+	createOptions.DefaultProject = flags.NewEnumFlagWithFunc(createCmd, "", getProjectKeys)
 	createOptions.OutputFormat = flags.NewEnumFlag("json", "yaml", "table")
 	createOptions.CloneProtocol = flags.NewEnumFlag("+git", "https", "ssh")
 	createCmd.Flags().StringVarP(&createOptions.Name, "name", "n", "", "Name of the profile")
@@ -77,6 +77,10 @@ func init() {
 
 func createProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
+
+	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+		return err
+	}
 
 	if len(createOptions.DefaultWorkspace.String()) > 0 {
 		createOptions.Profile.DefaultWorkspace = createOptions.DefaultWorkspace.String()

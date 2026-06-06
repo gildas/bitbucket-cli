@@ -24,7 +24,7 @@ func (profiles profiles) Current(context context.Context) *Profile {
 	if gitConfig, err := common.OpenGitConfig(context); err == nil {
 		log.Debugf("Found a git config file")
 		if section, err := common.GetGitSection(context, gitConfig, `bitbucket "cli"`); err == nil {
-			log.Debugf("Found a bitbucket \"cli\" section in git config")
+			log.Debugf("Found a bitbucket \"cli\" section in git config: name=%s", section.Name())
 			if profileName := section.Key("profile").String(); len(profileName) > 0 {
 				log.Debugf("Found a profile in git config: %s", profileName)
 				if profile, found := profiles.Find(profileName); found {
@@ -38,14 +38,18 @@ func (profiles profiles) Current(context context.Context) *Profile {
 		}
 	}
 
+	log.Debugf("No profile found in git config, looking for default profile in %d profiles", len(profiles))
 	for _, profile := range profiles {
 		if profile.Default {
+			log.Infof("Using default profile %s", profile.Name)
 			return profile
 		}
 	}
 	if len(profiles) > 0 {
+		log.Infof("Using first profile %s", profiles[0].Name)
 		return profiles[0]
 	}
+	log.Warnf("No profile found")
 	return nil
 }
 
@@ -132,8 +136,18 @@ func (profiles profiles) SetCurrent(name string) {
 }
 
 // Load loads the profiles from a viper key
-func (profiles *profiles) Load(context context.Context) error {
-	log := logger.Must(logger.FromContext(context)).Child("profiles", "load")
+func (profiles *profiles) Load(ctx context.Context, cmd *cobra.Command) error {
+	log := logger.Must(logger.FromContext(ctx)).Child("profiles", "load")
+
+	if len(*profiles) > 0 {
+		return nil
+	}
+
+	if len(viper.AllKeys()) == 0 {
+		if err := common.Initialize(cmd); err != nil {
+			return err
+		}
+	}
 
 	log.Infof("Loading profiles from %s", viper.ConfigFileUsed())
 	if err := viper.UnmarshalKey("profiles", &profiles); err != nil {
@@ -147,6 +161,10 @@ func (profiles *profiles) Load(context context.Context) error {
 func ValidProfileNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
 	names := Profiles.Names()

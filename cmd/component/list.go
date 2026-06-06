@@ -43,6 +43,11 @@ func init() {
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
+	log.Infof("Listing all components")
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing components") {
+		return nil
+	}
+
 	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
 		return err
@@ -51,11 +56,6 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	uripath := repository.GetPath("components")
 	if len(listOptions.Query) > 0 {
 		uripath = fmt.Sprintf("%s?q=%s", uripath, url.QueryEscape(listOptions.Query))
-	}
-
-	log.Infof("Listing all components")
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing components") {
-		return nil
 	}
 
 	components, err := profile.GetAll[Component](cmd.Context(), cmd, uripath)
