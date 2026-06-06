@@ -31,9 +31,9 @@ type Repository struct {
 	Owner                user.User            `json:"owner,omitempty"                 mapstructure:"owner"`
 	Workspace            *workspace.Workspace `json:"workspace,omitempty"             mapstructure:"workspace"`
 	Project              project.Project      `json:"project,omitempty"               mapstructure:"project"`
-	HasIssues            bool                 `json:"has_issues"            mapstructure:"has_issues"`
-	HasWiki              bool                 `json:"has_wiki"              mapstructure:"has_wiki"`
-	IsPrivate            bool                 `json:"is_private"            mapstructure:"is_private"`
+	HasIssues            bool                 `json:"has_issues,omitempty"  mapstructure:"has_issues"`
+	HasWiki              bool                 `json:"has_wiki,omitempty"    mapstructure:"has_wiki"`
+	IsPrivate            bool                 `json:"is_private,omitempty"  mapstructure:"is_private"`
 	ForkPolicy           string               `json:"fork_policy,omitempty" mapstructure:"fork_policy"`
 	Size                 int64                `json:"size,omitempty"                  mapstructure:"size"`
 	Language             string               `json:"language,omitempty"    mapstructure:"language"`
