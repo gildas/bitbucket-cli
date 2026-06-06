@@ -43,7 +43,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	commentIDs, err := GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, deleteOptions.IssueID.Value)
+	commentIDs, err := GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, getOptions.IssueID.Value)
 	if err != nil {
 		cobra.CompErrorln(err.Error())
 		return []string{}, cobra.ShellCompDirectiveError
