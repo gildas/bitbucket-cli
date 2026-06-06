@@ -54,7 +54,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	log.Infof("Listing all comments from repository %s", repository)
+	log.Infof("Listing all steps from repository %s", repository)
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing steps for pipeline %s in repository %s with profile %s", listOptions.PipelineID.Value, repository, profile.Current)) {
 		return nil
 	}
