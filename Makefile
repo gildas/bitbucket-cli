@@ -205,7 +205,9 @@ test tests: ; $(info $(M) Running $(NAME:%=% )tests...) @ ## Run the Unit Tests 
 	fi
 
 coverage-report: $(COVERAGE_OUT) | coverage-tools; @ ## Generate XML coverage report (requires gocov/gocov-xml)
-	$Q $(GOCOV) convert $(COVERAGE_OUT) | $(GOCOVXML) > $(COVERAGE_XML)
+	$Q if [ -x "$(GOCOV)" ] && [ -x "$(GOCOVXML)" ]; then \
+		$(GOCOV) convert $(COVERAGE_OUT) | $(GOCOVXML) > $(COVERAGE_XML); \
+	fi
 
 test-ci:; @ ## Run the unit tests continuously
 	$Q $(MAKE) --no-print-directory watch run="make test"
