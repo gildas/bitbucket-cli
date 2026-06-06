@@ -136,8 +136,18 @@ func (profiles profiles) SetCurrent(name string) {
 }
 
 // Load loads the profiles from a viper key
-func (profiles *profiles) Load(context context.Context) error {
-	log := logger.Must(logger.FromContext(context)).Child("profiles", "load")
+func (profiles *profiles) Load(ctx context.Context, cmd *cobra.Command, args []string) error {
+	log := logger.Must(logger.FromContext(ctx)).Child("profiles", "load")
+
+	if len(*profiles) > 0 {
+		return nil
+	}
+
+	if len(viper.AllKeys()) == 0 {
+		if err := common.Initialize(cmd); err != nil {
+			return err
+		}
+	}
 
 	log.Infof("Loading profiles from %s", viper.ConfigFileUsed())
 	if err := viper.UnmarshalKey("profiles", &profiles); err != nil {
