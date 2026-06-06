@@ -41,6 +41,10 @@ func deleteProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
 	var deleted int
 
+	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+		return err
+	}
+
 	if deleteOptions.All {
 		log.Infof("Deleting all profiles")
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting all profiles") {

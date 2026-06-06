@@ -38,6 +38,10 @@ func init() {
 func getProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
 
+	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+		return err
+	}
+
 	if getOptions.Current {
 		log.Infof("Displaying current profile")
 		if Current == nil {

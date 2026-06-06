@@ -40,9 +40,9 @@ var triggerOptions struct {
 func init() {
 	Command.AddCommand(triggerCmd)
 
-	triggerOptions.Branch = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
-	triggerOptions.Commit = flags.NewEnumFlagWithFunc("", commit.GetCommitHashes)
-	triggerOptions.Tag = flags.NewEnumFlagWithFunc("", tag.GetTagNames)
+	triggerOptions.Branch = flags.NewEnumFlagWithFunc(triggerCmd, "", branch.GetBranchNames)
+	triggerOptions.Commit = flags.NewEnumFlagWithFunc(triggerCmd, "", commit.GetCommitHashes)
+	triggerOptions.Tag = flags.NewEnumFlagWithFunc(triggerCmd, "", tag.GetTagNames)
 	triggerCmd.Flags().Var(triggerOptions.Branch, "branch", "Branch to run the pipeline on")
 	triggerCmd.Flags().Var(triggerOptions.Tag, "tag", "Tag to run the pipeline on")
 	triggerCmd.Flags().Var(triggerOptions.Commit, "commit", "Specific commit hash to run the pipeline on")

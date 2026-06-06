@@ -43,7 +43,7 @@ var forkOptions struct {
 func init() {
 	Command.AddCommand(forkCmd)
 
-	forkOptions.Project = flags.NewEnumFlagWithFunc("", project.GetProjectKeys)
+	forkOptions.Project = flags.NewEnumFlagWithFunc(forkCmd, "", project.GetProjectKeys)
 	forkOptions.ForkPolicy = flags.NewEnumFlag("allow_forks", "+no_public_forks", "no_forks")
 	forkCmd.Flags().Var(forkOptions.Project, "project", "Project to fork repositories from")
 	forkCmd.Flags().StringVar(&forkOptions.Name, "name", "", "Name of the repository")

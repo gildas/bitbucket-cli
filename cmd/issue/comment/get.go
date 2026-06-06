@@ -29,7 +29,7 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
+	getOptions.IssueID = flags.NewEnumFlagWithFunc(getCmd, "", GetIssueIDs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.IssueID, "issue", "Issue to get comments from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
@@ -43,10 +43,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-	commentIDs, err := GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, deleteOptions.IssueID.Value)
+	commentIDs, err := GetIssueCommentIDs(cmd.Context(), cmd, profile.Current, getOptions.IssueID.Value)
 	if err != nil {
 		cobra.CompErrorln(err.Error())
 		return []string{}, cobra.ShellCompDirectiveError

@@ -15,9 +15,10 @@ import (
 )
 
 type CommentCreator struct {
-	Content ContentCreator     `json:"content" mapstructure:"content"`
-	Anchor  *common.FileAnchor `json:"inline,omitempty" mapstructure:"inline"`
-	Parent  *ParentReference   `json:"parent,omitempty" mapstructure:"parent"`
+	Content ContentCreator     `json:"content"           mapstructure:"content"`
+	Anchor  *common.FileAnchor `json:"inline,omitempty"  mapstructure:"inline"`
+	Parent  *ParentReference   `json:"parent,omitempty"  mapstructure:"parent"`
+	Pending *bool              `json:"pending,omitempty" mapstructure:"pending"`
 }
 
 type ContentCreator struct {
@@ -39,12 +40,13 @@ var createOptions struct {
 	From          int
 	To            int
 	ParentID      int64
+	Pending       bool
 }
 
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	createOptions.PullRequestID = flags.NewEnumFlagWithFunc(createCmd, "", prcommon.GetPullRequestIDs)
 	createCmd.Flags().Var(createOptions.PullRequestID, "pullrequest", "Pullrequest to create comments to")
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.File, "file", "", "File to comment on")
@@ -52,6 +54,7 @@ func init() {
 	createCmd.Flags().IntVar(&createOptions.From, "from", 0, "From line to comment on. Cannot be used with --line")
 	createCmd.Flags().IntVar(&createOptions.To, "to", 0, "To line to comment on. Cannot be used with --line")
 	createCmd.Flags().Int64Var(&createOptions.ParentID, "parent", 0, "Parent comment ID to reply to")
+	createCmd.Flags().BoolVar(&createOptions.Pending, "pending", false, "Mark the comment as pending")
 	createCmd.MarkFlagsMutuallyExclusive("line", "from")
 	createCmd.MarkFlagsMutuallyExclusive("line", "to")
 	_ = createCmd.MarkFlagRequired("pullrequest")
@@ -93,9 +96,12 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	} else if createOptions.From > 0 || createOptions.To > 0 {
 		return errors.RuntimeError.With("Cannot specify from/to without a file")
 	}
+	if cmd.Flag("pending").Changed {
+		payload.Pending = &createOptions.Pending
+	}
 
 	log.Record("payload", payload).Infof("Creating pullrequest comment")
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating comment for pullrequest %s", createOptions.PullRequestID) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating comment for pullrequest %s", createOptions.PullRequestID.Value) {
 		return nil
 	}
 	var comment Comment

@@ -44,10 +44,6 @@ func commitsValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-
 	ids, err := prcommon.GetPullRequestIDsWithState(cmd.Context(), cmd, "OPEN")
 	if err != nil {
 		cobra.CompErrorln(err.Error())

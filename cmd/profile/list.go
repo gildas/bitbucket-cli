@@ -41,6 +41,10 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	}
 
+	if _, err = GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+		return err
+	}
+
 	if len(Profiles) == 0 {
 		log.Infof("No profiles found")
 		return

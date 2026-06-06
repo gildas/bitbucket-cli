@@ -50,9 +50,9 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.Source = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
-	createOptions.Destination = flags.NewEnumFlagWithFunc("", branch.GetBranchNames)
-	createOptions.Reviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(GetReviewerNicknames)
+	createOptions.Source = flags.NewEnumFlagWithFunc(createCmd, "", branch.GetBranchNames)
+	createOptions.Destination = flags.NewEnumFlagWithFunc(createCmd, "", branch.GetBranchNames)
+	createOptions.Reviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(createCmd, GetReviewerNicknames)
 
 	createCmd.Flags().StringVar(&createOptions.Title, "title", "", "Title of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the pullrequest")

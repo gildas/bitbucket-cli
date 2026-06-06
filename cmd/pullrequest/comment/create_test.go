@@ -122,3 +122,28 @@ func (suite *CommentCreateSuite) TestCommentCreatorJSONMatchesBitbucketAPIFormat
 	expected := `{"content":{"raw":"Done!"},"parent":{"id":759578390}}`
 	suite.Assert().JSONEq(expected, string(data))
 }
+
+func (suite *CommentCreateSuite) TestCanMarshalCommentCreatorWithPending() {
+	creator := comment.CommentCreator{
+		Content: comment.ContentCreator{Raw: "This is a top-level comment"},
+		Pending: new(true),
+	}
+
+	data, err := json.Marshal(creator)
+	suite.Require().NoError(err)
+
+	var result map[string]interface{}
+	err = json.Unmarshal(data, &result)
+	suite.Require().NoError(err)
+
+	content, ok := result["content"].(map[string]interface{})
+	suite.Require().True(ok, "content should be present")
+	suite.Assert().Equal("This is a top-level comment", content["raw"])
+
+	_, ok = result["parent"]
+	suite.Assert().False(ok, "parent should not be present when nil")
+
+	pending, ok := result["pending"].(bool)
+	suite.Require().True(ok, "pending should be present")
+	suite.Assert().True(pending, "pending should be true")
+}

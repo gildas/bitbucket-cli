@@ -40,11 +40,11 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
-	updateOptions.State = flags.NewEnumFlag("", "RESOLVED", "UNRESOLVED")
+	updateOptions.PullRequestID = flags.NewEnumFlagWithFunc(updateCmd, "", prcommon.GetPullRequestIDs)
+	updateOptions.State = flags.NewEnumFlag("RESOLVED", "UNRESOLVED")
 	updateCmd.Flags().Var(updateOptions.PullRequestID, "pullrequest", "Pullrequest to update tasks to")
 	updateCmd.Flags().StringVar(&updateOptions.Content, "content", "", "Updated content of the task")
-	updateCmd.Flags().Var(updateOptions.State, "state", "Updated state of the task. Can be one of needs_work, complete or pending")
+	updateCmd.Flags().Var(updateOptions.State, "state", "Updated state of the task. Can be one of RESOLVED or UNRESOLVED")
 	_ = updateCmd.MarkFlagRequired("pullrequest")
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.PullRequestID.CompletionFunc("pullrequest"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.State.CompletionFunc("state"))
@@ -83,7 +83,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 			Raw: updateOptions.Content,
 		}
 	}
-	if updateOptions.State != nil && len(updateOptions.State.Value) > 0 {
+	if cmd.Flags().Changed("state") && len(updateOptions.State.Value) > 0 {
 		taskUpdator.State = updateOptions.State.Value
 	}
 

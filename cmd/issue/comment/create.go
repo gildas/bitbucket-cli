@@ -32,7 +32,7 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
+	createOptions.IssueID = flags.NewEnumFlagWithFunc(createCmd, "", GetIssueIDs)
 	createCmd.Flags().Var(createOptions.IssueID, "issue", "Issue to create comments to")
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the issue")
 	_ = createCmd.MarkFlagRequired("issue")

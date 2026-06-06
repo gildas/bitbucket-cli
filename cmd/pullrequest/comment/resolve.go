@@ -29,7 +29,7 @@ var resolveOptions struct {
 func init() {
 	Command.AddCommand(resolveCmd)
 
-	resolveOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	resolveOptions.PullRequestID = flags.NewEnumFlagWithFunc(resolveCmd, "", prcommon.GetPullRequestIDs)
 	resolveCmd.Flags().Var(resolveOptions.PullRequestID, "pullrequest", "Pullrequest to resolve comments from")
 	_ = resolveCmd.MarkFlagRequired("pullrequest")
 	_ = resolveCmd.RegisterFlagCompletionFunc(resolveOptions.PullRequestID.CompletionFunc("pullrequest"))
@@ -60,7 +60,7 @@ func resolveProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Resolving comment %s from pullrequest %s", args[0], resolveOptions.PullRequestID) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Resolving comment %s from pullrequest %s", args[0], resolveOptions.PullRequestID.Value) {
 		return nil
 	}
 

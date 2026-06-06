@@ -30,7 +30,7 @@ var deleteOptions struct {
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	deleteOptions.PullRequestID = flags.NewEnumFlagWithFunc(deleteCmd, "", prcommon.GetPullRequestIDs)
 	deleteCmd.Flags().Var(deleteOptions.PullRequestID, "pullrequest", "Pullrequest to delete comments from")
 	_ = deleteCmd.MarkFlagRequired("pullrequest")
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.PullRequestID.CompletionFunc("pullrequest"))

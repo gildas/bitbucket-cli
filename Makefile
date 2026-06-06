@@ -36,13 +36,13 @@ export PACKAGE PROJECT VERSION BRANCH COMMIT BUILD REVISION
 
 # Files
 GOTESTS   := $(call rwildcard,,*_test.go)
-GOFILES   := $(filter-out $(GOTESTS), $(call rwildcard,,*.go))
+GOFILES   := $(filter-out $(GOTESTS) $(call rwildcard,tools/,*.go), $(call rwildcard,,*.go))
 ASSETS    :=
 
 # Testing
 TEST_TIMEOUT  ?= 30
 COVERAGE_MODE ?= count
-COVERAGE_OUT  := $(TMP_DIR)/coverage.out
+COVERAGE_OUT  := $(COV_DIR)/coverage.out
 COVERAGE_HTML := $(COV_DIR)/index.html
 COVERAGE_XML  := $(COV_DIR)/coverage.xml
 
@@ -204,7 +204,7 @@ test tests: ; $(info $(M) Running $(NAME:%=% )tests...) @ ## Run the Unit Tests 
 		$(GOCOV) convert $(COVERAGE_OUT) | $(GOCOVXML) > $(COVERAGE_XML); \
 	fi
 
-coverage-report: test | coverage-tools; @ ## Generate XML coverage report (requires gocov/gocov-xml)
+coverage-report: $(COVERAGE_OUT) | coverage-tools; @ ## Generate XML coverage report (requires gocov/gocov-xml)
 	$Q $(GOCOV) convert $(COVERAGE_OUT) | $(GOCOVXML) > $(COVERAGE_XML)
 
 test-ci:; @ ## Run the unit tests continuously
@@ -383,8 +383,7 @@ $(BIN_DIR)/pi/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/pi; $(info $(M) buil
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 # Watch recipes
-watch: watch-tools | $(TMP_DIR); @ ## Run a command continuously: make watch run="go test"
-	@#$Q LOG=* $(YOLO) -i '*.go' -e vendor -e $(BIN_DIR) -e $(LOG_DIR) -e $(TMP_DIR) -c "$(run)"
+watch: $(TMP_DIR); @ ## Run a command continuously: make watch run="go test"
 	$Q nodemon \
 	  --verbose \
 	  --delay 5 \
@@ -405,6 +404,7 @@ $(BIN_DIR)/nfpm:      PACKAGE=github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
 $(BIN_DIR)/gomplate:  PACKAGE=github.com/hairyhenderson/gomplate/v4/cmd/gomplate@latest
 
 watch-tools:    | $(YOLO)
+coverage-tools: | $(GOCOV) $(GOCOVXML)
 
 $(BIN_DIR)/%: | $(BIN_DIR) ; $(info $(M) installing $(PACKAGE)...)
 	$Q env GOBIN=$(BIN_DIR) $(GO) install $(PACKAGE)
