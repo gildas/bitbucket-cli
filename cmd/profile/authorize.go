@@ -36,6 +36,10 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 		return errors.ArgumentMissing.With("profile")
 	}
 
+	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+		return err
+	}
+
 	log.Infof("Authorizing profile %s (Valid names: %v)", args[0], Profiles.Names())
 	profile, found := Profiles.Find(args[0])
 	if !found {

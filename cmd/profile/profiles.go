@@ -136,7 +136,7 @@ func (profiles profiles) SetCurrent(name string) {
 }
 
 // Load loads the profiles from a viper key
-func (profiles *profiles) Load(ctx context.Context, cmd *cobra.Command, args []string) error {
+func (profiles *profiles) Load(ctx context.Context, cmd *cobra.Command) error {
 	log := logger.Must(logger.FromContext(ctx)).Child("profiles", "load")
 
 	if len(*profiles) > 0 {
@@ -161,6 +161,10 @@ func (profiles *profiles) Load(ctx context.Context, cmd *cobra.Command, args []s
 func ValidProfileNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
 	names := Profiles.Names()

@@ -126,7 +126,7 @@ var columns = common.Columns[*Profile]{
 func GetProfileFromCommand(context context.Context, cmd *cobra.Command) (profile *Profile, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("profile", "getProfileFromCommand")
 
-	if err = Profiles.Load(context, cmd, nil); err != nil {
+	if err = Profiles.Load(context, cmd); err != nil {
 		return nil, err
 	}
 
