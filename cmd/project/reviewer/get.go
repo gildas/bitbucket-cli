@@ -31,7 +31,7 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
+	getOptions.Project = flags.NewEnumFlagWithFunc(getCmd, "", GetProjectKeys)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.Project, "project", "Project Key to get reviewers from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
@@ -45,7 +45,7 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	userIDs, err := GetReviewerUserIDs(cmd.Context(), cmd, deleteOptions.Project.Value)
+	userIDs, err := GetReviewerUserIDs(cmd.Context(), cmd, getOptions.Project.Value)
 	if err != nil {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}

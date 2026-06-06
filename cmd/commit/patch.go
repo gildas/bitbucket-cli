@@ -31,10 +31,6 @@ func validPatchArgs(cmd *cobra.Command, args []string, toComplete string) ([]str
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
-	}
-
 	log.Debugf("Getting commit hashes for completion with args: %v and toComplete: %s", args, toComplete)
 	names, err := GetCommitHashes(cmd.Context(), cmd, args, toComplete)
 	if err != nil {

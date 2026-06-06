@@ -30,7 +30,7 @@ var deleteOptions struct {
 func init() {
 	Command.AddCommand(deleteCmd)
 
-	deleteOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	deleteOptions.PullRequestID = flags.NewEnumFlagWithFunc(deleteCmd, "", prcommon.GetPullRequestIDs)
 	deleteCmd.Flags().Var(deleteOptions.PullRequestID, "pullrequest", "Pullrequest to delete comments from")
 	_ = deleteCmd.MarkFlagRequired("pullrequest")
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.PullRequestID.CompletionFunc("pullrequest"))
@@ -63,7 +63,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 
 	var merr errors.MultiError
 	for _, commentID := range args {
-		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting comment %s from pullrequest %s", commentID, deleteOptions.PullRequestID) {
+		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting comment %s from pullrequest %s", commentID, deleteOptions.PullRequestID.Value) {
 			err := profile.Delete(
 				log.ToContext(cmd.Context()),
 				cmd,

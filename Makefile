@@ -42,7 +42,7 @@ ASSETS    :=
 # Testing
 TEST_TIMEOUT  ?= 30
 COVERAGE_MODE ?= count
-COVERAGE_OUT  := $(TMP_DIR)/coverage.out
+COVERAGE_OUT  := $(COV_DIR)/coverage.out
 COVERAGE_HTML := $(COV_DIR)/index.html
 
 # Tools
@@ -51,7 +51,6 @@ GOOS    != $(GO) env GOOS
 LOGGER   =  bunyan -L -o short
 GOBIN    = $(BIN_DIR)
 GOLINT  ?= golangci-lint
-YOLO     = $(BIN_DIR)/yolo
 NFPM     = nfpm
 GOMPLATE = gomplate
 PANDOC  ?= pandoc
@@ -189,7 +188,7 @@ test-failfast: ARGS=-failfast                 ## Run the Unit Tests and stop aft
 test-race:     ARGS=-race                     ## Run the Unit Tests with race detector
 $(TEST_TARGETS): NAME=$(MAKECMDGOALS:test-%=%)
 $(TEST_TARGETS): test
-test: $(COVERAGE_OUT); $(info $(M) Running $(NAME:%=% )tests...) @ ## Run the Unit Tests (make test what='TestSuite/TestMe')
+test: $(COVERAGE_HTML); $(info $(M) Running $(NAME:%=% )tests...) @ ## Run the Unit Tests (make test what='TestSuite/TestMe')
 
 test-ci:; @ ## Run the unit tests continuously
 	$Q $(MAKE) --no-print-directory watch run="make test"
@@ -367,8 +366,7 @@ $(BIN_DIR)/pi/$(PROJECT): $(GOFILES) $(ASSETS) | $(BIN_DIR)/pi; $(info $(M) buil
 	$Q $(GO) build $(if $V,-v) $(LDFLAGS) -o $@ .
 
 # Watch recipes
-watch: watch-tools | $(TMP_DIR); @ ## Run a command continuously: make watch run="go test"
-	@#$Q LOG=* $(YOLO) -i '*.go' -e vendor -e $(BIN_DIR) -e $(LOG_DIR) -e $(TMP_DIR) -c "$(run)"
+watch: $(TMP_DIR); @ ## Run a command continuously: make watch run="go test"
 	$Q nodemon \
 	  --verbose \
 	  --delay 5 \
@@ -380,18 +378,6 @@ watch: watch-tools | $(TMP_DIR); @ ## Run a command continuously: make watch run
 	  --exec "$(run) || exit 1"
 
 # Download recipes
-.PHONY: watch-tools coverage-tools
-$(BIN_DIR)/chglog:    PACKAGE=github.com/goreleaser/chglog/cmd/chglog@latest
-$(BIN_DIR)/yolo:      PACKAGE=github.com/azer/yolo
-$(BIN_DIR)/gocov:     PACKAGE=github.com/axw/gocov/...
-$(BIN_DIR)/gocov-xml: PACKAGE=github.com/AlekSi/gocov-xml
-$(BIN_DIR)/nfpm:      PACKAGE=github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
-$(BIN_DIR)/gomplate:  PACKAGE=github.com/hairyhenderson/gomplate/v4/cmd/gomplate@latest
-
-watch-tools:    | $(YOLO)
-
 $(BIN_DIR)/%: | $(BIN_DIR) ; $(info $(M) installing $(PACKAGE)...)
-	$Q tmp=$$(mktemp -d) ; \
-	  env GOPATH=$$tmp GOBIN=$(BIN_DIR) $(GO) get $(PACKAGE) || status=$$? ; \
-	  chmod -R u+w $$tmp ; rm -rf $$tmp ; \
+	$Q env GOBIN=$(BIN_DIR) $(GO) install $(PACKAGE) || status=$$? ; \
 	  exit $$status

@@ -30,7 +30,7 @@ var downloadOptions struct {
 func init() {
 	Command.AddCommand(downloadCmd)
 
-	downloadOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
+	downloadOptions.IssueID = flags.NewEnumFlagWithFunc(downloadCmd, "", GetIssueIDs)
 	downloadCmd.Flags().Var(downloadOptions.IssueID, "issue", "Issue to get attachments from")
 	downloadCmd.Flags().StringVar(&downloadOptions.Destination, "destination", "", "Destination folder to download the attachment to. Defaults to the current folder")
 	downloadCmd.Flags().BoolVar(&downloadOptions.Progress, "progress", false, "Show progress")

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -19,11 +20,16 @@ type PipelineID struct {
 func GetPipelineIDs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child(nil, "getpipelines")
 
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return []string{}, err
+	}
+
 	log.Infof("Getting pipelines")
 	pipelines, err := profile.GetAll[PipelineID](
 		log.ToContext(context),
 		cmd,
-		"pipelines",
+		repository.GetPath("pipelines"),
 	)
 	if err != nil {
 		log.Errorf("Failed to get pipelines", err)

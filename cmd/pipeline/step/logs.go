@@ -30,7 +30,7 @@ var logOptions struct {
 func init() {
 	Command.AddCommand(logCmd)
 
-	logOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
+	logOptions.PipelineID = flags.NewEnumFlagWithFunc(logCmd, "", plcommon.GetPipelineIDs)
 	logCmd.Flags().Var(logOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	_ = logCmd.MarkFlagRequired("pipeline")
 	_ = logCmd.RegisterFlagCompletionFunc(logOptions.PipelineID.CompletionFunc("pipeline"))
@@ -39,10 +39,6 @@ func init() {
 func logValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
 	stepIDs, err := GetPipelineStepIDs(cmd.Context(), cmd, logOptions.PipelineID.Value)

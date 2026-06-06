@@ -46,7 +46,7 @@ var updateOptions struct {
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.Project = flags.NewEnumFlagWithFunc("", project.GetProjectKeys)
+	updateOptions.Project = flags.NewEnumFlagWithFunc(updateCmd, "", project.GetProjectKeys)
 	updateOptions.ForkPolicy = flags.NewEnumFlag("allow_forks", "+no_public_forks", "no_forks")
 	updateCmd.Flags().Var(updateOptions.Project, "project", "Project to update repositories from")
 	updateCmd.Flags().StringVar(&updateOptions.Name, "name", "", "Name of the repository")
@@ -59,7 +59,7 @@ func init() {
 	updateCmd.MarkFlagsMutuallyExclusive("private", "public")
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.Project.CompletionFunc("project"))
 	updateCmd.Flags().MarkHidden("repository")
-	createCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+	updateCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 		cmd.Flags().MarkHidden("repository")
 		cmd.Parent().HelpFunc()(cmd, args)
 	})

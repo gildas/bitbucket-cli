@@ -28,7 +28,7 @@ var uploadOptions struct {
 func init() {
 	Command.AddCommand(uploadCmd)
 
-	uploadOptions.IssueID = flags.NewEnumFlagWithFunc("", GetIssueIDs)
+	uploadOptions.IssueID = flags.NewEnumFlagWithFunc(uploadCmd, "", GetIssueIDs)
 	uploadCmd.Flags().Var(uploadOptions.IssueID, "issue", "Issue to upload attachments to")
 	uploadCmd.Flags().BoolVar(&uploadOptions.Progress, "progress", false, "Show progress")
 	_ = uploadCmd.MarkFlagRequired("issue")

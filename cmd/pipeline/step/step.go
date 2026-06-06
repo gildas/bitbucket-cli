@@ -10,6 +10,7 @@ import (
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	plcommon "github.com/gildas/bitbucket-cli/cmd/pipeline/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -174,12 +175,16 @@ func (step *Step) UnmarshalJSON(data []byte) error {
 }
 
 // GetPipelineStepIDs gets the IDs of the steps for a pipeline
-func GetPipelineStepIDs(context context.Context, cmd *cobra.Command, PipelineID string) (ids []string, err error) {
+func GetPipelineStepIDs(context context.Context, cmd *cobra.Command, pipelineID string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("pipeline", "getids")
 
-	steps, err := profile.GetAll[Step](context, cmd, fmt.Sprintf("pipelines/%s/steps", PipelineID))
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
-		log.Errorf("Failed to get pipelines", err)
+		return []string{}, err
+	}
+	steps, err := profile.GetAll[Step](context, cmd, repository.GetPath("pipelines", pipelineID, "steps"))
+	if err != nil {
+		log.Errorf("Failed to get steps for pipeline %s: %v", pipelineID, err)
 		return []string{}, err
 	}
 	return core.Map(steps, func(step Step) string {

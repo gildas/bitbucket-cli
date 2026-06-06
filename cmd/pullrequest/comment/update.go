@@ -15,9 +15,10 @@ import (
 )
 
 type CommentUpdator struct {
-	Content ContentUpdator     `json:"content" mapstructure:"content"`
-	Anchor  *common.FileAnchor `json:"inline,omitempty" mapstructure:"inline"`
-	Parent  *ParentReference   `json:"parent,omitempty" mapstructure:"parent"`
+	Content ContentUpdator     `json:"content"           mapstructure:"content"`
+	Anchor  *common.FileAnchor `json:"inline,omitempty"  mapstructure:"inline"`
+	Parent  *ParentReference   `json:"parent,omitempty"  mapstructure:"parent"`
+	Pending *bool              `json:"pending,omitempty" mapstructure:"pending"`
 }
 
 type ContentUpdator struct {
@@ -40,12 +41,13 @@ var updateOptions struct {
 	From          int
 	To            int
 	ParentID      int64
+	Pending       bool
 }
 
 func init() {
 	Command.AddCommand(updateCmd)
 
-	updateOptions.PullRequestID = flags.NewEnumFlagWithFunc("", prcommon.GetPullRequestIDs)
+	updateOptions.PullRequestID = flags.NewEnumFlagWithFunc(updateCmd, "", prcommon.GetPullRequestIDs)
 	updateCmd.Flags().Var(updateOptions.PullRequestID, "pullrequest", "Pullrequest to update comments to")
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the pullrequest")
 	updateCmd.Flags().StringVar(&updateOptions.File, "file", "", "File to comment on")
@@ -53,6 +55,7 @@ func init() {
 	updateCmd.Flags().IntVar(&updateOptions.From, "from", 0, "From line to comment on. Cannot be used with --line")
 	updateCmd.Flags().IntVar(&updateOptions.To, "to", 0, "To line to comment on. Cannot be used with --line")
 	updateCmd.Flags().Int64Var(&updateOptions.ParentID, "parent", 0, "Parent comment ID to reply to")
+	updateCmd.Flags().BoolVar(&updateOptions.Pending, "pending", false, "Mark the comment as pending")
 	updateCmd.MarkFlagsMutuallyExclusive("line", "from")
 	updateCmd.MarkFlagsMutuallyExclusive("line", "to")
 	_ = updateCmd.MarkFlagRequired("pullrequest")
@@ -103,12 +106,16 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.RuntimeError.With("Cannot specify from/to without a file")
 	}
 
+	if cmd.Flag("pending").Changed {
+		payload.Pending = &updateOptions.Pending
+	}
+
 	if updateOptions.ParentID > 0 {
 		payload.Parent = &ParentReference{ID: updateOptions.ParentID}
 	}
 
 	log.Record("payload", payload).Infof("Updating pullrequest comment")
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating comment %s for pullrequest %s", updateOptions.Comment, updateOptions.PullRequestID) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating comment %s for pullrequest %s", args[0], updateOptions.PullRequestID.Value) {
 		return nil
 	}
 	var comment Comment

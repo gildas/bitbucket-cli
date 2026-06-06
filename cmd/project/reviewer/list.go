@@ -28,7 +28,7 @@ var listOptions struct {
 func init() {
 	Command.AddCommand(listCmd)
 
-	listOptions.Project = flags.NewEnumFlagWithFunc("", GetProjectKeys)
+	listOptions.Project = flags.NewEnumFlagWithFunc(listCmd, "", GetProjectKeys)
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
 	listCmd.Flags().Var(listOptions.Project, "project", "Project Key to list reviewers from")

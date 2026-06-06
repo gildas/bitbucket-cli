@@ -32,7 +32,7 @@ var getOptions struct {
 func init() {
 	Command.AddCommand(getCmd)
 
-	getOptions.PipelineID = flags.NewEnumFlagWithFunc("", plcommon.GetPipelineIDs)
+	getOptions.PipelineID = flags.NewEnumFlagWithFunc(getCmd, "", plcommon.GetPipelineIDs)
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.PipelineID, "pipeline", "Pipeline to list steps from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
@@ -45,10 +45,6 @@ func init() {
 func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) != 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	if profile.Current == nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 
 	stepIDs, err := GetPipelineStepIDs(cmd.Context(), cmd, getOptions.PipelineID.Value)
