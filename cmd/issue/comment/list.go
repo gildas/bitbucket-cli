@@ -53,14 +53,14 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	uripath := repository.GetPath("issues", listOptions.IssueID.Value, "comments")
-	if len(listOptions.Query) > 0 {
-		uripath += "?q=" + url.QueryEscape(listOptions.Query)
-	}
-
 	log.Infof("Listing all comments from repository %s", repository)
 	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing comments for issue %s in repository %s", listOptions.IssueID.Value, repository)) {
 		return nil
+	}
+
+	uripath := repository.GetPath("issues", listOptions.IssueID.Value, "comments")
+	if len(listOptions.Query) > 0 {
+		uripath += "?q=" + url.QueryEscape(listOptions.Query)
 	}
 
 	comments, err := profile.GetAll[Comment](cmd.Context(), cmd, uripath)

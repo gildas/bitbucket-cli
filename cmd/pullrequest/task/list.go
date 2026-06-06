@@ -9,7 +9,6 @@ import (
 	prcommon "github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-core"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -51,24 +50,20 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 	ctx := log.ToContext(cmd.Context())
 
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
-	}
-
 	repository, err := repository.GetRepository(ctx, cmd)
 	if err != nil {
 		return err
+	}
+
+	log.Infof("Listing pullrequest tasks for pullrequest %s", listOptions.PullRequestID.Value)
+	if !common.WhatIf(ctx, cmd, fmt.Sprintf("Listing pullrequest tasks for pullrequest %s", listOptions.PullRequestID.Value)) {
+		return nil
 	}
 
 	uripath := repository.GetPath(fmt.Sprintf("pullrequests/%s/tasks", listOptions.PullRequestID.Value))
 
 	if len(listOptions.Query) > 0 {
 		uripath = fmt.Sprintf("%s?q=%s", uripath, url.QueryEscape(listOptions.Query))
-	}
-
-	log.Infof("Listing pullrequest tasks for pullrequest %s", listOptions.PullRequestID.Value)
-	if !common.WhatIf(ctx, cmd, fmt.Sprintf("Listing pullrequest tasks for pullrequest %s", listOptions.PullRequestID.Value)) {
-		return nil
 	}
 
 	tasks, err := profile.GetAll[Task](ctx, cmd, uripath)

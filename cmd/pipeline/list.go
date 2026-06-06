@@ -8,7 +8,6 @@ import (
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-core"
-	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -45,10 +44,6 @@ func init() {
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
-
-	if profile.Current == nil {
-		return errors.ArgumentMissing.With("profile")
-	}
 
 	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {

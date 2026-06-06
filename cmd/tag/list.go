@@ -1,8 +1,6 @@
 package tag
 
 import (
-	"fmt"
-
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
@@ -46,7 +44,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	log.Infof("Listing all tags for repository: %s", repository)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing tags")) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing tags") {
 		return nil
 	}
 	tags, err := GetTags(log.ToContext(cmd.Context()), cmd)
