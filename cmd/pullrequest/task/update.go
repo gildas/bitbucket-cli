@@ -83,7 +83,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 			Raw: updateOptions.Content,
 		}
 	}
-	if updateOptions.State != nil && len(updateOptions.State.Value) > 0 {
+	if cmd.Flags().Changed("state") && len(updateOptions.State.Value) > 0 {
 		taskUpdator.State = updateOptions.State.Value
 	}
 
