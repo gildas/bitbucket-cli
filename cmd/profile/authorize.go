@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -126,6 +128,22 @@ func openBrowser(url url.URL) error {
 	switch runtime.GOOS {
 	case "linux":
 		cmd = "xdg-open"
+		if _, exists := os.LookupEnv("SSH_CONNECTION"); exists {
+			return errors.New("Cannot open browser in SSH session")
+		}
+		if common.IsWSL() {
+			// If the flag interop=true is not set in /etc/wsl.conf, return an error
+			if _, err := os.Stat("/etc/wsl.conf"); os.IsNotExist(err) {
+				return errors.New("Cannot open browser in WSL without interop enabled")
+			}
+			if content, err := os.ReadFile("/etc/wsl.conf"); err == nil {
+				if !strings.Contains(string(content), "interop=true") {
+					return errors.New("Cannot open browser in WSL without interop enabled")
+				}
+			}
+			cmd = "cmd.exe"
+			args = append(args, "/C", "start")
+		}
 	case "windows":
 		cmd = "rundll32"
 		args = append(args, "url.dll,FileProtocolHandler")
