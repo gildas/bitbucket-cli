@@ -24,10 +24,14 @@ func init() {
 	useCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
-func useProcess(cmd *cobra.Command, args []string) error {
+func useProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
+	ctx := log.ToContext(cmd.Context())
 
-	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+	if len(args) == 0 {
+		return errors.ArgumentMissing.With("profile")
+	}
+	if _, err := GetProfileFromCommand(ctx, cmd); err != nil {
 		return err
 	}
 
@@ -36,7 +40,7 @@ func useProcess(cmd *cobra.Command, args []string) error {
 	if !found {
 		return errors.NotFound.With("profile", args[0])
 	}
-	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Using profile %s as default", args[0]) {
+	if common.WhatIf(ctx, cmd, "Using profile %s as default", args[0]) {
 		Profiles.SetCurrent(profile.Name)
 		viper.Set("profiles", Profiles)
 		return viper.WriteConfig()

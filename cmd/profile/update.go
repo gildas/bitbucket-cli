@@ -81,10 +81,18 @@ func init() {
 	updateCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
-func updateProcess(cmd *cobra.Command, args []string) error {
+func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
+	ctx := log.ToContext(cmd.Context())
 
-	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+	if len(args) == 0 {
+		return errors.ArgumentMissing.With("profile")
+	}
+	_, err = GetProfileFromCommand(ctx, cmd)
+	if errors.Is(err, errors.Empty) || len(Profiles) == 0 {
+		return errors.Errorf("No profiles found")
+	}
+	if err != nil {
 		return err
 	}
 
@@ -107,7 +115,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Record("profile", profile).Debugf("Updating profile %s", profile.Name)
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating profile %s", profile.Name) {
+	if !common.WhatIf(ctx, cmd, "Updating profile %s", profile.Name) {
 		return nil
 	}
 
@@ -201,7 +209,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	err := profile.Update(updateOptions.Profile)
+	err = profile.Update(updateOptions.Profile)
 	if err != nil {
 		return err
 	}
@@ -238,5 +246,5 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 	} else {
 		return err
 	}
-	return Current.Print(cmd.Context(), cmd, profile)
+	return Current.Print(ctx, cmd, profile)
 }

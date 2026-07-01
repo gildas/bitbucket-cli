@@ -35,23 +35,24 @@ func init() {
 	getCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
-func getProcess(cmd *cobra.Command, args []string) error {
+func getProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
+	ctx := log.ToContext(cmd.Context())
 
-	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+	_, err = GetProfileFromCommand(ctx, cmd)
+	if errors.Is(err, errors.Empty) || len(Profiles) == 0 {
+		return errors.Errorf("No profiles found")
+	}
+	if err != nil {
 		return err
 	}
 
 	if getOptions.Current {
 		log.Infof("Displaying current profile")
 		if Current == nil {
-			log.Debugf("There is no current profile")
-			if cmd.Flag("stop-on-error").Value.String() == "true" {
-				return errors.Errorf("There is no profile configured")
-			}
-			return nil
+			return errors.Errorf("There is no profile configured")
 		}
-		return Current.Print(cmd.Context(), cmd, Current)
+		return Current.Print(ctx, cmd, Current)
 	}
 
 	if len(args) == 0 {
@@ -59,7 +60,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Displaying profile %s (Valid names: %v)", args[0], Profiles.Names())
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, fmt.Sprintf("Showing profile %s", args[0])) {
+	if !common.WhatIf(ctx, cmd, fmt.Sprintf("Showing profile %s", args[0])) {
 		return nil
 	}
 
@@ -76,5 +77,5 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			fmt.Fprintln(os.Stderr, "Profile", profile.Name, "is not valid:", err)
 		}
 	}
-	return Current.Print(cmd.Context(), cmd, profile)
+	return Current.Print(ctx, cmd, profile)
 }

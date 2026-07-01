@@ -28,14 +28,19 @@ func init() {
 	authorizeCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
-func authorizeProcess(cmd *cobra.Command, args []string) error {
+func authorizeProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "authorize")
+	ctx := log.ToContext(cmd.Context())
 
 	if len(args) == 0 {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+	_, err = GetProfileFromCommand(ctx, cmd)
+	if errors.Is(err, errors.Empty) || len(Profiles) == 0 {
+		return errors.Errorf("No profiles found")
+	}
+	if err != nil {
 		return err
 	}
 
@@ -48,6 +53,9 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 		return errors.Join(errors.Errorf("Profile %s does not support Authorization Code Grant", profile.Name), errors.ArgumentInvalid.With("profile", profile.Name))
 	}
 
+	if !common.WhatIf(ctx, cmd, fmt.Sprintf("Authorizing profile %s", args[0])) {
+		return nil
+	}
 	// Start a web server to listen for the Authorization Code Grant
 	resultchan := make(chan error)
 	server := &http.Server{
@@ -63,7 +71,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 	}()
 
 	// Open the browser to the Authorization Code Grant URL
-	common.Verbose(cmd.Context(), cmd, "Opening browser to authorize profile %s...", profile.Name)
+	common.Verbose(ctx, cmd, "Opening browser to authorize profile %s...", profile.Name)
 	spinner := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
 	bitbucketAuthURL := url.URL{
 		Scheme: "https",
@@ -74,7 +82,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 			"client_id":     {profile.ClientID},
 		}.Encode(),
 	}
-	common.Verbose(cmd.Context(), cmd, "\nIf you are not redirected automatically, please open the following URL in your browser:\n%s\n", bitbucketAuthURL.String())
+	common.Verbose(ctx, cmd, "\nIf you are not redirected automatically, please open the following URL in your browser:\n%s\n", bitbucketAuthURL.String())
 
 	if cmd.Flag("verbose").Changed {
 		spinner.Reverse()
@@ -82,7 +90,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 		spinner.Start()
 	}
 
-	err := openBrowser(bitbucketAuthURL)
+	err = openBrowser(bitbucketAuthURL)
 	if err != nil {
 		log.Errorf("Failed to open browser: %v", err)
 		spinner.Stop()
@@ -94,7 +102,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 
 	spinner.Stop()
 	log.Infof("Received results, shutting down server...")
-	if err := server.Shutdown(cmd.Context()); err != nil {
+	if err := server.Shutdown(ctx); err != nil {
 		log.Errorf("Failed to shut down server: %v", err)
 	}
 
@@ -102,7 +110,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 		log.Errorf("Authorization process failed: %v", results)
 		return results
 	}
-	common.Verbose(cmd.Context(), cmd, "Authorization process completed successfully")
+	common.Verbose(ctx, cmd, "Authorization process completed successfully")
 	return nil
 }
 

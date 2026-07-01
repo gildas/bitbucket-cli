@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -39,15 +40,24 @@ func init() {
 
 func deleteProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
+	ctx := log.ToContext(cmd.Context())
 	var deleted int
 
-	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+	_, err = GetProfileFromCommand(ctx, cmd)
+	if errors.Is(err, errors.Empty) || len(Profiles) == 0 {
+		if cmd.Flag("stop-on-error").Value.String() == "true" {
+			return errors.Errorf("No profiles found")
+		}
+		common.Verbose(ctx, cmd, "Profiles list is empty, nothing to delete")
+		return nil
+	}
+	if err != nil {
 		return err
 	}
 
 	if deleteOptions.All {
 		log.Infof("Deleting all profiles")
-		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting all profiles") {
+		if common.WhatIf(ctx, cmd, "Deleting all profiles") {
 			for _, profileName := range Profiles.Names() {
 				if profile, found := Profiles.Find(profileName); found {
 					log.Infof("Deleting credential for profile %s", profile.Name)
@@ -66,7 +76,7 @@ func deleteProcess(cmd *cobra.Command, args []string) (err error) {
 			deleted = Profiles.Delete(Profiles.Names()...)
 		}
 	} else {
-		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Deleting profiles %s", strings.Join(args, ", ")) {
+		if common.WhatIf(ctx, cmd, "Deleting profiles %s", strings.Join(args, ", ")) {
 			for _, profileName := range args {
 				if profile, found := Profiles.Find(profileName); found {
 					log.Infof("Deleting credential for profile %s", profile.Name)
