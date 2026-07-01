@@ -92,9 +92,13 @@ func authorizeProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = openBrowser(bitbucketAuthURL)
 	if err != nil {
-		log.Errorf("Failed to open browser: %v", err)
-		spinner.Stop()
-		return err
+		log.Warnf("Failed to open browser: %s", err.Error())
+		if cmd.Flag("stop-on-error").Value.String() == "true" {
+			spinner.Stop()
+			return err
+		} else {
+			fmt.Fprintf(cmd.OutOrStdout(), "\nPlease open the following URL in your browser:\n%s\n", bitbucketAuthURL.String())
+		}
 	}
 
 	// Wait until the user stops the server by pressing Ctrl+C
