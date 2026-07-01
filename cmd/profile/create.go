@@ -108,6 +108,12 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	}
 
+	if common.IsWSL() {
+		// For now, we do not support vaults in WSL.
+		log.Warnf("Vaults are not supported in WSL, the credentials will be stored in plain text in the configuration file")
+		createOptions.NoVault = true
+	}
+
 	// Store the client secret/password/access token in the vault if provided
 	if createOptions.NoVault {
 		if len(createOptions.ClientID) > 0 && len(createOptions.ClientSecret) == 0 {
