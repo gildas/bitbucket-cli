@@ -51,6 +51,7 @@ func init() {
 	updateCmd.Flags().StringVar(&updateOptions.Password, "password", "", "Password of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.ClientID, "client-id", "", "Client ID of the profile")
 	updateCmd.Flags().StringVar(&updateOptions.ClientSecret, "client-secret", "", "Client Secret of the profile")
+	updateCmd.Flags().Uint16Var(&updateOptions.CallbackPort, "callback-port", 0, "Callback port to use for OAuth2 authentication. If not set, a random port will be used.")
 	updateCmd.Flags().StringVar(&updateOptions.AccessToken, "access-token", "", "Access Token of the profile")
 	updateCmd.Flags().BoolVar(&updateOptions.ToVault, "to-vault", false, "Store credentials in the vault. This will remove any credentials from the profile and store them in the vault. If the vault key is not provided, it will use the existing vault key of the profile or the default vault key if not set.")
 	updateCmd.Flags().BoolVar(&updateOptions.NoVault, "no-vault", false, "Do not use a vault for storing credentials")
