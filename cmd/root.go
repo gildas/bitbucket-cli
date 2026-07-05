@@ -113,7 +113,7 @@ func init() {
 
 	RootCmd.SilenceUsage = true // Do not show usage when an error occurs
 	cobra.OnInitialize(func() {
-		if err := common.Initialize(RootCmd); err != nil {
+		if err := common.Initialize(RootCmd.Context(), RootCmd); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to initialize: %s\n", err)
 			os.Exit(1)
 		}

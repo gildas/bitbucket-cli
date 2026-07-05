@@ -144,7 +144,7 @@ func (profiles *profiles) Load(ctx context.Context, cmd *cobra.Command) error {
 	}
 
 	if len(viper.AllKeys()) == 0 {
-		if err := common.Initialize(cmd); err != nil {
+		if err := common.Initialize(ctx, cmd); err != nil {
 			return err
 		}
 	}

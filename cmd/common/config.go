@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"errors"
 	"os"
 	"path/filepath"
@@ -13,14 +14,14 @@ import (
 )
 
 // Initialize configure the logger and load the Viper Configuration
-func Initialize(cmd *cobra.Command) (err error) {
-	initializeLogger(cmd)
-	return initializeConfiguration(cmd)
+func Initialize(ctx context.Context, cmd *cobra.Command) (err error) {
+	initializeLogger(ctx, cmd)
+	return initializeConfiguration(ctx, cmd)
 }
 
 // initializeLogger configures the logger based on the command line flags and environment variables
-func initializeLogger(cmd *cobra.Command) {
-	log := logger.Must(logger.FromContext(cmd.Context()))
+func initializeLogger(ctx context.Context, cmd *cobra.Command) {
+	log := logger.Must(logger.FromContext(ctx))
 
 	// Use persistent flags instead
 	if cmd.Root().PersistentFlags().Changed("log") {
@@ -36,8 +37,8 @@ func initializeLogger(cmd *cobra.Command) {
 }
 
 // initializeConfiguration loads the configuration file and profiles
-func initializeConfiguration(cmd *cobra.Command) (err error) {
-	log := logger.Must(logger.FromContext(cmd.Context()))
+func initializeConfiguration(ctx context.Context, cmd *cobra.Command) (err error) {
+	log := logger.Must(logger.FromContext(ctx))
 
 	viper.SetConfigType("yaml")
 	if cmd.Root().PersistentFlags().Changed("config") {
