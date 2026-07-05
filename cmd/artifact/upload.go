@@ -46,11 +46,10 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 	var merr errors.MultiError
 	for _, artifactName := range args {
 		if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Uploading artifact %s", artifactName) {
-			err := profile.Upload(log.ToContext(cmd.Context()), cmd, repository.GetPath("downloads"), args[0])
+			err := profile.Upload(log.ToContext(cmd.Context()), cmd, repository.GetPath("downloads"), artifactName)
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
-					fmt.Fprintf(os.Stderr, "Failed to upload artifact %s: %s\n", artifactName, err)
-					os.Exit(1)
+					return errors.Join(errors.Errorf("Failed to upload artifact %s", artifactName), err)
 				} else {
 					merr.Append(err)
 				}

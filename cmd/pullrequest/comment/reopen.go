@@ -1,13 +1,11 @@
 package comment
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -15,7 +13,6 @@ import (
 
 var reopenCmd = &cobra.Command{
 	Use:               "reopen [flags] <comment-id>",
-	Aliases:           []string{"remove", "rm"},
 	Short:             "reopen a pullrequest comment by its <comment-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: reopenValidArgs,
@@ -71,8 +68,7 @@ func reopenProcess(cmd *cobra.Command, args []string) (err error) {
 		nil,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to reopen pullrequest comment %s: %s\n", args[0], err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to reopen pullrequest comment %s", args[0]), err)
 	}
 	log.Infof("Pullrequest comment %s reopened", args[0])
 	return nil

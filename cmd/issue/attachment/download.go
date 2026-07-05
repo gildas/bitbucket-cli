@@ -1,12 +1,10 @@
 package attachment
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -44,7 +42,7 @@ func downloadValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
 
-	attachmentNames, err := GetAttachmentNames(cmd.Context(), cmd, deleteOptions.IssueID.Value)
+	attachmentNames, err := GetAttachmentNames(cmd.Context(), cmd, downloadOptions.IssueID.Value)
 	if err != nil {
 		cobra.CompErrorln(err.Error())
 		return []string{}, cobra.ShellCompDirectiveError
@@ -72,8 +70,7 @@ func downloadProcess(cmd *cobra.Command, args []string) error {
 			downloadOptions.Destination,
 		)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to download attachment %s: %s\n", args[0], err)
-			os.Exit(1)
+			return errors.Join(errors.Errorf("Failed to download attachment %s", args[0]), err)
 		}
 	}
 	return nil

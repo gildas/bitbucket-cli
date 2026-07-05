@@ -65,8 +65,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 			)
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
-					fmt.Fprintf(os.Stderr, "Failed to delete project %s: %s\n", projectKey, err)
-					os.Exit(1)
+					return errors.Join(errors.Errorf("Failed to delete project %s", projectKey), err)
 				} else {
 					merr.Append(err)
 				}

@@ -1,8 +1,6 @@
 package issue
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
@@ -95,8 +93,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	if strings.ToLower(updateOptions.Assignee) == "me" || strings.ToLower(updateOptions.Assignee) == "myself" {
 		me, err := user.GetMe(cmd.Context(), cmd)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to get current user: %s\n", err)
-			os.Exit(1)
+			return errors.Join(errors.Errorf("Failed to get current user"), err)
 		}
 		payload.Assignee = me
 	} else if len(updateOptions.Assignee) > 0 {
@@ -117,8 +114,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating issue %s", args[0]) {
 		err = profile.Put(log.ToContext(cmd.Context()), cmd, repository.GetPath("issues", args[0]), payload, &issue)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to update issue %s: %s\n", args[0], err)
-			os.Exit(1)
+			return errors.Join(errors.Errorf("Failed to update issue %s", args[0]), err)
 		}
 	}
 	return profile.Print(cmd.Context(), cmd, issue)

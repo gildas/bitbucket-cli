@@ -1,14 +1,13 @@
 package tag
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	"github.com/gildas/bitbucket-cli/cmd/commit"
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -76,8 +75,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Post(log.ToContext(cmd.Context()), cmd, repository.GetPath("refs", "tags"), payload, &tag)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create tag: %s\n", err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to create tag %s", createOptions.Name), err)
 	}
 	return profile.Print(cmd.Context(), cmd, tag)
 }

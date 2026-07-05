@@ -1,12 +1,10 @@
 package attachment
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -56,8 +54,7 @@ func uploadProcess(cmd *cobra.Command, args []string) error {
 			args[0],
 		)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to upload attachment %s: %s\n", args[0], err)
-			os.Exit(1)
+			return errors.Join(errors.Errorf("Failed to upload attachment %s", args[0]), err)
 		}
 	}
 	return nil

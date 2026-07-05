@@ -2,11 +2,11 @@ package project
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/workspace"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -74,8 +74,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		&project,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get project %s: %s\n", args[0], err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to get project %s", args[0]), err)
 	}
 	return profile.Print(cmd.Context(), cmd, project)
 }

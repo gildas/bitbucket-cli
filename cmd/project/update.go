@@ -109,8 +109,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		}
 	} else if len(updateOptions.AvatarURL) > 0 {
 		log.Errorf("Avatar is not a file nor an URL: %s", updateOptions.AvatarURL)
-		fmt.Fprintln(os.Stderr, "Avatar is not a file nor an URL")
-		os.Exit(1)
+		return errors.Errorf("Avatar is not a file nor an URL: %s", updateOptions.AvatarURL)
 	}
 
 	log.Record("payload", payload).Infof("Updating project %s", args[0])
@@ -127,8 +126,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		&project,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to update project: %s\n", err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to update project %s", args[0]), err)
 	}
 	return profile.Print(cmd.Context(), cmd, project)
 }

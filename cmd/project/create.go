@@ -98,8 +98,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		}
 	} else if len(createOptions.AvatarURL) > 0 {
 		log.Errorf("Avatar is not a file nor an URL: %s", createOptions.AvatarURL)
-		fmt.Fprintln(os.Stderr, "Avatar is not a file nor an URL")
-		os.Exit(1)
+		return errors.Errorf("Avatar is not a file nor an URL: %s", createOptions.AvatarURL)
 	}
 
 	log.Record("payload", payload).Infof("Creating project")
@@ -116,8 +115,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		&project,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create project: %s\n", err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to create project"), err)
 	}
 	return profile.Print(cmd.Context(), cmd, project)
 }

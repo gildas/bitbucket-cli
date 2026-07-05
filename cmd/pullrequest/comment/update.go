@@ -1,9 +1,6 @@
 package comment
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
@@ -128,8 +125,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		&comment,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to update comment for pullrequest %s: %s\n", updateOptions.PullRequestID.Value, err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to update comment for pullrequest %s", updateOptions.PullRequestID.Value), err)
 	}
 	return profile.Print(cmd.Context(), cmd, comment)
 }

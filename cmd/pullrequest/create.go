@@ -166,8 +166,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		&pullrequest,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create pullrequest: %s\n", err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to create pullrequest"), err)
 	}
 	return profile.Print(cmd.Context(), cmd, pullrequest)
 }
