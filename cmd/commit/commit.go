@@ -191,7 +191,7 @@ func (commit Commit) MarshalJSON() (data []byte, err error) {
 	}
 
 	data, err = json.Marshal(struct {
-		Type       string                 `json:"type"`
+		Type string `json:"type"`
 		surrogate
 		Author     *user.Author           `json:"author,omitempty"`
 		Date       string                 `json:"date,omitempty"`
