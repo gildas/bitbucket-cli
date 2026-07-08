@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -13,6 +15,7 @@ import (
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
+	"gopkg.in/ini.v1"
 )
 
 var authorizeCmd = &cobra.Command{
@@ -28,14 +31,19 @@ func init() {
 	authorizeCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
-func authorizeProcess(cmd *cobra.Command, args []string) error {
+func authorizeProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "authorize")
+	ctx := log.ToContext(cmd.Context())
 
 	if len(args) == 0 {
 		return errors.ArgumentMissing.With("profile")
 	}
 
-	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+	_, err = GetProfileFromCommand(ctx, cmd)
+	if errors.Is(err, errors.Empty) || len(Profiles) == 0 {
+		return errors.Errorf("No profiles found")
+	}
+	if err != nil {
 		return err
 	}
 
@@ -48,6 +56,9 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 		return errors.Join(errors.Errorf("Profile %s does not support Authorization Code Grant", profile.Name), errors.ArgumentInvalid.With("profile", profile.Name))
 	}
 
+	if !common.WhatIf(ctx, cmd, fmt.Sprintf("Authorizing profile %s", args[0])) {
+		return nil
+	}
 	// Start a web server to listen for the Authorization Code Grant
 	resultchan := make(chan error)
 	server := &http.Server{
@@ -63,7 +74,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 	}()
 
 	// Open the browser to the Authorization Code Grant URL
-	common.Verbose(cmd.Context(), cmd, "Opening browser to authorize profile %s...", profile.Name)
+	common.Verbose(ctx, cmd, "Opening browser to authorize profile %s...", profile.Name)
 	spinner := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
 	bitbucketAuthURL := url.URL{
 		Scheme: "https",
@@ -74,7 +85,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 			"client_id":     {profile.ClientID},
 		}.Encode(),
 	}
-	common.Verbose(cmd.Context(), cmd, "\nIf you are not redirected automatically, please open the following URL in your browser:\n%s\n", bitbucketAuthURL.String())
+	common.Verbose(ctx, cmd, "\nIf you are not redirected automatically, please open the following URL in your browser:\n%s\n", bitbucketAuthURL.String())
 
 	if cmd.Flag("verbose").Changed {
 		spinner.Reverse()
@@ -82,11 +93,15 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 		spinner.Start()
 	}
 
-	err := openBrowser(bitbucketAuthURL)
+	err = openBrowser(bitbucketAuthURL)
 	if err != nil {
-		log.Errorf("Failed to open browser: %v", err)
-		spinner.Stop()
-		return err
+		log.Warnf("Failed to open browser: %s", err.Error())
+		if cmd.Flag("stop-on-error").Value.String() == "true" {
+			spinner.Stop()
+			return err
+		} else {
+			fmt.Fprintf(cmd.OutOrStdout(), "\nPlease open the following URL in your browser:\n%s\n", bitbucketAuthURL.String())
+		}
 	}
 
 	// Wait until the user stops the server by pressing Ctrl+C
@@ -94,7 +109,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 
 	spinner.Stop()
 	log.Infof("Received results, shutting down server...")
-	if err := server.Shutdown(cmd.Context()); err != nil {
+	if err := server.Shutdown(ctx); err != nil {
 		log.Errorf("Failed to shut down server: %v", err)
 	}
 
@@ -102,7 +117,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) error {
 		log.Errorf("Authorization process failed: %v", results)
 		return results
 	}
-	common.Verbose(cmd.Context(), cmd, "Authorization process completed successfully")
+	common.Verbose(ctx, cmd, "Authorization process completed successfully")
 	return nil
 }
 
@@ -114,6 +129,25 @@ func openBrowser(url url.URL) error {
 	switch runtime.GOOS {
 	case "linux":
 		cmd = "xdg-open"
+		if _, exists := os.LookupEnv("SSH_CONNECTION"); exists {
+			return errors.New("Cannot open browser in SSH session")
+		}
+		if common.IsWSL() {
+			// If the flag interop=true is not set in /etc/wsl.conf, return an error
+			if content, err := os.ReadFile("/etc/wsl.conf"); err == nil {
+				if data, err := ini.Load(content); err == nil {
+					if section, err := data.GetSection("interop"); err == nil {
+						if key, err := section.GetKey("enabled"); err == nil {
+							if strings.ToLower(key.String()) != "true" {
+								return errors.New("Cannot open browser in WSL without interop enabled")
+							}
+						}
+					}
+				}
+			}
+			cmd = "cmd.exe"
+			args = append(args, "/C", "start")
+		}
 	case "windows":
 		cmd = "rundll32"
 		args = append(args, "url.dll,FileProtocolHandler")
@@ -123,6 +157,6 @@ func openBrowser(url url.URL) error {
 		return fmt.Errorf("unsupported platform")
 	}
 
-	args = append(args, url.String())
+	args = append(args, `"`+url.String()+`"`)
 	return exec.Command(cmd, args...).Start()
 }

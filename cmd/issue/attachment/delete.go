@@ -72,8 +72,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 			)
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
-					fmt.Fprintf(os.Stderr, "Failed to delete issue attachment %s: %s\n", attachmentID, err)
-					os.Exit(1)
+					return errors.Join(errors.Errorf("Failed to delete issue attachment %s", attachmentID), err)
 				} else {
 					merr.Append(err)
 				}

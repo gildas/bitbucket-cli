@@ -1,13 +1,11 @@
 package repository
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/project"
 	"github.com/gildas/bitbucket-cli/cmd/workspace"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -96,8 +94,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Post(log.ToContext(cmd.Context()), cmd, repository.GetPath(), payload, &created)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create repository %s: %s\n", repository.GetPath(), err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to create repository %s", repository.GetPath()), err)
 	}
 	return profile.Print(cmd.Context(), cmd, created)
 }

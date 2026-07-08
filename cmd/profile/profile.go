@@ -137,6 +137,9 @@ func GetProfileFromCommand(context context.Context, cmd *cobra.Command) (profile
 			return nil, errors.ArgumentInvalid.With("profile", cmd.Flag("profile").Value.String())
 		}
 	} else if Current == nil {
+		if len(Profiles) == 0 {
+			return nil, errors.Empty.With("profiles")
+		}
 		Current = Profiles.Current(context)
 		if Current == nil {
 			return nil, errors.ArgumentMissing.With("profile")

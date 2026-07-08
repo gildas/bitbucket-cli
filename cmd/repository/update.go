@@ -1,9 +1,6 @@
 package repository
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/project"
@@ -123,8 +120,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Put(log.ToContext(cmd.Context()), cmd, repository.GetPath(), payload, &updated)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to update repository %s/%s: %s\n", repository.Workspace.Slug, repository.Slug, err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to update repository %s/%s", repository.Workspace.Slug, repository.Slug), err)
 	}
 	return profile.Print(cmd.Context(), cmd, updated)
 }

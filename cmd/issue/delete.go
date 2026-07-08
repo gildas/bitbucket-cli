@@ -56,8 +56,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 			err := profile.Delete(log.ToContext(cmd.Context()), cmd, repository.GetPath("issues", issueID), nil)
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
-					fmt.Fprintf(os.Stderr, "Failed to delete issue %s: %s\n", issueID, err)
-					os.Exit(1)
+					return errors.Join(errors.Errorf("Failed to delete issue %s", issueID), err)
 				} else {
 					merr.Append(err)
 				}

@@ -77,8 +77,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 			)
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
-					fmt.Fprintf(os.Stderr, "Failed to delete default reviewer %s: %s\n", userID, err)
-					os.Exit(1)
+					return errors.Join(errors.Errorf("Failed to delete default reviewer %s", userID), err)
 				} else {
 					merr.Append(err)
 				}

@@ -3,6 +3,7 @@ package profile
 import (
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-core"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -35,24 +36,28 @@ func init() {
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(Command.Name(), "list")
+	ctx := log.ToContext(cmd.Context())
 
 	log.Infof("Listing all profiles")
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Showing profiles") {
+	if !common.WhatIf(ctx, cmd, "Showing profiles") {
 		return nil
 	}
 
-	if _, err = GetProfileFromCommand(cmd.Context(), cmd); err != nil {
-		return err
+	profile, err := GetProfileFromCommand(ctx, cmd)
+	if errors.Is(err, errors.Empty) || len(Profiles) == 0 {
+		if cmd.Flag("stop-on-error").Value.String() == "true" {
+			return errors.Errorf("No profiles found")
+		}
+		common.Verbose(ctx, cmd, "No profiles found")
+		return nil
 	}
-
-	if len(Profiles) == 0 {
-		log.Infof("No profiles found")
-		return
+	if err != nil {
+		return err
 	}
 	core.Sort(Profiles, columns.SortBy(listOptions.SortBy.Value))
 	Profiles = core.Map(Profiles, func(profile *Profile) *Profile {
 		_ = profile.Validate()
 		return profile
 	})
-	return Current.Print(cmd.Context(), cmd, Profiles)
+	return profile.Print(ctx, cmd, Profiles)
 }

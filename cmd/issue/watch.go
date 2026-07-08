@@ -2,11 +2,11 @@ package issue
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 )
@@ -67,8 +67,7 @@ func watchProcess(cmd *cobra.Command, args []string) (err error) {
 	if common.WhatIf(log.ToContext(cmd.Context()), cmd, "Watching issue %s", args[0]) {
 		err = profile.Put(log.ToContext(cmd.Context()), cmd, repository.GetPath("issues", args[0], "watch"), nil, nil)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to watch issue %s: %s\n", args[0], err)
-			os.Exit(1)
+			return errors.Join(errors.Errorf("Failed to watch issue %s", args[0]), err)
 		}
 	}
 	return

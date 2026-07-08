@@ -1,8 +1,6 @@
 package issue
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
@@ -77,8 +75,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	if strings.ToLower(createOptions.Assignee) == "me" || strings.ToLower(createOptions.Assignee) == "myself" {
 		me, err := user.GetMe(cmd.Context(), cmd)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to get current user: %s\n", err)
-			os.Exit(1)
+			return errors.Join(errors.Errorf("Failed to get current user"), err)
 		}
 		payload.Assignee = me
 	} else if len(createOptions.Assignee) > 0 {
@@ -102,8 +99,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Post(log.ToContext(cmd.Context()), cmd, repository.GetPath("issues"), payload, &issue)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create issue: %s\n", err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to create issue"), err)
 	}
 	return profile.Print(cmd.Context(), cmd, issue)
 }

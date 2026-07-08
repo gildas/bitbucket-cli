@@ -2,12 +2,12 @@ package pullrequest
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -16,7 +16,7 @@ import (
 var getCmd = &cobra.Command{
 	Use:               "get [flags] <pullrequest-id>",
 	Aliases:           []string{"show", "info", "display"},
-	Short:             "get a profile by its <pullrequest-id>.",
+	Short:             "get a pullrequest by its <pullrequest-id>.",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
@@ -73,8 +73,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 		&pullrequest,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get pullrequest %s: %s\n", args[0], err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to get pullrequest %s", args[0]), err)
 	}
 
 	return profile.Print(cmd.Context(), cmd, pullrequest)

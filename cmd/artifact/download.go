@@ -70,8 +70,7 @@ func getProcess(cmd *cobra.Command, args []string) error {
 			)
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
-					fmt.Fprintf(os.Stderr, "Failed to download artifact %s: %s\n", artifactName, err)
-					os.Exit(1)
+					return errors.Join(errors.Errorf("Failed to download artifact %s", artifactName), err)
 				} else {
 					merr.Append(err)
 				}

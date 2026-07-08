@@ -2,11 +2,11 @@ package issue
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -59,8 +59,7 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Infof("Displaying changes for issue %s", args[0])
 		changes, err := GetIssueChanges(cmd.Context(), cmd, args[0])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to get issue %s: %s\n", args[0], err)
-			os.Exit(1)
+			return errors.Join(errors.Errorf("Failed to get issue %s changes", args[0]), err)
 		}
 		return profile.Print(cmd.Context(), cmd, IssueChanges(changes))
 	}
@@ -78,8 +77,7 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 
 	err = profile.Get(log.ToContext(cmd.Context()), cmd, repository.GetPath("issues", args[0]), &issue)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get issue %s: %s\n", args[0], err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to get issue %s", args[0]), err)
 	}
 	return profile.Print(cmd.Context(), cmd, issue)
 }

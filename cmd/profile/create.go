@@ -75,10 +75,12 @@ func init() {
 	createCmd.SetHelpFunc(hideUnsupportedFlags)
 }
 
-func createProcess(cmd *cobra.Command, args []string) error {
+func createProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
+	ctx := log.ToContext(cmd.Context())
 
-	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+	_, err = GetProfileFromCommand(ctx, cmd)
+	if err != nil && !errors.Is(err, errors.Empty) {
 		return err
 	}
 
@@ -102,8 +104,14 @@ func createProcess(cmd *cobra.Command, args []string) error {
 		return errors.DuplicateFound.With("name", createOptions.Name)
 	}
 
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Creating profile %s", createOptions.Name) {
+	if !common.WhatIf(ctx, cmd, "Creating profile %s", createOptions.Name) {
 		return nil
+	}
+
+	if common.IsWSL() {
+		// For now, we do not support vaults in WSL.
+		log.Warnf("Vaults are not supported in WSL, the credentials will be stored in plain text in the configuration file")
+		createOptions.NoVault = true
 	}
 
 	// Store the client secret/password/access token in the vault if provided

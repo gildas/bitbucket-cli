@@ -2,12 +2,12 @@ package reviewer
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/user"
 	"github.com/gildas/bitbucket-cli/cmd/workspace"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -66,8 +66,7 @@ func addProcess(cmd *cobra.Command, args []string) error {
 		&user,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to add reviewer: %s\n", err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to add reviewer %s to project %s", args[0], project), err)
 	}
 	return profile.Print(cmd.Context(), cmd, user)
 }

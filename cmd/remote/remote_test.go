@@ -17,10 +17,10 @@ func TestCanGetRepositoryNameWithGitAt(t *testing.T) {
 	bare = false
 	logallrefupdates = true
 [remote "origin"]
-	url = git@bitbucket.org:gildas_cherruel/bb.git
+	url = git@bitbucket.org:myworkspace/bitbucket-cli.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "alternate"]
-	url = git@bitbucket.org:gildas_cherruel/bb
+	url = git@bitbucket.org:myworkspace/bitbucket-cli
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
@@ -32,12 +32,12 @@ func TestCanGetRepositoryNameWithGitAt(t *testing.T) {
 	r, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
+	assert.Equal(t, "myworkspace/bitbucket-cli", r.RepositoryName())
 
 	r, err = remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
+	assert.Equal(t, "myworkspace/bitbucket-cli", r.RepositoryName())
 }
 
 func TestCanGetRepositoryNameWithHTTPS(t *testing.T) {
@@ -48,10 +48,10 @@ func TestCanGetRepositoryNameWithHTTPS(t *testing.T) {
 	bare = false
 	logallrefupdates = true
 [remote "origin"]
-	url = https://github.com/gildas/bitbucket-cli.git
+	url = https://bitbucket.org/myworkspace/bitbucket-cli.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "alternate"]
-	url = https://github.com/gildas/bitbucket-cli
+	url = https://bitbucket.org/myworkspace/bitbucket-cli
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
@@ -63,12 +63,12 @@ func TestCanGetRepositoryNameWithHTTPS(t *testing.T) {
 	r, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
+	assert.Equal(t, "myworkspace/bitbucket-cli", r.RepositoryName())
 
 	r, err = remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel/bb", r.RepositoryName())
+	assert.Equal(t, "myworkspace/bitbucket-cli", r.RepositoryName())
 }
 
 func TestCanGetWorkspaceNameWithGitAt(t *testing.T) {
@@ -79,10 +79,10 @@ func TestCanGetWorkspaceNameWithGitAt(t *testing.T) {
 	bare = false
 	logallrefupdates = true
 [remote "origin"]
-	url = git@bitbucket.org:gildas_cherruel/bb.git
+	url = git@bitbucket.org:myworkspace/bitbucket-cli.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "alternate"]
-	url = git@bitbucket.org:gildas_cherruel/bb
+	url = git@bitbucket.org:myworkspace/bitbucket-cli
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
@@ -94,12 +94,12 @@ func TestCanGetWorkspaceNameWithGitAt(t *testing.T) {
 	r, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())
+	assert.Equal(t, "myworkspace", r.WorkspaceName())
 
 	r, err = remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())
+	assert.Equal(t, "myworkspace", r.WorkspaceName())
 }
 
 func TestCanGetWorkspaceNameWithHTTPS(t *testing.T) {
@@ -110,10 +110,10 @@ func TestCanGetWorkspaceNameWithHTTPS(t *testing.T) {
 	bare = false
 	logallrefupdates = true
 [remote "origin"]
-	url = https://github.com/gildas/bitbucket-cli.git
+	url = https://bitbucket.org/myworkspace/bitbucket-cli.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "alternate"]
-	url = https://github.com/gildas/bitbucket-cli
+	url = https://bitbucket.org/myworkspace/bitbucket-cli
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
@@ -125,10 +125,10 @@ func TestCanGetWorkspaceNameWithHTTPS(t *testing.T) {
 	r, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "origin")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())
+	assert.Equal(t, "myworkspace", r.WorkspaceName())
 
 	r, err = remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "alternate")
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "gildas_cherruel", r.WorkspaceName())
+	assert.Equal(t, "myworkspace", r.WorkspaceName())
 }

@@ -1,9 +1,6 @@
 package comment
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	prcommon "github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
@@ -114,8 +111,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		&comment,
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create comment for pullrequest %s: %s\n", createOptions.PullRequestID.Value, err)
-		os.Exit(1)
+		return errors.Join(errors.Errorf("Failed to create comment for pullrequest %s", createOptions.PullRequestID.Value), err)
 	}
 	return profile.Print(cmd.Context(), cmd, comment)
 }

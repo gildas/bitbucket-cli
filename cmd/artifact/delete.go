@@ -56,8 +56,7 @@ func deleteProcess(cmd *cobra.Command, args []string) error {
 			err := profile.Delete(log.ToContext(cmd.Context()), cmd, repository.GetPath("downloads", artifactName), nil)
 			if err != nil {
 				if profile.ShouldStopOnError(cmd) {
-					fmt.Fprintf(os.Stderr, "Failed to delete artifact %s: %s\n", artifactName, err)
-					os.Exit(1)
+					return errors.Join(errors.Errorf("Failed to delete artifact %s", artifactName), err)
 				} else {
 					merr.Append(err)
 				}
