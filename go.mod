@@ -3,6 +3,8 @@ module github.com/gildas/bitbucket-cli
 go 1.26
 
 require (
+	github.com/AlekSi/gocov-xml v1.2.0
+	github.com/axw/gocov v1.2.1
 	github.com/briandowns/spinner v1.23.2
 	github.com/gildas/go-cache v0.2.2
 	github.com/gildas/go-core v0.6.4

@@ -36,7 +36,7 @@ export PACKAGE PROJECT VERSION BRANCH COMMIT BUILD REVISION
 
 # Files
 GOTESTS   := $(call rwildcard,,*_test.go)
-GOFILES   := $(filter-out $(GOTESTS), $(call rwildcard,,*.go))
+GOFILES   := $(filter-out $(GOTESTS) $(call rwildcard,tools/,*.go), $(call rwildcard,,*.go))
 ASSETS    :=
 
 # Testing
