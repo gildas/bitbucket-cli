@@ -157,6 +157,6 @@ func openBrowser(url url.URL) error {
 		return fmt.Errorf("unsupported platform")
 	}
 
-	args = append(args, url.String())
+	args = append(args, `"`+url.String()+`"`)
 	return exec.Command(cmd, args...).Start()
 }
