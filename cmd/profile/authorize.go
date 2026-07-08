@@ -15,6 +15,7 @@ import (
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
+	"gopkg.in/ini.v1"
 )
 
 var authorizeCmd = &cobra.Command{
@@ -133,12 +134,15 @@ func openBrowser(url url.URL) error {
 		}
 		if common.IsWSL() {
 			// If the flag interop=true is not set in /etc/wsl.conf, return an error
-			if _, err := os.Stat("/etc/wsl.conf"); os.IsNotExist(err) {
-				return errors.New("Cannot open browser in WSL without interop enabled")
-			}
 			if content, err := os.ReadFile("/etc/wsl.conf"); err == nil {
-				if !strings.Contains(string(content), "interop=true") {
-					return errors.New("Cannot open browser in WSL without interop enabled")
+				if data, err := ini.Load(content); err == nil {
+					if section, err := data.GetSection("interop"); err == nil {
+						if key, err := section.GetKey("enabled"); err == nil {
+							if strings.ToLower(key.String()) != "true" {
+								return errors.New("Cannot open browser in WSL without interop enabled")
+							}
+						}
+					}
 				}
 			}
 			cmd = "cmd.exe"
@@ -153,6 +157,6 @@ func openBrowser(url url.URL) error {
 		return fmt.Errorf("unsupported platform")
 	}
 
-	args = append(args, url.String())
+	args = append(args, `"`+url.String()+`"`)
 	return exec.Command(cmd, args...).Start()
 }

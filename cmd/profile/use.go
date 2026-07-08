@@ -25,7 +25,7 @@ func init() {
 }
 
 func useProcess(cmd *cobra.Command, args []string) (err error) {
-	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "use")
 	ctx := log.ToContext(cmd.Context())
 
 	if len(args) == 0 {

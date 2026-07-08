@@ -25,7 +25,7 @@ func whichProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "which")
 	ctx := log.ToContext(cmd.Context())
 
-	profile, err := GetProfileFromCommand(cmd.Context(), cmd)
+	profile, err := GetProfileFromCommand(ctx, cmd)
 	if errors.Is(err, errors.Empty) || len(Profiles) == 0 {
 		if cmd.Flag("stop-on-error").Value.String() == "true" {
 			return errors.Errorf("No profiles found")
@@ -35,6 +35,13 @@ func whichProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 	if err != nil {
 		return err
+	}
+	if Current == nil {
+		if cmd.Flag("stop-on-error").Value.String() == "true" {
+			return errors.Errorf("There is no profile configured")
+		}
+		common.Verbose(ctx, cmd, "No profile is currently configured")
+		return nil
 	}
 
 	return profile.Print(ctx, cmd, Current)

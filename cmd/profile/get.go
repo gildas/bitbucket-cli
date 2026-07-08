@@ -41,7 +41,11 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 
 	_, err = GetProfileFromCommand(ctx, cmd)
 	if errors.Is(err, errors.Empty) || len(Profiles) == 0 {
-		return errors.Errorf("No profiles found")
+		if cmd.Flag("stop-on-error").Value.String() == "true" {
+			return errors.Errorf("No profiles found")
+		}
+		common.Verbose(ctx, cmd, "No profile is currently configured")
+		return nil
 	}
 	if err != nil {
 		return err
@@ -50,7 +54,11 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 	if getOptions.Current {
 		log.Infof("Displaying current profile")
 		if Current == nil {
-			return errors.Errorf("There is no profile configured")
+			if cmd.Flag("stop-on-error").Value.String() == "true" {
+				return errors.Errorf("There is no profile configured")
+			}
+			common.Verbose(ctx, cmd, "No profile is currently configured")
+			return nil
 		}
 		return Current.Print(ctx, cmd, Current)
 	}
@@ -77,5 +85,5 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 			fmt.Fprintln(os.Stderr, "Profile", profile.Name, "is not valid:", err)
 		}
 	}
-	return Current.Print(ctx, cmd, profile)
+	return profile.Print(ctx, cmd, profile)
 }
