@@ -43,7 +43,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		return nil
 	}
 
-	_, err = GetProfileFromCommand(ctx, cmd)
+	profile, err := GetProfileFromCommand(ctx, cmd)
 	if errors.Is(err, errors.Empty) || len(Profiles) == 0 {
 		if cmd.Flag("stop-on-error").Value.String() == "true" {
 			return errors.Errorf("No profiles found")
@@ -59,5 +59,5 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		_ = profile.Validate()
 		return profile
 	})
-	return Current.Print(ctx, cmd, Profiles)
+	return profile.Print(ctx, cmd, Profiles)
 }

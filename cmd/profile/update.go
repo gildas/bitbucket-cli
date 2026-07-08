@@ -247,5 +247,5 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	} else {
 		return err
 	}
-	return Current.Print(ctx, cmd, profile)
+	return profile.Print(ctx, cmd, profile)
 }

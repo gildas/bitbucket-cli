@@ -36,6 +36,13 @@ func whichProcess(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return err
 	}
+	if Current == nil {
+		if cmd.Flag("stop-on-error").Value.String() == "true" {
+			return errors.Errorf("There is no profile configured")
+		}
+		common.Verbose(ctx, cmd, "No profile is currently configured")
+		return nil
+	}
 
 	return profile.Print(ctx, cmd, Current)
 }
