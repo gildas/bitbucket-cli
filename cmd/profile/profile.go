@@ -576,16 +576,19 @@ func getWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []strin
 	// We have to repeat the code here because of the circular dependency with the workspace package
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
 	type Workspace struct {
-		Slug string `json:"slug"`
+		Workspace struct {
+			Slug string `json:"slug"`
+		} `json:"workspace"`
 	}
 
 	log.Debugf("Getting all workspaces")
-	workspaces, err := GetAll[Workspace](context, cmd, "/workspaces")
+	workspaces, err := GetAll[Workspace](context, cmd, "/user/workspaces")
 	if err != nil {
 		log.Errorf("Failed to get workspaces", err)
 		return []string{}, err
 	}
-	slugs = core.Map(workspaces, func(workspace Workspace) string { return workspace.Slug })
+	log.Debugf("Found %d workspaces", len(workspaces))
+	slugs = core.Map(workspaces, func(workspace Workspace) string { return workspace.Workspace.Slug })
 	core.Sort(slugs, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
 	return slugs, nil
 }
