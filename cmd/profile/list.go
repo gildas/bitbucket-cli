@@ -57,6 +57,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	core.Sort(Profiles, columns.SortBy(listOptions.SortBy.Value))
 	Profiles = core.Map(Profiles, func(profile *Profile) *Profile {
 		_ = profile.Validate()
+		_ = profile.LoadSecrets(ctx)
 		return profile
 	})
 	if len(Profiles) == 1 {

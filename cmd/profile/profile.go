@@ -276,6 +276,19 @@ func (profile *Profile) GetPassword(ctx context.Context) (password string, err e
 	return "", errors.Join(errors.Errorf("Profile %s does not have a password", profile.Name), err)
 }
 
+// LoadSecrets fills the profile with its secret from the Vault as needed
+func (profile *Profile) LoadSecrets(ctx context.Context) (err error) {
+	if len(profile.ClientID) > 0 {
+		profile.ClientSecret, err = profile.GetClientSecret(ctx)
+		return err
+	}
+	if len(profile.User) > 0 {
+		profile.Password, err = profile.GetPassword(ctx)
+		return err
+	}
+	return profile.loadAccessToken(ctx)
+}
+
 // Update updates this profile with the given one
 func (profile *Profile) Update(other Profile) error {
 	if len(other.Name) > 0 {
