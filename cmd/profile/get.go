@@ -85,5 +85,8 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 			fmt.Fprintln(os.Stderr, "Profile", profile.Name, "is not valid:", err)
 		}
 	}
+	if len(Profiles) == 1 {
+		profile.Default = true
+	}
 	return profile.Print(ctx, cmd, profile)
 }

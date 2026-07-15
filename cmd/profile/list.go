@@ -59,5 +59,8 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 		_ = profile.Validate()
 		return profile
 	})
+	if len(Profiles) == 1 {
+		Profiles[0].Default = true
+	}
 	return profile.Print(ctx, cmd, Profiles)
 }
