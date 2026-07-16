@@ -374,7 +374,7 @@ func (profile *Profile) CodeGrantCallback(resultchan chan error) http.Handler {
 }
 
 func (profile *Profile) authorize(ctx context.Context) (authorization string, err error) {
-	log := logger.Must(logger.FromContext(ctx)).Child(nil, "authorize")
+	log := logger.Must(logger.FromContext(ctx)).Child("profile", "authorize")
 
 	if err := profile.loadAccessToken(ctx); err == nil {
 		if !profile.isTokenExpired() {

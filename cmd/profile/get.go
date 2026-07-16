@@ -36,7 +36,7 @@ func init() {
 }
 
 func getProcess(cmd *cobra.Command, args []string) (err error) {
-	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), cmd.Name())
 	ctx := log.ToContext(cmd.Context())
 
 	_, err = GetProfileFromCommand(ctx, cmd)
