@@ -25,8 +25,8 @@ var createCmd = &cobra.Command{
 
 var createOptions struct {
 	Profile
-	DefaultWorkspace *flags.EnumFlag
-	DefaultProject   *flags.EnumFlag
+	DefaultWorkspace string
+	DefaultProject   string
 	OutputFormat     *flags.EnumFlag
 	CloneProtocol    *flags.EnumFlag
 	NoVault          bool
@@ -35,8 +35,6 @@ var createOptions struct {
 func init() {
 	Command.AddCommand(createCmd)
 
-	createOptions.DefaultWorkspace = flags.NewEnumFlagWithFunc(createCmd, "", getWorkspaceSlugs)
-	createOptions.DefaultProject = flags.NewEnumFlagWithFunc(createCmd, "", getProjectKeys)
 	createOptions.OutputFormat = flags.NewEnumFlag("json", "yaml", "table")
 	createOptions.CloneProtocol = flags.NewEnumFlag("+git", "https", "ssh")
 	createCmd.Flags().StringVarP(&createOptions.Name, "name", "n", "", "Name of the profile")
@@ -52,8 +50,8 @@ func init() {
 	createCmd.Flags().StringVar(&createOptions.ClientSecret, "client-secret", "", "Client Secret of the profile")
 	createCmd.Flags().Uint16Var(&createOptions.CallbackPort, "callback-port", 0, "Port to listen to for the Authorization Code Grant")
 	createCmd.Flags().StringVar(&createOptions.AccessToken, "access-token", "", "Access Token of the profile")
-	createCmd.Flags().Var(createOptions.DefaultWorkspace, "default-workspace", "Default workspace of the profile")
-	createCmd.Flags().Var(createOptions.DefaultProject, "default-project", "Default project of the profile")
+	createCmd.Flags().StringVar(&createOptions.DefaultWorkspace, "default-workspace", "", "Default workspace of the profile")
+	createCmd.Flags().StringVar(&createOptions.DefaultProject, "default-project", "", "Default project of the profile")
 	createCmd.Flags().Var(createOptions.CloneProtocol, "clone-protocol", "Default protocol to use for cloning repositories. Default is git, can be https, git, or ssh")
 	createCmd.Flags().StringVar(&createOptions.CloneUser, "clone-user", "", "Username to use when cloning repositories. Default is the username of the profile.")
 	createCmd.Flags().StringVar(&createOptions.SshKeyFilename, "default-ssh-key-file", "", "Path to the SSH private key file to use when cloning repositories with the ssh protocol.")
@@ -84,11 +82,11 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if len(createOptions.DefaultWorkspace.String()) > 0 {
-		createOptions.Profile.DefaultWorkspace = createOptions.DefaultWorkspace.String()
+	if len(createOptions.DefaultWorkspace) > 0 {
+		createOptions.Profile.DefaultWorkspace = createOptions.DefaultWorkspace
 	}
-	if len(createOptions.DefaultProject.String()) > 0 {
-		createOptions.Profile.DefaultProject = createOptions.DefaultProject.String()
+	if len(createOptions.DefaultProject) > 0 {
+		createOptions.Profile.DefaultProject = createOptions.DefaultProject
 	}
 	if len(createOptions.OutputFormat.String()) > 0 {
 		createOptions.Profile.OutputFormat = createOptions.OutputFormat.String()

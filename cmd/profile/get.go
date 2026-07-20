@@ -36,7 +36,7 @@ func init() {
 }
 
 func getProcess(cmd *cobra.Command, args []string) (err error) {
-	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
+	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), cmd.Name())
 	ctx := log.ToContext(cmd.Context())
 
 	_, err = GetProfileFromCommand(ctx, cmd)
@@ -85,5 +85,10 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 			fmt.Fprintln(os.Stderr, "Profile", profile.Name, "is not valid:", err)
 		}
 	}
+	_ = profile.LoadSecrets(ctx)
+	if len(Profiles) == 1 {
+		profile.Default = true
+	}
+
 	return profile.Print(ctx, cmd, profile)
 }

@@ -8,13 +8,13 @@ I, Gildas Cherruel, am the author of this package that lives on https://github.c
 The Package can be verified by checking the following:
 
 1. Go to:
-  https://github.com/gildas/bitbucket-cli/releases/download/v0.18.2/bitbucket-cli-0.18.3-windows-amd64.7z
+  https://github.com/gildas/bitbucket-cli/releases/download/v0.18.4/bitbucket-cli-0.18.4-windows-amd64.7z
 
   to download the application binary.
 
 2. You can verify the integrity of the downloaded file by checking its SHA256 hash:
 
-  checksum: dd0306fdaaef0b0bc1084094056e91a480148a5a3862652005ffce202d22a010
+  checksum: 
 
   with the PowerShell function `Get-FileHash` or the Chocolatey `checksum.exe` utility.
 

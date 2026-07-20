@@ -276,6 +276,19 @@ func (profile *Profile) GetPassword(ctx context.Context) (password string, err e
 	return "", errors.Join(errors.Errorf("Profile %s does not have a password", profile.Name), err)
 }
 
+// LoadSecrets fills the profile with its secret from the Vault as needed
+func (profile *Profile) LoadSecrets(ctx context.Context) (err error) {
+	if len(profile.ClientID) > 0 {
+		profile.ClientSecret, err = profile.GetClientSecret(ctx)
+		return err
+	}
+	if len(profile.User) > 0 {
+		profile.Password, err = profile.GetPassword(ctx)
+		return err
+	}
+	return profile.loadAccessToken(ctx)
+}
+
 // Update updates this profile with the given one
 func (profile *Profile) Update(other Profile) error {
 	if len(other.Name) > 0 {
@@ -576,16 +589,19 @@ func getWorkspaceSlugs(context context.Context, cmd *cobra.Command, args []strin
 	// We have to repeat the code here because of the circular dependency with the workspace package
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "slugs")
 	type Workspace struct {
-		Slug string `json:"slug"`
+		Workspace struct {
+			Slug string `json:"slug"`
+		} `json:"workspace"`
 	}
 
 	log.Debugf("Getting all workspaces")
-	workspaces, err := GetAll[Workspace](context, cmd, "/workspaces")
+	workspaces, err := GetAll[Workspace](context, cmd, "/user/workspaces")
 	if err != nil {
 		log.Errorf("Failed to get workspaces", err)
 		return []string{}, err
 	}
-	slugs = core.Map(workspaces, func(workspace Workspace) string { return workspace.Slug })
+	log.Debugf("Found %d workspaces", len(workspaces))
+	slugs = core.Map(workspaces, func(workspace Workspace) string { return workspace.Workspace.Slug })
 	core.Sort(slugs, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
 	return slugs, nil
 }
