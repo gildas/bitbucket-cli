@@ -6,7 +6,27 @@
 
 ### Linux
 
-You can grab the latest Debian/Ubuntu package on the [Downloads](https://github.com/gildas/bitbucket-cli/releases) pages.
+You can grab the latest binary package on the [Downloads](https://github.com/gildas/bitbucket-cli/releases) pages.
+
+On Debian/Ubuntu distributions, you can use my package repository. First download the signing key:
+
+```bash
+curl -fsSL https://gildas.github.io/apt/gildas-archive-keyring.gpg | \
+  sudo tee /usr/share/keyrings/gildas-archive-keyring.gpg >/dev/null
+```
+
+Add this source:
+
+```bash
+echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/gildas-archive-keyring.gpg] https://gildas.github.io/apt stable main" | sudo tee /etc/apt/sources.list.d/gildas.list
+sudo apt update
+```
+
+Then install `bb` with:
+
+```bash
+sudo apt install bitbucket-cli
+```
 
 If you use [Homebrew](https://brew.sh), you can install `bb` with:
 
