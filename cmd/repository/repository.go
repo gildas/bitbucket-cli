@@ -246,11 +246,16 @@ func (repository Repository) String() string {
 
 // GetRepositoryName gets the name of the repository from the command line or from the git config
 func GetRepositoryName(context context.Context, cmd *cobra.Command) (repositoryName string, err error) {
+	log := logger.Must(logger.FromContext(context)).Child("repository", "get_name")
+
+	log.Debugf("Checking flags")
 	if cmd.Flag("repository") != nil {
 		if repositoryName = cmd.Flag("repository").Value.String(); len(repositoryName) > 0 {
 			return
 		}
 	}
+
+	log.Debugf("Checking git configuration")
 	if remote, err := remote.GetRemote(context, cmd); err == nil {
 		return remote.RepositoryName(), nil
 	}
