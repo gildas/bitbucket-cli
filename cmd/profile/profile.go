@@ -166,22 +166,26 @@ func (profile Profile) GetHeaders(cmd *cobra.Command) []string {
 			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
 	}
-	if cmd.Flag("show-secrets") != nil && cmd.Flag("show-secrets").Changed && cmd.Flag("show-secrets").Value.String() == "true" {
+	columns := []string{"Name", "Description", "Default"}
+	if cmd != nil && cmd.Flag("show-secrets") != nil && cmd.Flag("show-secrets").Changed && cmd.Flag("show-secrets").Value.String() == "true" {
 		if len(profile.User) > 0 {
-			return []string{"Name", "Description", "Default", "User", "Password"}
+			columns = append(columns, "User", "Password")
 		}
 		if len(profile.ClientSecret) > 0 {
-			return []string{"Name", "Description", "Default", "ClientID", "ClientSecret"}
+			columns = append(columns, "ClientID", "ClientSecret")
 		}
-		return []string{"Name", "Description", "Default", "User", "AccessToken"}
+		if len(profile.AccessToken) > 0 {
+			columns = append(columns, "AccessToken")
+		}
+		return columns
 	}
 	if len(profile.User) > 0 {
-		return []string{"Name", "Description", "Default", "User"}
+		columns = append(columns, "User")
 	}
 	if len(profile.ClientID) > 0 {
-		return []string{"Name", "Description", "Default", "ClientID"}
+		columns = append(columns, "ClientID")
 	}
-	return []string{"Name", "Description", "Default"}
+	return columns
 }
 
 // GetRow gets the row for a table
@@ -212,6 +216,12 @@ func (profile Profile) GetRow(headers []string) []string {
 			row = append(row, fmt.Sprintf("%d", profile.CallbackPort))
 		case "user":
 			row = append(row, profile.User)
+		case "password":
+			if len(profile.Password) > 0 {
+				row = append(row, profile.Password)
+			} else {
+				row = append(row, " ")
+			}
 		case "clientid":
 			row = append(row, profile.ClientID)
 		case "clientsecret":
