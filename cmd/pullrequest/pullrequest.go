@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -14,7 +15,7 @@ import (
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest/activity"
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest/comment"
-	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
+	prcommon "github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest/task"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/bitbucket-cli/cmd/user"
@@ -23,6 +24,7 @@ import (
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 type PullRequest struct {
@@ -158,7 +160,7 @@ func (pullrequest PullRequest) GetRow(headers []string) []string {
 		case "title":
 			row = append(row, pullrequest.Title)
 		case "description":
-			row = append(row, pullrequest.Description)
+			row = append(row, truncateDescription(pullrequest.Description))
 		case "source":
 			row = append(row, pullrequest.Source.Branch.Name)
 		case "destination":
@@ -267,4 +269,28 @@ func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 		UpdatedOn: pullrequest.UpdatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
+}
+
+func truncateDescription(description string) string {
+	terminalWidth := getTerminalWidth()
+	maxLength := max(terminalWidth-110, 20)
+	descriptionRunes := []rune(description)
+	if len(descriptionRunes) <= maxLength {
+		return description
+	}
+	return string(descriptionRunes[:maxLength-3]) + "..."
+}
+
+func getTerminalWidth() int {
+	if os.Getenv("TMUX") != "" {
+		if output, err := exec.Command("tmux", "display-message", "-p", "#{pane_width}").Output(); err == nil {
+			if width, err := strconv.Atoi(strings.TrimSpace(string(output))); err == nil && width > 0 {
+				return width
+			}
+		}
+	}
+	if width, _, err := term.GetSize(int(os.Stdout.Fd())); err == nil && width > 0 {
+		return width
+	}
+	return 80
 }
