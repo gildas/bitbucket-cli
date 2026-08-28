@@ -76,8 +76,14 @@ var columns = common.Columns[*Profile]{
 	{Name: "user", DefaultSorter: false, Compare: func(a, b *Profile) bool {
 		return strings.Compare(strings.ToLower(a.User), strings.ToLower(b.User)) == -1
 	}},
+	{Name: "password", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.Password), strings.ToLower(b.Password)) == -1
+	}},
 	{Name: "clientid", DefaultSorter: false, Compare: func(a, b *Profile) bool {
 		return strings.Compare(strings.ToLower(a.ClientID), strings.ToLower(b.ClientID)) == -1
+	}},
+	{Name: "clientsecret", DefaultSorter: false, Compare: func(a, b *Profile) bool {
+		return strings.Compare(strings.ToLower(a.ClientSecret), strings.ToLower(b.ClientSecret)) == -1
 	}},
 	{Name: "accesstoken", DefaultSorter: false, Compare: func(a, b *Profile) bool {
 		return strings.Compare(strings.ToLower(a.AccessToken), strings.ToLower(b.AccessToken)) == -1
@@ -160,7 +166,22 @@ func (profile Profile) GetHeaders(cmd *cobra.Command) []string {
 			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
 	}
-	return []string{"Name", "Description", "Default", "User", "ClientID", "AccessToken"}
+	if cmd.Flag("show-secrets") != nil && cmd.Flag("show-secrets").Changed && cmd.Flag("show-secrets").Value.String() == "true" {
+		if len(profile.User) > 0 {
+			return []string{"Name", "Description", "Default", "User", "Password"}
+		}
+		if len(profile.ClientSecret) > 0 {
+			return []string{"Name", "Description", "Default", "ClientID", "ClientSecret"}
+		}
+		return []string{"Name", "Description", "Default", "User", "AccessToken"}
+	}
+	if len(profile.User) > 0 {
+		return []string{"Name", "Description", "Default", "User"}
+	}
+	if len(profile.ClientID) > 0 {
+		return []string{"Name", "Description", "Default", "ClientID"}
+	}
+	return []string{"Name", "Description", "Default"}
 }
 
 // GetRow gets the row for a table
@@ -193,6 +214,12 @@ func (profile Profile) GetRow(headers []string) []string {
 			row = append(row, profile.User)
 		case "clientid":
 			row = append(row, profile.ClientID)
+		case "clientsecret":
+			if len(profile.ClientSecret) > 0 {
+				row = append(row, profile.ClientSecret)
+			} else {
+				row = append(row, " ")
+			}
 		case "accesstoken":
 			if len(profile.AccessToken) > 0 {
 				row = append(row, profile.AccessToken)

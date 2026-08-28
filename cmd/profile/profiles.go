@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/go-core"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -66,7 +68,49 @@ func (profiles profiles) Names() []string {
 //
 // implements common.Tableables
 func (profiles profiles) GetHeaders(cmd *cobra.Command) []string {
-	return Profile{}.GetHeaders(cmd)
+	if cmd != nil && cmd.Flag("columns") != nil && cmd.Flag("columns").Changed {
+		if columns, err := cmd.Flags().GetStringSlice("columns"); err == nil {
+			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
+		}
+	}
+	hasClientID := false
+	hasUser := false
+	hasAccessToken := false
+	for _, profile := range profiles {
+		if len(profile.ClientID) > 0 {
+			hasClientID = true
+		}
+		if len(profile.AccessToken) > 0 {
+			hasAccessToken = true
+		}
+		if len(profile.User) > 0 {
+			hasUser = true
+		}
+		if hasClientID && hasAccessToken && hasUser {
+			break
+		}
+	}
+
+	columns := []string{"Name", "Description", "Default"}
+	if cmd.Flag("show-secrets") != nil && cmd.Flag("show-secrets").Changed && cmd.Flag("show-secrets").Value.String() == "true" {
+		if hasClientID {
+			columns = append(columns, "ClientID", "ClientSecret")
+		}
+		if hasUser {
+			columns = append(columns, "User", "Password")
+		}
+		if hasAccessToken {
+			columns = append(columns, "AccessToken")
+		}
+	} else {
+		if hasClientID {
+			columns = append(columns, "ClientID")
+		}
+		if hasUser {
+			columns = append(columns, "User")
+		}
+	}
+	return columns
 }
 
 // GetRowAt gets the row for a table

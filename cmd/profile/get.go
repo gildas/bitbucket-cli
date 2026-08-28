@@ -21,8 +21,9 @@ var getCmd = &cobra.Command{
 }
 
 var getOptions struct {
-	Current bool
-	Columns *flags.EnumSliceFlag
+	Current     bool
+	ShowSecrets bool
+	Columns     *flags.EnumSliceFlag
 }
 
 func init() {
@@ -30,6 +31,7 @@ func init() {
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 
 	getCmd.Flags().BoolVar(&getOptions.Current, "current", false, "Get the current profile")
+	getCmd.Flags().BoolVar(&getOptions.ShowSecrets, "show-secrets", false, "Show secrets in the output")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
 	getCmd.SetHelpFunc(hideUnsupportedFlags)
@@ -85,7 +87,14 @@ func getProcess(cmd *cobra.Command, args []string) (err error) {
 			fmt.Fprintln(os.Stderr, "Profile", profile.Name, "is not valid:", err)
 		}
 	}
-	_ = profile.LoadSecrets(ctx)
+
+	if getOptions.ShowSecrets {
+		_ = profile.LoadSecrets(ctx)
+	} else { // remove secrets from the profile before printing
+		profile.ClientSecret = ""
+		profile.Password = ""
+		profile.AccessToken = ""
+	}
 	if len(Profiles) == 1 {
 		profile.Default = true
 	}

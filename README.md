@@ -288,6 +288,13 @@ You can get the details of a profile with the `bb profile get` or `bb profile sh
 bb profile get myprofile
 ```
 
+By default, the profile details will not show the password or client secret, or the access token. You can use the `--show-secrets` flag to display them:
+
+```bash
+bb profile get myprofile --show-secrets
+bb profile list --show-secrets
+```
+
 You can ge the details of the current profile:
 
 ```bash

@@ -18,8 +18,9 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	Columns *flags.EnumSliceFlag
-	SortBy  *flags.EnumFlag
+	ShowSecrets bool
+	Columns     *flags.EnumSliceFlag
+	SortBy      *flags.EnumFlag
 }
 
 func init() {
@@ -27,6 +28,7 @@ func init() {
 
 	listOptions.Columns = flags.NewEnumSliceFlagWithAllAllowed(columns.Columns()...)
 	listOptions.SortBy = flags.NewEnumFlag(columns.Sorters()...)
+	listCmd.Flags().BoolVar(&listOptions.ShowSecrets, "show-secrets", false, "Show secrets in the output")
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
@@ -57,7 +59,13 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	core.Sort(Profiles, columns.SortBy(listOptions.SortBy.Value))
 	Profiles = core.Map(Profiles, func(profile *Profile) *Profile {
 		_ = profile.Validate()
-		_ = profile.LoadSecrets(ctx)
+		if listOptions.ShowSecrets {
+			_ = profile.LoadSecrets(ctx)
+		} else { // remove secrets from the profile before printing
+			profile.ClientSecret = ""
+			profile.Password = ""
+			profile.AccessToken = ""
+		}
 		return profile
 	})
 	if len(Profiles) == 1 {
