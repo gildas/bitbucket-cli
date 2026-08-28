@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -24,7 +23,6 @@ import (
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
-	"golang.org/x/term"
 )
 
 type PullRequest struct {
@@ -272,25 +270,11 @@ func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 }
 
 func truncateDescription(description string) string {
-	terminalWidth := getTerminalWidth()
+	terminalWidth := common.GetTerminalWidth()
 	maxLength := max(terminalWidth-110, 20)
 	descriptionRunes := []rune(description)
 	if len(descriptionRunes) <= maxLength {
 		return description
 	}
 	return string(descriptionRunes[:maxLength-3]) + "..."
-}
-
-func getTerminalWidth() int {
-	if os.Getenv("TMUX") != "" {
-		if output, err := exec.Command("tmux", "display-message", "-p", "#{pane_width}").Output(); err == nil {
-			if width, err := strconv.Atoi(strings.TrimSpace(string(output))); err == nil && width > 0 {
-				return width
-			}
-		}
-	}
-	if width, _, err := term.GetSize(int(os.Stdout.Fd())); err == nil && width > 0 {
-		return width
-	}
-	return 80
 }
