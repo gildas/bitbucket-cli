@@ -92,7 +92,7 @@ func (profiles profiles) GetHeaders(cmd *cobra.Command) []string {
 	}
 
 	columns := []string{"Name", "Description", "Default"}
-	if cmd.Flag("show-secrets") != nil && cmd.Flag("show-secrets").Changed && cmd.Flag("show-secrets").Value.String() == "true" {
+	if cmd != nil && cmd.Flag("show-secrets") != nil && cmd.Flag("show-secrets").Changed && cmd.Flag("show-secrets").Value.String() == "true" {
 		if hasClientID {
 			columns = append(columns, "ClientID", "ClientSecret")
 		}
