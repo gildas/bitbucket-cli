@@ -32,6 +32,7 @@ type PullRequest struct {
 	Description       string                  `json:"description"            mapstructure:"description"`
 	Summary           common.RenderedText     `json:"summary"                mapstructure:"summary"`
 	State             string                  `json:"state"                  mapstructure:"state"`
+	Draft             bool                    `json:"draft"                  mapstructure:"draft"`
 	MergeCommit       *commit.CommitReference `json:"merge_commit,omitempty" mapstructure:"merge_commit"`
 	CloseSourceBranch bool                    `json:"close_source_branch"    mapstructure:"close_source_branch"`
 	ClosedBy          user.User               `json:"closed_by"              mapstructure:"closed_by"`
@@ -78,6 +79,9 @@ var columns = common.Columns[PullRequest]{
 	}},
 	{Name: "state", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
 		return strings.Compare(strings.ToLower(a.State), strings.ToLower(b.State)) == -1
+	}},
+	{Name: "draft", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return a.Draft && !b.Draft
 	}},
 	{Name: "author", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
 		return strings.Compare(strings.ToLower(a.Author.Name), strings.ToLower(b.Author.Name)) == -1
@@ -138,7 +142,7 @@ func (pullrequest PullRequest) GetHeaders(cmd *cobra.Command) []string {
 			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
 	}
-	return []string{"ID", "Title", "Description", "source", "destination", "state"}
+	return []string{"ID", "Title", "Description", "source", "destination", "state", "draft", "author"}
 }
 
 // GetRow gets the row for a table
@@ -161,6 +165,8 @@ func (pullrequest PullRequest) GetRow(headers []string) []string {
 			row = append(row, pullrequest.Destination.Branch.Name)
 		case "state":
 			row = append(row, pullrequest.State)
+		case "draft":
+			row = append(row, fmt.Sprintf("%t", pullrequest.Draft))
 		case "author":
 			row = append(row, pullrequest.Author.Name)
 		case "closed by":
