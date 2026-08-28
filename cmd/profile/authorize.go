@@ -1,6 +1,8 @@
 package profile
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -85,24 +87,21 @@ func authorizeProcess(cmd *cobra.Command, args []string) (err error) {
 			"client_id":     {profile.ClientID},
 		}.Encode(),
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "\nIf you are not redirected automatically, please open the following URL in your browser:\n%s\n", bitbucketAuthURL.String())
+	fmt.Fprintf(cmd.OutOrStdout(), "\nIf you are not redirected automatically, please open the following URL in your browser:\n%s\n\n", bitbucketAuthURL.String())
 	spinner.Reverse()
 	_ = spinner.Color("blue", "bold")
 	spinner.Start()
+	defer spinner.Stop()
 
-	err = openBrowser(bitbucketAuthURL)
+	err = openBrowser(ctx, bitbucketAuthURL)
 	if err != nil {
-		log.Warnf("Failed to open browser: %s", err.Error())
-		if cmd.Flag("stop-on-error").Value.String() == "true" {
-			spinner.Stop()
-			return err
-		}
+		log.Errorf("Failed to open browser", err)
+		return err
 	}
 
 	// Wait until the user stops the server by pressing Ctrl+C
 	results := <-resultchan
 
-	spinner.Stop()
 	log.Infof("Received results, shutting down server...")
 	if err := server.Shutdown(ctx); err != nil {
 		log.Errorf("Failed to shut down server: %v", err)
@@ -112,12 +111,13 @@ func authorizeProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Errorf("Authorization process failed: %v", results)
 		return results
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "Authorization process completed successfully\n")
+	spinner.FinalMSG = "Authorization process completed successfully\n"
 	return nil
 }
 
 // openBrowser opens the specified URL in the default web browser
-func openBrowser(url url.URL) error {
+func openBrowser(ctx context.Context, url url.URL) error {
+	log := logger.Must(logger.FromContext(ctx)).Child("authorize", "openBrowser")
 	var cmd string
 	var args []string
 
@@ -157,5 +157,15 @@ func openBrowser(url url.URL) error {
 		return fmt.Errorf("unsupported platform")
 	}
 
-	return exec.Command(cmd, args...).Start()
+	log.Infof("Opening browser with command: %s %s", cmd, strings.Join(args, " "))
+	command := exec.Command(cmd, args...)
+	var stderr bytes.Buffer
+	command.Stderr = &stderr
+	if err := command.Run(); err != nil {
+		if stderr.Len() > 0 {
+			return errors.Errorf("browser command failed: %s", strings.TrimSpace(stderr.String()))
+		}
+		return err
+	}
+	return nil
 }
