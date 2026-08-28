@@ -147,16 +147,20 @@ func openBrowser(url url.URL) error {
 			}
 			cmd = "cmd.exe"
 			args = append(args, "/C", "start")
+			args = append(args, `"`+url.String()+`"`)
+		} else {
+			args = append(args, url.String())
 		}
 	case "windows":
 		cmd = "rundll32"
 		args = append(args, "url.dll,FileProtocolHandler")
+		args = append(args, url.String())
 	case "darwin":
 		cmd = "open"
+		args = append(args, url.String())
 	default:
 		return fmt.Errorf("unsupported platform")
 	}
 
-	args = append(args, `"`+url.String()+`"`)
 	return exec.Command(cmd, args...).Start()
 }
