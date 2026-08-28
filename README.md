@@ -295,7 +295,7 @@ bb profile get myprofile --show-secrets
 bb profile list --show-secrets
 ```
 
-You can ge the details of the current profile:
+You can get the details of the current profile:
 
 ```bash
 bb profile get --current
