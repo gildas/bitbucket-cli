@@ -166,7 +166,7 @@ func (profile Profile) GetHeaders(cmd *cobra.Command) []string {
 			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
 	}
-	if cmd.Flag("show-secrets") != nil && cmd.Flag("show-secrets").Changed && cmd.Flag("show-secrets").Value.String() == "true" {
+	if cmd != nil && cmd.Flag("show-secrets") != nil && cmd.Flag("show-secrets").Changed && cmd.Flag("show-secrets").Value.String() == "true" {
 		if len(profile.User) > 0 {
 			return []string{"Name", "Description", "Default", "User", "Password"}
 		}

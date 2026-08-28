@@ -28,7 +28,6 @@ func GetTerminalWidth() int {
 		if width, _, err := term.GetSize(int(os.Stdout.Fd())); err == nil && width > 0 {
 			terminalWidth = width
 		}
-		terminalWidth = 80
 	})
 	return terminalWidth
 }
