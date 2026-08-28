@@ -212,6 +212,12 @@ func (profile Profile) GetRow(headers []string) []string {
 			row = append(row, fmt.Sprintf("%d", profile.CallbackPort))
 		case "user":
 			row = append(row, profile.User)
+		case "password":
+			if len(profile.Password) > 0 {
+				row = append(row, profile.Password)
+			} else {
+				row = append(row, " ")
+			}
 		case "clientid":
 			row = append(row, profile.ClientID)
 		case "clientsecret":
