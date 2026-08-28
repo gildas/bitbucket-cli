@@ -1,6 +1,8 @@
 package profile
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -74,7 +76,7 @@ func authorizeProcess(cmd *cobra.Command, args []string) (err error) {
 	}()
 
 	// Open the browser to the Authorization Code Grant URL
-	common.Verbose(ctx, cmd, "Opening browser to authorize profile %s...", profile.Name)
+	fmt.Fprintf(cmd.OutOrStdout(), "Opening browser to authorize profile %s...\n", profile.Name)
 	spinner := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
 	bitbucketAuthURL := url.URL{
 		Scheme: "https",
@@ -85,29 +87,21 @@ func authorizeProcess(cmd *cobra.Command, args []string) (err error) {
 			"client_id":     {profile.ClientID},
 		}.Encode(),
 	}
-	common.Verbose(ctx, cmd, "\nIf you are not redirected automatically, please open the following URL in your browser:\n%s\n", bitbucketAuthURL.String())
+	fmt.Fprintf(cmd.OutOrStdout(), "\nIf you are not redirected automatically, please open the following URL in your browser:\n%s\n\n", bitbucketAuthURL.String())
+	spinner.Reverse()
+	_ = spinner.Color("blue", "bold")
+	spinner.Start()
+	defer spinner.Stop()
 
-	if cmd.Flag("verbose").Changed {
-		spinner.Reverse()
-		_ = spinner.Color("blue", "bold")
-		spinner.Start()
-	}
-
-	err = openBrowser(bitbucketAuthURL)
+	err = openBrowser(ctx, bitbucketAuthURL)
 	if err != nil {
-		log.Warnf("Failed to open browser: %s", err.Error())
-		if cmd.Flag("stop-on-error").Value.String() == "true" {
-			spinner.Stop()
-			return err
-		} else {
-			fmt.Fprintf(cmd.OutOrStdout(), "\nPlease open the following URL in your browser:\n%s\n", bitbucketAuthURL.String())
-		}
+		log.Errorf("Failed to open browser", err)
+		return err
 	}
 
 	// Wait until the user stops the server by pressing Ctrl+C
 	results := <-resultchan
 
-	spinner.Stop()
 	log.Infof("Received results, shutting down server...")
 	if err := server.Shutdown(ctx); err != nil {
 		log.Errorf("Failed to shut down server: %v", err)
@@ -117,12 +111,13 @@ func authorizeProcess(cmd *cobra.Command, args []string) (err error) {
 		log.Errorf("Authorization process failed: %v", results)
 		return results
 	}
-	common.Verbose(ctx, cmd, "Authorization process completed successfully")
+	spinner.FinalMSG = "Authorization process completed successfully\n"
 	return nil
 }
 
 // openBrowser opens the specified URL in the default web browser
-func openBrowser(url url.URL) error {
+func openBrowser(ctx context.Context, url url.URL) error {
+	log := logger.Must(logger.FromContext(ctx)).Child("authorize", "openBrowser")
 	var cmd string
 	var args []string
 
@@ -147,16 +142,30 @@ func openBrowser(url url.URL) error {
 			}
 			cmd = "cmd.exe"
 			args = append(args, "/C", "start")
+			args = append(args, `"`+url.String()+`"`)
+		} else {
+			args = append(args, url.String())
 		}
 	case "windows":
 		cmd = "rundll32"
 		args = append(args, "url.dll,FileProtocolHandler")
+		args = append(args, url.String())
 	case "darwin":
 		cmd = "open"
+		args = append(args, url.String())
 	default:
 		return fmt.Errorf("unsupported platform")
 	}
 
-	args = append(args, `"`+url.String()+`"`)
-	return exec.Command(cmd, args...).Start()
+	log.Infof("Opening browser with command: %s %s", cmd, strings.Join(args, " "))
+	command := exec.Command(cmd, args...)
+	var stderr bytes.Buffer
+	command.Stderr = &stderr
+	if err := command.Run(); err != nil {
+		if stderr.Len() > 0 {
+			return errors.Errorf("browser command failed: %s", strings.TrimSpace(stderr.String()))
+		}
+		return err
+	}
+	return nil
 }

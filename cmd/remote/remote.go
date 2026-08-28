@@ -43,7 +43,7 @@ func GetRemoteFromReader(context context.Context, reader io.Reader, name string)
 		}
 		for _, section := range sections {
 			url := section.Key("url").String()
-			if strings.Contains(url, "bitbucket.org") {
+			if strings.Contains(url, "://bitbucket") || strings.Contains(url, "@bitbucket") {
 				return &Remote{
 					URL:   url,
 					Fetch: section.Key("fetch").String(),
@@ -57,7 +57,7 @@ func GetRemoteFromReader(context context.Context, reader io.Reader, name string)
 		return nil, err
 	}
 	url := section.Key("url").String()
-	if !strings.Contains(url, "bitbucket.org") {
+	if !strings.Contains(url, "://bitbucket") && !strings.Contains(url, "@bitbucket") {
 		return nil, errors.ArgumentInvalid.With("remote", name)
 	}
 	return &Remote{

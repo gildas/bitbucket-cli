@@ -126,19 +126,26 @@ func (workspace Workspace) String() string {
 func GetWorkspaceName(context context.Context, cmd *cobra.Command) (workspaceName string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("workspace", "get_name")
 
+	log.Debugf("Checking flags")
 	if cmd.Flag("workspace") != nil {
 		if workspaceName = cmd.Flag("workspace").Value.String(); len(workspaceName) > 0 {
 			log.Debugf("Workspace name found in command flag: %s", workspaceName)
 			return
 		}
 	}
+
+	log.Debugf("Checking git configuration")
 	if remote, err := remote.GetRemote(context, cmd); err == nil {
 		log.Debugf("Workspace name found in git config: %s, from remote: %s", remote.WorkspaceName(), remote.URL)
 		return remote.WorkspaceName(), nil
 	}
-	if profile.Current != nil && len(profile.Current.DefaultWorkspace) > 0 {
-		log.Debugf("Workspace name found in profile: %s", profile.Current.DefaultWorkspace)
-		return profile.Current.DefaultWorkspace, nil
+
+	if profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd); err == nil {
+		log.Record("profile", profile).Debugf("Checking default workspace in profile: %s", profile.Name)
+		if len(profile.DefaultWorkspace) > 0 {
+			log.Debugf("Workspace name found in profile: %s", profile.DefaultWorkspace)
+			return profile.DefaultWorkspace, nil
+		}
 	}
 	return "", errors.ArgumentMissing.With("workspace")
 }

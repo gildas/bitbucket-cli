@@ -14,7 +14,7 @@ import (
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest/activity"
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest/comment"
-	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
+	prcommon "github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest/task"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/bitbucket-cli/cmd/user"
@@ -32,6 +32,7 @@ type PullRequest struct {
 	Description       string                  `json:"description"            mapstructure:"description"`
 	Summary           common.RenderedText     `json:"summary"                mapstructure:"summary"`
 	State             string                  `json:"state"                  mapstructure:"state"`
+	Draft             bool                    `json:"draft"                  mapstructure:"draft"`
 	MergeCommit       *commit.CommitReference `json:"merge_commit,omitempty" mapstructure:"merge_commit"`
 	CloseSourceBranch bool                    `json:"close_source_branch"    mapstructure:"close_source_branch"`
 	ClosedBy          user.User               `json:"closed_by"              mapstructure:"closed_by"`
@@ -78,6 +79,9 @@ var columns = common.Columns[PullRequest]{
 	}},
 	{Name: "state", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
 		return strings.Compare(strings.ToLower(a.State), strings.ToLower(b.State)) == -1
+	}},
+	{Name: "draft", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
+		return a.Draft && !b.Draft
 	}},
 	{Name: "author", DefaultSorter: false, Compare: func(a, b PullRequest) bool {
 		return strings.Compare(strings.ToLower(a.Author.Name), strings.ToLower(b.Author.Name)) == -1
@@ -138,7 +142,7 @@ func (pullrequest PullRequest) GetHeaders(cmd *cobra.Command) []string {
 			return core.Map(columns, func(column string) string { return strings.ReplaceAll(column, "_", " ") })
 		}
 	}
-	return []string{"ID", "Title", "Description", "source", "destination", "state"}
+	return []string{"ID", "Title", "Description", "source", "destination", "state", "draft", "author"}
 }
 
 // GetRow gets the row for a table
@@ -154,13 +158,15 @@ func (pullrequest PullRequest) GetRow(headers []string) []string {
 		case "title":
 			row = append(row, pullrequest.Title)
 		case "description":
-			row = append(row, pullrequest.Description)
+			row = append(row, truncateDescription(pullrequest.Description))
 		case "source":
 			row = append(row, pullrequest.Source.Branch.Name)
 		case "destination":
 			row = append(row, pullrequest.Destination.Branch.Name)
 		case "state":
 			row = append(row, pullrequest.State)
+		case "draft":
+			row = append(row, fmt.Sprintf("%t", pullrequest.Draft))
 		case "author":
 			row = append(row, pullrequest.Author.Name)
 		case "closed by":
@@ -261,4 +267,14 @@ func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 		UpdatedOn: pullrequest.UpdatedOn.Format("2006-01-02T15:04:05.999999999-07:00"),
 	})
 	return data, errors.JSONMarshalError.Wrap(err)
+}
+
+func truncateDescription(description string) string {
+	terminalWidth := common.GetTerminalWidth()
+	maxLength := max(terminalWidth-110, 20)
+	descriptionRunes := []rune(description)
+	if len(descriptionRunes) <= maxLength {
+		return description
+	}
+	return string(descriptionRunes[:maxLength-3]) + "..."
 }
