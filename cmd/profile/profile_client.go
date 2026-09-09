@@ -85,6 +85,20 @@ func (profile *Profile) Patch(ctx context.Context, cmd *cobra.Command, uripath s
 func GetAll[T any](ctx context.Context, cmd *cobra.Command, uripath string) (resources []T, err error) {
 	log := logger.Must(logger.FromContext(ctx)).Child(nil, "getall")
 
+	limit := 0
+	if cmd != nil && cmd.Flag("limit") != nil && cmd.Flag("limit").Changed {
+		if l, err := cmd.Flags().GetInt("limit"); err == nil && l > 0 {
+			limit = l
+			log.Debugf("Using limit of %d from the command line flags", limit)
+		}
+	}
+
+	return GetAllWithLimit[T](ctx, cmd, uripath, limit)
+}
+
+func GetAllWithLimit[T any](ctx context.Context, cmd *cobra.Command, uripath string, limit int) (resources []T, err error) {
+	log := logger.Must(logger.FromContext(ctx)).Child(nil, "getall")
+
 	profile, err := GetProfileFromCommand(ctx, cmd)
 	if err != nil {
 		log.Errorf("Failed to get profile.", err)
@@ -98,14 +112,6 @@ func GetAll[T any](ctx context.Context, cmd *cobra.Command, uripath string) (res
 		if length, err := cmd.Flags().GetInt("page-length"); err == nil && length > 0 {
 			pageLength = length
 			log.Debugf("Using page length of %d from the command line flags", pageLength)
-		}
-	}
-
-	limit := 0
-	if cmd != nil && cmd.Flag("limit") != nil && cmd.Flag("limit").Changed {
-		if l, err := cmd.Flags().GetInt("limit"); err == nil && l > 0 {
-			limit = l
-			log.Debugf("Using limit of %d from the command line flags", limit)
 		}
 	}
 

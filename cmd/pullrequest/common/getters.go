@@ -3,6 +3,7 @@ package prcommon
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/gildas/bitbucket-cli/cmd/profile"
@@ -49,12 +50,29 @@ func GetPullRequestIDsFromRepositoryWithState(context context.Context, cmd *cobr
 //
 // First only the open pullrequests are fetched, if none are found, all pullrequests are fetched
 func GetPullRequestIDs(context context.Context, cmd *cobra.Command, args []string, toComplete string) (ids []string, err error) {
-	ids, err = GetPullRequestIDsWithState(context, cmd, "OPEN")
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
 	if err != nil {
 		return []string{}, err
 	}
-	if len(ids) > 0 {
+
+	pullrequests, err := profile.GetAllWithLimit[PullRequestID](
+		context,
+		cmd,
+		repository.GetPath("pullrequests?sort=-created_on"),
+		1,
+	)
+	if err != nil {
+		return []string{}, err
+	}
+
+	if len(pullrequests) > 0 {
+		// return all the IDs from 1 to the latest pull request ID
+		latestID := pullrequests[0].ID
+		ids = make([]string, 0, latestID)
+		for i := 1; i <= latestID; i++ {
+			ids = append(ids, strconv.Itoa(i))
+		}
 		return ids, nil
 	}
-	return GetPullRequestIDsWithState(context, cmd, "ALL")
+	return []string{}, nil
 }
