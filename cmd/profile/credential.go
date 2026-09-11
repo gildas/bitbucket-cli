@@ -2,6 +2,7 @@ package profile
 
 import (
 	"github.com/gildas/go-errors"
+	"github.com/gildas/go-logger"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/zalando/go-keyring"
 )
@@ -18,6 +19,17 @@ func (credential *Credential) AsHTTPBasicAuth() *http.BasicAuth {
 		Username: credential.Username,
 		Password: credential.Password,
 	}
+}
+
+// Redact redacts the sensitive information in the credential.
+//
+// Implements logger.Redactable
+func (credential Credential) Redact() any {
+	redacted := credential
+	if len(redacted.Password) > 0 {
+		redacted.Password = logger.RedactWithHash(redacted.Password)
+	}
+	return redacted
 }
 
 // GetCredentialFromVault retrieves the credential for the given key from the Windows Credential Manager or Linux/macOS keychain.
