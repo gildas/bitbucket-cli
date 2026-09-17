@@ -1,0 +1,36 @@
+# Maintainer: Gildas Cherruel <gildas@breizh.org>
+pkgname=bitbucket-cli-bin
+pkgver=0.18.0
+pkgrel=1
+pkgdesc="The missing command line interface for Bitbucket"
+url="https://github.com/gildas/bitbucket-cli"
+license=("MIT")
+arch=("x86_64" "aarch64")
+provides=("bitbucket-cli=$pkgver" "bb=$pkgver")
+conflicts=("bitbucket-cli" "bitbucket-cli-git")
+options=("!strip" "!debug")
+optdepends=("gnome-keyring: Secret Service backend for credential storage")
+source_x86_64=("$url/releases/download/v$pkgver/bitbucket-cli_${pkgver}_linux_amd64.tar.gz"
+               "LICENSE::$url/raw/v$pkgver/LICENSE")
+source_aarch64=("$url/releases/download/v$pkgver/bitbucket-cli_${pkgver}_linux_arm64.tar.gz"
+                "LICENSE::$url/raw/v$pkgver/LICENSE")
+sha256sums_x86_64=("b2f8759dde04ed1555d21c183d98f43dc0c500550f1878ab023e9e6ab5d5beeb"
+                   "476c049bd9aac064131760d13a1dfdebcb20d0e00d3536df08f3c2672755d5eb")
+sha256sums_aarch64=("467ed7ece88210e22f699811522c0d6b30e89a5c578c51a73add291862ddf2c8"
+                    "476c049bd9aac064131760d13a1dfdebcb20d0e00d3536df08f3c2672755d5eb")
+
+package() {
+  install -Dm755 bb "$pkgdir/usr/bin/bb"
+
+  # License
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+
+  # Shell completions
+  "$pkgdir/usr/bin/bb" completion bash > bb-completion.bash
+  "$pkgdir/usr/bin/bb" completion zsh > _bb
+  "$pkgdir/usr/bin/bb" completion fish > bb.fish
+
+  install -Dm644 bb-completion.bash "$pkgdir/usr/share/bash-completion/completions/bb"
+  install -Dm644 _bb "$pkgdir/usr/share/zsh/site-functions/_bb"
+  install -Dm644 bb.fish "$pkgdir/usr/share/fish/vendor_completions.d/bb.fish"
+}
