@@ -200,6 +200,25 @@ func (suite *PipelineSuite) TestCanUnmarshalTargetRefBranch() {
 	suite.Assert().Equal("abc123def456", refTarget.Commit.Hash)
 }
 
+func (suite *PipelineSuite) TestCanUnmarshalTargetMergeQueueRef() {
+	payload := suite.LoadTestData("pipeline-target-merge-queue-ref.json")
+
+	target, err := pipeline.UnmarshalTarget(payload)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(target)
+
+	queueTarget, ok := target.(*pipeline.MergeQueueReferenceTarget)
+	suite.Require().True(ok)
+	suite.Assert().Equal("merge-queues", queueTarget.Selector.Type)
+	suite.Assert().Equal("mergequeue-main", queueTarget.Selector.Pattern)
+	suite.Assert().Equal("branch", queueTarget.ReferenceType)
+	suite.Assert().Equal("bitbucket-merge-queue-62", queueTarget.ReferenceName)
+	suite.Assert().Equal("master", queueTarget.TargetBranch)
+	suite.Assert().Equal("master", queueTarget.GetDestination())
+	suite.Assert().Equal([]uint64{62}, queueTarget.PullRequestIDs)
+	suite.Assert().Equal("abcdef1234567890abcdef1234567890abcdef12", queueTarget.Commit.Hash)
+}
+
 func (suite *PipelineSuite) TestCanMarshal() {
 	expected := suite.LoadTestData("pipeline.json")
 	pipeline := &pipeline.Pipeline{
