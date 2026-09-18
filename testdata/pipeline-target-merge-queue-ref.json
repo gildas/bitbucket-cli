@@ -1,0 +1,23 @@
+{
+  "type": "pipeline_merge_queue_ref_target",
+  "selector": {
+    "type": "merge-queues",
+    "pattern": "mergequeue-main"
+  },
+  "ref_type": "branch",
+  "ref_name": "bitbucket-merge-queue-62",
+  "target_branch": "master",
+  "pullrequest_ids": [62],
+  "commit": {
+    "type": "commit",
+    "hash": "abcdef1234567890abcdef1234567890abcdef12",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/commit/abcdef1234567890abcdef1234567890abcdef12"
+      },
+      "html": {
+        "href": "https://bitbucket.org/myworkspace/my-repo/commits/abcdef1234567890abcdef1234567890abcdef12"
+      }
+    }
+  }
+}
