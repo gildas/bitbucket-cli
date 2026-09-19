@@ -60,6 +60,10 @@ ZIP     ?= zip
 MOVE    ?= mv
 COPY    ?= cp -f
 AWK     ?= awk
+DOCKER  ?= docker
+
+# Keys
+CHOCOLATEY_API_KEY ?= $(shell echo $$CHOCOLATEY_API_KEY)
 
 # Flags
 #MAKEFLAGS += --silent
@@ -120,7 +124,7 @@ all: test build; ## Test and Build the application
 
 gendoc: __gendoc_init__ $(BIN_DIR)/$(PROJECT).pdf; @ ## Generate the PDF documentation
 
-publish: __publish_init__ __publish_binaries__ __publish_snap__; @ ## Publish the binaries to the Repository
+publish: __publish_init__ __publish_binaries__ __publish_snap__ __publish_chocolatey__ ; @ ## Publish the binaries to the Repository
 
 archive: __archive_init__ __archive_all__ __archive_debian__ __archive_rpm__ __archive_chocolatey__ __archive_snap__ ; @ ## Archive the binaries
 
@@ -223,7 +227,7 @@ __start__: stop $(BIN_DIR)/$(GOOS)/$(PROJECT) | $(TMP_DIR) $(LOG_DIR); $(info $(
 	$Q DEBUG=1 LOG_DESTINATION="$(LOG_DIR)/$(PROJECT).log" $(BIN_DIR)/$(GOOS)/$(PROJECT) & $P $$! > $(TMP_DIR)/$(PROJECT).pid
 
 # publish recipes
-.PHONY: __publish_init__ __publish_binaries__ __publish_snap__
+.PHONY: __publish_init__ __publish_binaries__ __publish_snap__ __publish_chocolatey__
 __publish_init__:;
 __publish_binaries__: __archive_all__ __archive_debian__ __archive_rpm__
 	$(info $(M) Uploading the binary packages...)
@@ -243,6 +247,18 @@ $(TMP_DIR)/__publish_snap__: $(TMP_DIR) __archive_snap__
 	$Q snapcraft upload --release=latest/edge $(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap
 	$Q $(TOUCH)
 
+__publish_chocolatey__: \
+	$(TMP_DIR)/__publish_chocolatey__ \
+	;
+
+$(TMP_DIR)/__publish_chocolatey__: __archive_chocolatey__
+ifneq ($(CHOCOLATEY_API_KEY),)
+	$Q $(DOCKER) run --rm -v $(PWD)/packaging/chocolatey:/work -w /work chocolatey/choco choco push --yes --source https://push.chocolatey.org/ --api-key $(CHOCOLATEY_API_KEY)
+	$Q $(TOUCH)
+else
+	error "CHOCOLATEY_API_KEY is not set. Please set it to your Chocolatey API key."
+endif
+
 # archive recipes
 .PHONY: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ __archive_snap__
 __archive_init__:;      $(info $(M) Archiving binaries for application $(PROJECT))
@@ -257,8 +273,7 @@ __archive_all__: \
 	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z \
 	;
 __archive_chocolatey__: \
-	packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z \
-	packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z \
+	$(BIN_DIR)/$(PACKAGE).$(VERSION).nupkg \
 	;
 __archive_debian__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb \
@@ -268,7 +283,6 @@ __archive_rpm__: \
 	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm \
 	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm \
 	;
-
 __archive_snap__: \
 	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap \
 	;
@@ -290,11 +304,6 @@ $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows/amd64/$(PR
 $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows/arm64/$(PROJECT).exe
 	$Q $(7ZIP) a -r $@ $<
 
-packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z
-	$Q $(COPY) $< $@
-packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z
-	$Q $(COPY) $< $@
-
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux/amd64/$(PROJECT)
 	$Q PLATFORM=linux/amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
 $(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux/arm64/$(PROJECT)
@@ -309,6 +318,28 @@ $(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap: packaging/snap/snapcraft.yaml
 	$Q $(RM) $@
 	$Q (cd packaging && snapcraft pack)
 	$Q $(MOVE) packaging/$(@F) $(@D)
+
+$(BIN_DIR)/$(PACKAGE).$(VERSION).nupkg: packaging/chocolatey/$(PACKAGE).$(VERSION).nupkg
+	$Q $(COPY) $< $(@D)
+
+packaging/chocolatey/$(PACKAGE).$(VERSION).nupkg: packaging/chocolatey/$(PACKAGE).nuspec packaging/chocolatey/tools/chocolateyinstall.ps1 packaging/chocolatey/tools/VERIFICATION.txt packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z
+	$Q $(DOCKER) run --rm -v $(PWD)/packaging/chocolatey:/work -w /work chocolatey/choco choco pack
+packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z
+	$Q $(COPY) $< $@
+packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z
+	$Q $(COPY) $< $@
+packaging/chocolatey/tools/chocolateyinstall.ps1: packaging/chocolatey/chocolateyinstall.template.ps1 packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z
+	$Q sed \
+		-e "s/{{VERSION}}/$(VERSION)/g" \
+		-e "s/{{CHECKSUM_AMD64}}/$(shell shasum -a 256 packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z | awk '{print $$1}')/g" \
+		-e "s/{{CHECKSUM_ARM64}}/$(shell shasum -a 256 packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z | awk '{print $$1}')/g" \
+		$< > $@
+packaging/chocolatey/tools/VERIFICATION.txt: packaging/chocolatey/VERIFICATION.template.txt packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z
+	$Q sed \
+		-e "s/{{VERSION}}/$(VERSION)/g" \
+		-e "s/{{CHECKSUM_AMD64}}/$(shell shasum -a 256 packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z | awk '{print $$1}')/g" \
+		-e "s/{{CHECKSUM_ARM64}}/$(shell shasum -a 256 packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z | awk '{print $$1}')/g" \
+		$< > $@
 
 # build recipes for various platforms
 .PHONY: __build_all__ __build_init__ __fetch_modules__

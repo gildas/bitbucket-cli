@@ -15,6 +15,8 @@ dist/
 
 # Chocolatey artifacs
 *.nupkg
+packaging/chocolatey/tools/chocolateyinstall.ps1
+packaging/chocolatey/tools/VERIFICATION.txt
 
 # Archives
 *.tar.gz

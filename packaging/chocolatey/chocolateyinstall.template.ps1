@@ -1,13 +1,22 @@
 ﻿$ErrorActionPreference = 'Stop' # stop on all errors
 $toolsDir   = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
+$isArm64    = ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64' -or $env:PROCESSOR_ARCHITEW6432 -eq 'ARM64')
+
+if ($isArm64) {
+  $file     = "$toolDir\bitbucket-cli-{{VERSION}}-windows-arm64.7z"
+  $checksum = '{{CHECKSUM_ARM64}}'
+} else {
+  $file     = "$toolDir\bitbucket-cli-{{VERSION}}-windows-amd64.7z"
+  $checksum = '{{CHECKSUM_AMD64}}'
+}
 
 $packageArgs = @{
   packageName   = $env:ChocolateyPackageName
   unzipLocation = $toolsDir
   fileType      = 'exe'
-  file64        = "$toolsDir\bitbucket-cli-0.18.6-windows-amd64.7z"
+  file64        = $file
   softwareName  = 'bitbucket-cli*'
-  checksum64    = 'a3236c3f2844ca998a074384606131c896f4b66fb2a7226551e7a86ebf12e079'
+  checksum64    = $checksum
   checksumType64= 'sha256'
 }
 
