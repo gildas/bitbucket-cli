@@ -3,10 +3,10 @@ $toolsDir   = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 $isArm64    = ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64' -or $env:PROCESSOR_ARCHITEW6432 -eq 'ARM64')
 
 if ($isArm64) {
-  $file     = "$toolDir\bitbucket-cli-{{VERSION}}-windows-arm64.7z"
+  $file     = "$toolsDir\bitbucket-cli-{{VERSION}}-windows-arm64.7z"
   $checksum = '{{CHECKSUM_ARM64}}'
 } else {
-  $file     = "$toolDir\bitbucket-cli-{{VERSION}}-windows-amd64.7z"
+  $file     = "$toolsDir\bitbucket-cli-{{VERSION}}-windows-amd64.7z"
   $checksum = '{{CHECKSUM_AMD64}}'
 }
 
