@@ -577,10 +577,10 @@ By default, the repository is cloned in a folder with the same name as the repos
 bb repo clone --workspace myworkspace --destination myfolder myrepository
 ```
 
-By default, the repository is cloned using the `git` protocol. You can change the protocol with the `--clone-protocol` flag. The supported protocols are `https`, `git`, and `ssh`. The default protocol can also be set in the profile with the `--clone-protocol` flag when creating or updating a profile.
+By default, the repository is cloned using the `git` protocol. You can change the protocol for this clone with the `--protocol` flag. The supported protocols are `https`, `git`, and `ssh`. The default protocol can also be set in the profile with the `--clone-protocol` flag when creating or updating a profile.
 
 ```bash
-bb repo clone --clone-protocol https myrepository
+bb repo clone --protocol https myrepository
 ```
 
 When using the ssh protocol, you can also specify the SSH key to use with the `--ssh-key` flag (by default the key configured is SSH for bitbucket.org is used, and if nothing is configured: `~/.ssh/id_rsa`):
