@@ -43,6 +43,12 @@ sudo snap alias bitbucket-cli bb
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bitbucket-cli)
 
+After it is installed, you need to connect `bb` to the Password Manager Service (Secret Service) to store your credentials:
+
+```bash
+sudo snap connect bitbucket-cli:password-manager-service
+```
+
 ### macOS
 
 You can get `bb` from [Homebrew](https://brew.sh) with:
