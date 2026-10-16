@@ -191,3 +191,49 @@ func TestShouldRejectNonBitbucketRemote(t *testing.T) {
 	_, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "origin")
 	assert.Error(t, err)
 }
+
+func TestCanGetRepositoryNameWithSSHHostnameAndPort(t *testing.T) {
+	payload := `
+[remote "origin"]
+	url = ssh://git@ssh.bitbucket.org:22/myworkspace/bitbucket-cli.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+	`
+	r, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "origin")
+	assert.NoError(t, err)
+	if assert.NotNil(t, r) {
+		assert.Equal(t, "myworkspace/bitbucket-cli", r.RepositoryName())
+	}
+}
+
+func TestShouldRejectSSHHostnameSuffix(t *testing.T) {
+	payload := `
+[remote "scp"]
+	url = git@ssh.bitbucket.org.example.com:other/project.git
+	fetch = +refs/heads/*:refs/remotes/scp/*
+[remote "ssh"]
+	url = ssh://git@ssh.bitbucket.org.example.com/other/project.git
+	fetch = +refs/heads/*:refs/remotes/ssh/*
+	`
+	for _, name := range []string{"scp", "ssh"} {
+		_, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), name)
+		assert.Error(t, err, "remote %s", name)
+	}
+	_, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "")
+	assert.Error(t, err)
+}
+
+func TestShouldSkipSSHHostnameSuffixWhenFindingFirstBitbucketRemote(t *testing.T) {
+	payload := `
+[remote "impostor"]
+	url = git@ssh.bitbucket.org.example.com:other/project.git
+	fetch = +refs/heads/*:refs/remotes/impostor/*
+[remote "bitbucket"]
+	url = git@ssh.bitbucket.org:myworkspace/bitbucket-cli.git
+	fetch = +refs/heads/*:refs/remotes/bitbucket/*
+	`
+	r, err := remote.GetRemoteFromReader(context.Background(), strings.NewReader(payload), "")
+	assert.NoError(t, err)
+	if assert.NotNil(t, r) {
+		assert.Equal(t, "myworkspace/bitbucket-cli", r.RepositoryName())
+	}
+}

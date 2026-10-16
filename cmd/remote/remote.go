@@ -75,10 +75,20 @@ func GetRemoteFromReader(context context.Context, reader io.Reader, name string)
 //	git@ssh.bitbucket.org:workspace/repository.git
 //	ssh://git@ssh.bitbucket.org/workspace/repository.git
 //	https://bitbucket.org/workspace/repository.git
+//
+// The ssh.bitbucket.org hostname must be followed by a port or path delimiter,
+// so hosts like ssh.bitbucket.org.example.com are not mistaken for Bitbucket.
 func isBitbucketURL(url string) bool {
-	for _, marker := range []string{"://bitbucket", "@bitbucket", "://ssh.bitbucket.org", "@ssh.bitbucket.org"} {
+	for _, marker := range []string{"://bitbucket", "@bitbucket"} {
 		if strings.Contains(url, marker) {
 			return true
+		}
+	}
+	for _, prefix := range []string{"://ssh.bitbucket.org", "@ssh.bitbucket.org"} {
+		if index := strings.Index(url, prefix); index >= 0 {
+			if rest := url[index+len(prefix):]; strings.HasPrefix(rest, ":") || strings.HasPrefix(rest, "/") {
+				return true
+			}
 		}
 	}
 	return strings.HasPrefix(url, "bitbucket.org:") || strings.HasPrefix(url, "ssh.bitbucket.org:")
