@@ -47,38 +47,29 @@ func GetCommits(context context.Context, cmd *cobra.Command) (commits []Commit, 
 		return []Commit{}, err
 	}
 	uripath := repository.GetPath("commits")
+	parameters := url.Values{}
 	if cmd != nil && cmd.Flag("query") != nil && cmd.Flag("query").Changed {
 		query, err := cmd.Flags().GetString("query")
 		if err != nil {
 			return []Commit{}, err
 		}
-		uripath = fmt.Sprintf("%s?q=%s", uripath, url.QueryEscape(query))
+		parameters.Set("q", query)
 	}
-	if cmd != nil && cmd.Flag("include") != nil && cmd.Flag("include").Changed {
-		include, err := cmd.Flags().GetStringSlice("include")
-		if err != nil {
-			return []Commit{}, err
-		}
-		if !strings.Contains(uripath, "?") {
-			uripath = fmt.Sprintf("%s?include=%s", uripath, url.QueryEscape(include[0]))
-			include = include[1:]
-		}
-		for _, hash := range include {
-			uripath = fmt.Sprintf("%s&include=%s", uripath, url.QueryEscape(hash))
+	for _, name := range []string{"include", "exclude"} {
+		if cmd != nil && cmd.Flag(name) != nil && cmd.Flag(name).Changed {
+			refs, err := cmd.Flags().GetStringSlice(name)
+			if err != nil {
+				return []Commit{}, err
+			}
+			for _, ref := range refs {
+				if ref = strings.TrimSpace(ref); len(ref) > 0 {
+					parameters.Add(name, ref)
+				}
+			}
 		}
 	}
-	if cmd != nil && cmd.Flag("exclude") != nil && cmd.Flag("exclude").Changed {
-		exclude, err := cmd.Flags().GetStringSlice("exclude")
-		if err != nil {
-			return []Commit{}, err
-		}
-		if !strings.Contains(uripath, "?") {
-			uripath = fmt.Sprintf("%s?exclude=%s", uripath, url.QueryEscape(exclude[0]))
-			exclude = exclude[1:]
-		}
-		for _, hash := range exclude {
-			uripath = fmt.Sprintf("%s&exclude=%s", uripath, url.QueryEscape(hash))
-		}
+	if len(parameters) > 0 {
+		uripath = fmt.Sprintf("%s?%s", uripath, parameters.Encode())
 	}
 	return profile.GetAll[Commit](context, cmd, uripath)
 }
