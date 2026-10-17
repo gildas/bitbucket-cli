@@ -41,8 +41,8 @@ func initializeConfiguration(ctx context.Context, cmd *cobra.Command) (err error
 	log := logger.Must(logger.FromContext(ctx))
 
 	viper.SetConfigType("yaml")
-	if cmd.Root().PersistentFlags().Changed("config") {
-		viper.SetConfigFile(cmd.Root().PersistentFlags().Lookup("config").Value.String())
+	if configFile := cmd.Root().PersistentFlags().Lookup("config").Value.String(); len(configFile) > 0 {
+		viper.SetConfigFile(configFile)
 	} else if configDir, _ := os.UserConfigDir(); len(configDir) > 0 {
 		viper.AddConfigPath(filepath.Join(configDir, "bitbucket"))
 		viper.SetConfigName("config-cli.yml")
