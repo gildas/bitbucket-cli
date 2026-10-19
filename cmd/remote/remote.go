@@ -31,7 +31,7 @@ func GetRemoteFromGitConfig(context context.Context, name string) (remote *Remot
 //
 // - If the name is empty, it gets the first bitbucket remote in the reader
 //
-// - If the remote URL does not contain "bitbucket.org", it returns an error
+// - If the remote URL does not point to a Bitbucket host, it returns an error
 func GetRemoteFromReader(context context.Context, reader io.Reader, name string) (remote *Remote, err error) {
 	if len(name) == 0 {
 		sections, err := common.GetGitSectionsMatching(context, reader, regexp.MustCompile("remote \".*\""))
@@ -43,7 +43,7 @@ func GetRemoteFromReader(context context.Context, reader io.Reader, name string)
 		}
 		for _, section := range sections {
 			url := section.Key("url").String()
-			if strings.Contains(url, "://bitbucket") || strings.Contains(url, "@bitbucket") {
+			if isBitbucketURL(url) {
 				return &Remote{
 					URL:   url,
 					Fetch: section.Key("fetch").String(),
@@ -57,13 +57,41 @@ func GetRemoteFromReader(context context.Context, reader io.Reader, name string)
 		return nil, err
 	}
 	url := section.Key("url").String()
-	if !strings.Contains(url, "://bitbucket") && !strings.Contains(url, "@bitbucket") {
+	if !isBitbucketURL(url) {
 		return nil, errors.ArgumentInvalid.With("remote", name)
 	}
 	return &Remote{
 		URL:   url,
 		Fetch: section.Key("fetch").String(),
 	}, nil
+}
+
+// isBitbucketURL tells if the given git remote URL points to a Bitbucket host
+//
+// Bitbucket Cloud moves git over SSH from bitbucket.org to ssh.bitbucket.org (November 12, 2026),
+// so both hostnames are recognized:
+//
+//	git@bitbucket.org:workspace/repository.git
+//	git@ssh.bitbucket.org:workspace/repository.git
+//	ssh://git@ssh.bitbucket.org/workspace/repository.git
+//	https://bitbucket.org/workspace/repository.git
+//
+// The ssh.bitbucket.org hostname must be followed by a port or path delimiter,
+// so hosts like ssh.bitbucket.org.example.com are not mistaken for Bitbucket.
+func isBitbucketURL(url string) bool {
+	for _, marker := range []string{"://bitbucket", "@bitbucket"} {
+		if strings.Contains(url, marker) {
+			return true
+		}
+	}
+	for _, prefix := range []string{"://ssh.bitbucket.org", "@ssh.bitbucket.org"} {
+		if index := strings.Index(url, prefix); index >= 0 {
+			if rest := url[index+len(prefix):]; strings.HasPrefix(rest, ":") || strings.HasPrefix(rest, "/") {
+				return true
+			}
+		}
+	}
+	return strings.HasPrefix(url, "bitbucket.org:") || strings.HasPrefix(url, "ssh.bitbucket.org:")
 }
 
 // GetRemote gets the remote from the command flags or the git configuration
@@ -88,7 +116,7 @@ func GetRemote(context context.Context, cmd *cobra.Command) (remote *Remote, err
 
 // RepositoryName gets the full repository name from the remote URL (without the .git extension)
 func (remote Remote) RepositoryName() string {
-	if strings.HasPrefix(remote.URL, "bitbucket.org:") {
+	if strings.HasPrefix(remote.URL, "bitbucket.org:") || strings.HasPrefix(remote.URL, "ssh.bitbucket.org:") {
 		if strings.HasSuffix(remote.URL, ".git") {
 			return remote.URL[strings.Index(remote.URL, ":")+1 : len(remote.URL)-4]
 		}

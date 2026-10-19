@@ -43,6 +43,12 @@ sudo snap alias bitbucket-cli bb
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bitbucket-cli)
 
+After it is installed, you need to connect `bb` to the Password Manager Service (Secret Service) to store your credentials:
+
+```bash
+sudo snap connect bitbucket-cli:password-manager-service
+```
+
 ### macOS
 
 You can get `bb` from [Homebrew](https://brew.sh) with:
@@ -96,6 +102,8 @@ General help is also available by running `bb --help` or `bb help`.
 
 By default `bb` works in the current git repository. You can specify a Bitbucket repository with the `--repository` flag.
 
+`bb` recognizes git remotes pointing to `bitbucket.org` as well as to `ssh.bitbucket.org`, the new hostname Bitbucket Cloud uses for git over SSH starting November 12, 2026 (for example, `git@ssh.bitbucket.org:myworkspace/myrepository.git` or `ssh://git@ssh.bitbucket.org/myworkspace/myrepository.git`).
+
 Many commands and flags are dynamically auto-completed. See the [Completion](#completion) section for more information about completion.
 
 Most `delete`, `upload`, and `download` commands support multiple arguments. You can pass a list of arguments or a file with one argument per line:
@@ -106,7 +114,7 @@ bb repo delete myrepository1 myrepository2 myrepository3
 
 You can tell `bb` to stop on the first error, warn on errors, or ignore errors when processing multiple arguments with the `--stop-on-error`, `--warn-on-error`, or `--ignore-errors` flags.
 
-All commands that would modify something on Bitbucket now allow you to preview the changes before applying them. You can use the `--dry-run` flag to see what would happen.
+All commands that would modify something on Bitbucket now allow you to preview the changes before applying them. You can use the `--dry-run` flag (also known as `--noop` or `--whatif`) to see what would happen.
 
 ```bash
 bb repo delete myrepository3 --dry-run
@@ -145,11 +153,13 @@ bb pullrequest list --query 'updated_on > 2025-12-31'
 
 Please refer to the [Bitbucket API documentation](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#filtering) for more information about the supported query syntax and fields.
 
-`list` commands also support the 'page-length' flag to set the number of items to retrieve per request to Bitbucket API at a time. By default, the page length is set on the profile and the default is 50. You can set it to a value between 1 and 100.
+`list` commands also support the `--page-length` flag to set the number of items to retrieve per request to Bitbucket API at a time. By default, the page length is set on the profile (with `--default-page-length`) and the default is 50. You can set it to a value between 1 and 100.
 
 ```bash
 bb repo list --page-length 25
 ```
+
+You can get more information about what `bb` is doing with the `--verbose` flag, and you can display the version of `bb` with the `--version` flag.
 
 ### Output
 
@@ -247,6 +257,12 @@ You can also pass the `--default-ssh-key-file` flag to set the default SSH key f
 
 You can also pass the `--progress` flag to display a progress bar when upload/downloading artifacts and attachments.
 
+You can also pass the `--default-page-length` flag to set the number of items retrieved per request by `list` commands (between 1 and 100, default is 50).
+
+You can also pass the `--error-processing` flag to set how errors are handled when processing multiple arguments. The supported values are `StopOnError` (default), `WarnOnError`, and `IgnoreErrors`. This can be overridden with the `--stop-on-error`, `--warn-on-error`, or `--ignore-errors` flags.
+
+You can also pass the `--description` flag to add a description to the profile.
+
 By default, the password or client secret is stored in the vault of the operating system (Windows Credential Manager, macOS Keychain, or Linux Secret Service). You can pass the `--no-vault` flag to disable this feature and store the password or client secret in plain text in the configuration file. This is not recommended, but can be useful for testing purposes.
 
 Once the profile is created in `bb`, for an [OAuth 2.0 with Authorization Code Grant](https://developer.atlassian.com/cloud/bitbucket/rest/intro/#1--authorization-code-grant--4-1-), you will need to authorize the profile with the following command:
@@ -274,7 +290,7 @@ When you use a user/password, the password is stored in the vault of the operati
 
 You can also pass the `--clone-protocol` flag to set the default protocol to use when cloning repositories. The supported protocols are `https`, `git`, and `ssh`. This option can be overridden with the `--protocol` flag when using `repo clone`.
 
-In case you are not using a user/password, you can also pass a `--clone-user` flag to set the username to use when cloning repositories with the `https` protocol. If you use a user/password, you don't need to set this flag, usually, ans the username will be used for cloning repositories. This option can be overridden with the `--user` flag when using `repo clone`.
+In case you are not using a user/password, you can also pass a `--clone-user` flag to set the username to use when cloning repositories with the `https` protocol. If you use a user/password, you don't need to set this flag, usually, as the username will be used for cloning repositories. This option can be overridden with the `--user` flag when using `repo clone`.
 
 You can get the list of your profiles with the `bb profile list` command:
 
@@ -337,6 +353,12 @@ You can delete a profile with the `bb profile delete` command:
 bb profile delete myprofile
 ```
 
+You can delete all profiles with the `--all` flag:
+
+```bash
+bb profile delete --all
+```
+
 You can set the default profile with the `bb profile use` command:
 
 ```bash
@@ -369,12 +391,14 @@ The current profile comes in order from:
 - the profile marked `default` in the configuration file
 - the first profile in the configuration file
 
-Profiles are stored in the configuration file. By default, the configuration file is located:
+Profiles are stored in the configuration file (YAML format). By default, the configuration file is located:
 
-- on Linux: `$XDG_CONFIG_HOME/bitbucket/config-cli.json`, or `~/.config/bitbucket/config-cli.json`, then `~/.bitbucket-cli`
-- on macOS: `$HOME/Library/Application Support/bitbucket/config-cli.json`, then `~/.bitbucket-cli`
-- on Windows: `%AppData%\bitbucket\config-cli.json`, then `$HOME/.bitbucket-cli`
-- on Plan 9: `$home/lib/bitbucket/config-cli.json`, then `~/.bitbucket-cli`
+- on Linux: `$XDG_CONFIG_HOME/bitbucket/config-cli.yml`, or `~/.config/bitbucket/config-cli.yml`
+- on macOS: `$HOME/Library/Application Support/bitbucket/config-cli.yml`
+- on Windows: `%AppData%\bitbucket\config-cli.yml`
+- on Plan 9: `$home/lib/bitbucket/config-cli.yml`
+
+If the user configuration folder cannot be determined, `~/.bitbucket-cli` is used instead.
 
 You can also override the location of the configuration file with the environment variable `BB_CONFIG` or the `--config` flag:
 
@@ -392,6 +416,12 @@ You can get the details of your user with the `bb user me` command:
 
 ```bash
 bb user me
+```
+
+You can get the email addresses of your user with the `--emails` flag:
+
+```bash
+bb user me --emails
 ```
 
 You can get the details of a user with the `bb user get` or `bb user show` command:
@@ -412,12 +442,6 @@ You can list workspaces with the `bb workspace list` command:
 
 ```bash
 bb workspace list
-```
-
-With the `--membership` flag, you can see the kind of membership you have in each workspace:
-
-```bash
-bb workspace list --membership
 ```
 
 You can also get the details of a workspace with the `bb workspace get` or `bb workspace show` command:
@@ -472,6 +496,8 @@ bb project create \
   --key MYPROJECT
 ```
 
+You can also set the project's description, visibility, and avatar with the `--description`, `--is-private`, and `--avatar-file` (or `--avatar-url`) flags.
+
 You can update a project with the `bb project update` command:
 
 ```bash
@@ -503,7 +529,7 @@ bb project reviewer add userUUID
 
 The `{}` around the `userUUID` are optional.
 
-You can remove a default reviewer from a project with the `bb project reviewer remove` command:
+You can remove a default reviewer from a project with the `bb project reviewer delete` or `bb project reviewer remove` command:
 
 ```bash
 bb project reviewer remove userUUID
@@ -553,13 +579,7 @@ You can clone a repository with the `bb repo clone` command:
 bb repo clone myworkspace/myrepository
 ```
 
-You can set the protocol to use when cloning a repository with the `--protocol` flag. The supported protocols are `https`, `git`, and `ssh`. If not provided, the protocol set in the profile is used (if the profile does not have a protocol set, the default is `git`).
-
-When using the `ssh` protocol, you can specify the SSH key to use with the `--ssh-key-file` flag. If not provided, the key set in the profile is used (if the profile does not have a key set, the default is `~/.ssh/id_rsa`).
-
-When using the `https` protocol while cloning a private repository, you can specify the username to use for authentication with the `--user` flag. If the username is not provided, the `cloneUser` from the profile is used. If the profile does not have a `cloneUser`, you cannot clone a private repository with the `https` protocol.
-
-or, with the `--workspace` flag:
+Or, with the `--workspace` flag:
 
 ```bash
 bb repo clone --workspace myworkspace myrepository
@@ -577,26 +597,37 @@ By default, the repository is cloned in a folder with the same name as the repos
 bb repo clone --workspace myworkspace --destination myfolder myrepository
 ```
 
-By default, the repository is cloned using the `git` protocol. You can change the protocol with the `--clone-protocol` flag. The supported protocols are `https`, `git`, and `ssh`. The default protocol can also be set in the profile with the `--clone-protocol` flag when creating or updating a profile.
+You can clone a bare repository with the `--bare` flag.
+
+The repository uses the active profile's clone protocol when one is configured and otherwise falls back to `git`. You can override it for this clone with the `--protocol` flag. The supported protocols are `https`, `git`, and `ssh`. The profile default can be set with the `--clone-protocol` flag when creating or updating a profile.
+
+The `git` and `ssh` protocols clone from `ssh.bitbucket.org` (`git@ssh.bitbucket.org:myworkspace/myrepository.git` and `ssh://git@ssh.bitbucket.org/myworkspace/myrepository.git`), while the `https` protocol clones from `https://bitbucket.org/myworkspace/myrepository.git`. With the `git` protocol, authentication is done by your SSH agent.
+
+**Note**: With the `git` and `ssh` protocols, the host key of `ssh.bitbucket.org` is verified against your `~/.ssh/known_hosts` file. If that file only knows about `bitbucket.org`, the clone may fail with a host key error. Connect once to the new hostname with `ssh` to add it, after checking the fingerprint against the ones published in the Bitbucket Cloud documentation:
 
 ```bash
-bb repo clone --clone-protocol https myrepository
+ssh -T git@ssh.bitbucket.org
 ```
-
-When using the ssh protocol, you can also specify the SSH key to use with the `--ssh-key` flag (by default the key configured is SSH for bitbucket.org is used, and if nothing is configured: `~/.ssh/id_rsa`):
 
 ```bash
-bb repo clone --ssh-key /path/to/ssh/key myrepository
+bb repo clone --protocol https myrepository
 ```
 
-When using the `https` protocol while cloning a private repository, you can specify the username to use for authentication with the `--username` flag. If the username is not provided, the `cloneVaultUsername` from the profile is used. If the profile does not have a `cloneVaultUsername`, you cannot clone a private repository with the `https` protocol.
-
-On Linux and macOS, the system keychain will be used to retrieve the credentials. You can set the `cloneVaultKey` in the profile to use a specific key in the keychain. If not set, the default value is `bitbucket-cli-clone`. You can also set the `cloneVaultUsername` in the profile to use a specific username for authentication.  
-On Windows, the Windows Credential Manager will be used to retrieve the credentials. And the username should be `<cloneVaultKey>:<cloneVaultUsername>`.
+When using the `ssh` protocol, you can also specify the SSH key to use with the `--ssh-key-file` flag. If not provided, the key set in the profile (`--default-ssh-key-file`) is used, and if nothing is configured: `~/.ssh/id_rsa`:
 
 ```bash
-bb repo clone --username myusername myrepository
+bb repo clone --protocol ssh --ssh-key-file /path/to/ssh/key myrepository
 ```
+
+When using the `https` protocol while cloning a private repository, you can specify the username to use for authentication with the `--user` flag. If the username is not provided, the `cloneUser` from the profile is used. If the profile does not have a `cloneUser`, you cannot clone a private repository with the `https` protocol.
+
+```bash
+bb repo clone --protocol https --user myusername myrepository
+```
+
+ For authenticated HTTPS clones, `bb` invokes your system `git` with the username from `--user`, the profile's `cloneUser`, or the profile's `user`, in that order. Configure Git's credential helper to supply the password or token. The profile's `--vault-key` controls storage of API credentials, not credentials used by `git clone`. If not set, the default value is `bitbucket-cli`.
+
+On Linux and macOS, the system keychain will be used to retrieve the credentials. On Windows, the Windows Credential Manager will be used to retrieve the credentials. And the username should be `<vaultkey>:<cloneuser>` or `<vaultkey>:<user>`.
 
 You can create a repository with the `bb repo create` command:
 
@@ -608,6 +639,8 @@ bb repo create myrepository_slug \
 ```
 
 If the `--project` flag is not provided, the repository will be created in the default project of the profile.
+
+You can also set the repository's visibility (`--private` or `--public`), `--description`, `--language`, `--main-branch`, and `--fork-policy` (default is `no_public_forks`). These flags are also available with `bb repo update` and `bb repo fork`.
 
 You can update a repository with the `bb repo update` command:
 
@@ -652,6 +685,12 @@ You can list commits with the `bb commit list` command:
 
 ```bash
 bb commit list
+```
+
+You can restrict the list to commits reachable from some branches or commits, and not reachable from others, with the `--include` and `--exclude` flags (they can be repeated or comma-separated):
+
+```bash
+bb commit list --include mybranch --exclude master
 ```
 
 You can get the details of a commit with the `bb commit get` or `bb commit show` command:
@@ -709,9 +748,10 @@ bb tag get v1.0.0
 You can create a tag with the `bb tag create` command:
 
 ```bash
-bb tag create v1.0.0 \
+bb tag create \
+  --name    v1.0.0 \
   --message "My tag message" \
-  --target 123456
+  --commit  123456
 ```
 
 By default, the target of the tag is the latest commit on the default branch.
@@ -755,7 +795,9 @@ bb pullrequest create \
   --reviewer    username1 --reviewer {userUUID2}
 ```
 
-If the first reviewer is `default`, the command will try to get the default reviewers from the project settings.
+If the first reviewer is `default`, the command will try to get the default reviewers from the repository or project settings.
+
+You can also set the description of the pull request with the `--description` flag, create it as a draft with the `--draft` flag, and close the source branch after the merge with the `--close-source-branch` flag.
 
 You can get the details of a pull request with the `bb pullrequest get` or `bb pullrequest show` command:
 
@@ -802,6 +844,12 @@ bb pullrequest merge 1
 ```
 
 If no pull request is provided, the command will try to merge the opened pull request with the current branch.
+
+You can choose the merge strategy with the `--merge-strategy` flag (`merge_commit` (default), `squash`, or `fast_forward`), set the merge commit message with the `--message` flag, and close the source branch with the `--close-source-branch` flag:
+
+```bash
+bb pullrequest merge 1 --merge-strategy squash --message "My merge" --close-source-branch
+```
 
 You can also merge the pull request asynchronously with the `--async` flag:
 
@@ -890,6 +938,14 @@ bb pullrequest comment add --pullrequest 1 \
   --line    404
 ```
 
+You can comment on a range of lines with the `--from` and `--to` flags (instead of `--line`), reply to an existing comment with the `--parent` flag, and mark the comment as pending (i.e. part of a review not yet published) with the `--pending` flag:
+
+```bash
+bb pullrequest comment add --pullrequest 1 \
+  --comment "My reply" \
+  --parent  452466
+```
+
 You can resolve a comment with the `bb pullrequest comment resolve` command:
 
 ```bash
@@ -944,17 +1000,29 @@ bb pullrequest task create --pullrequest 1 \
   --comment 452466
 ```
 
+You can also mark the task as pending with the `--pending` flag.
+
+You can get the details of a task with the `bb pullrequest task get` or `bb pullrequest task show` command:
+
+```bash
+bb pullrequest task get --pullrequest 1 7643545
+```
+
 You can complete a task with the `bb pullrequest task update` command:
 
-```bashbb pullrequest task update --pullrequest 1 7643545 \
+```bash
+bb pullrequest task update --pullrequest 1 7643545 \
   --state RESOLVED
 ```
 
 You can also re-open a task with the same command:
 
-```bashbb pullrequest task update --pullrequest 1 7643545 \
+```bash
+bb pullrequest task update --pullrequest 1 7643545 \
   --state UNRESOLVED
 ```
+
+The same command can change the content of the task with the `--content` flag.
 
 You can delete a task with the `bb pullrequest task delete` command:
 
@@ -986,9 +1054,13 @@ You can create an issue with the `bb issue create` command:
 
 ```bash
 bb issue create \
-  --title "My issue" \
-  --content "My issue content"
+  --title       "My issue" \
+  --description "My issue description" \
+  --kind        bug  \
+  --priority    major
 ```
+
+You must also set the kind of the issue with the `--kind` flag (`bug` (default), `enhancement`, `proposal`, or `task`), its priority with the `--priority` flag (`trivial`, `minor`, `major` (default), `critical`, or `blocker`), and, optionally, its assignee with the `--assignee` flag (`myself` or a user ID).
 
 You can get the details of an issue with the `bb issue get` or `bb issue show` command:
 
@@ -996,13 +1068,21 @@ You can get the details of an issue with the `bb issue get` or `bb issue show` c
 bb issue get 1
 ```
 
+You can see the history of changes of an issue with the `--changes` flag:
+
+```bash
+bb issue get 1 --changes
+```
+
 You can update an issue with the `bb issue update` command:
 
 ```bash
 bb issue update 1 \
-  --title "My issue" \
-  --content "My issue content"
+  --title       "My issue" \
+  --description "My issue description"
 ```
+
+The `--kind`, `--priority`, and `--assignee` flags are also available, as well as the `--version` flag to set the version (by name) the issue belongs to.
 
 You can delete an issue with the `bb issue delete` command:
 
@@ -1028,17 +1108,29 @@ You can watch an issue with the `bb issue watch` command:
 bb issue watch 1
 ```
 
+You can check if you are watching an issue with the `--check` flag:
+
+```bash
+bb issue watch 1 --check
+```
+
 You can unwatch an issue with the `bb issue unwatch` command:
 
 ```bash
 bb issue unwatch 1
 ```
 
+You can list the comments of an issue with the `bb issue comment list` command:
+
+```bash
+bb issue comment list --issue 1
+```
+
 You can add a comment to an issue with the `bb issue comment create` or `bb issue comment add` command:
 
 ```bash
 bb issue comment add --issue 1 \
-  --content "My comment"
+  --comment "My comment"
 ```
 
 You can get the details of a comment with the `bb issue comment get` or `bb issue comment show` command:
@@ -1051,7 +1143,7 @@ You can update a comment with the `bb issue comment update` command:
 
 ```bash
 bb issue comment update --issue 1 7643545 \
-  --content "My comment"
+  --comment "My comment"
 ```
 
 You can delete a comment with the `bb issue comment delete` command:
@@ -1082,6 +1174,20 @@ You can delete an attachment with the `bb issue attachment delete` command:
 
 ```bash
 bb issue attachment delete --issue 1 myattachment.zip
+```
+
+### Components
+
+You can list the issue tracker components of a repository with the `bb component list` command:
+
+```bash
+bb component list
+```
+
+You can get the details of a component with the `bb component get` or `bb component show` command:
+
+```bash
+bb component get 123456
 ```
 
 ### Artifacts (Downloads)
@@ -1158,21 +1264,37 @@ You can get the list of the steps of a pipeline with the `bb pipeline step list`
 bb pipeline step list --pipeline 123456
 ```
 
+With the `--show-logs-command` flag, the command to get the logs of each step is also displayed (this flag is also available with `bb pipeline step get`).
+
 You can get the details of a step with the `bb pipeline step get` or `bb pipeline step show` command:
 
 ```bash
 bb pipeline step get --pipeline 123456 {stepUUID}
 ```
 
-You can get the logs of a step with the `bb pipeline step log` command:
+You can get the logs of a step with the `bb pipeline step logs` command:
 
 ```bash
 bb pipeline step logs --pipeline 123456 {stepUUID}
 ```
 
+You can display the report of a step with the `bb pipeline step report` command:
+
+```bash
+bb pipeline step report --pipeline 123456 {stepUUID}
+```
+
+You can list the test cases of a step with the `bb pipeline step cases` command:
+
+```bash
+bb pipeline step cases --pipeline 123456 {stepUUID}
+```
+
+Steps must be given by their UUID, which you can find with `bb pipeline step list --pipeline <pipeline-id>`.
+
 ### GPG Keys
 
-You can list GPG keys with the `bb key list` command:
+You can list GPG keys with the `bb gpg-key list` (or `bb key list`) command:
 
 ```bash
 bb gpg-key list
@@ -1180,7 +1302,7 @@ bb gpg-key list
 
 By default, the keys are listed for the current user. You can specify a user with the `--user` flag.
 
-You can also get the details of a GPG key with the `bb key get` or `bb key show` command:
+You can also get the details of a GPG key with the `bb gpg-key get` or `bb gpg-key show` command:
 
 ```bash
 bb gpg-key get <fingerprint>
@@ -1209,7 +1331,7 @@ bb gpg-key delete <fingerprint>
 
 ### SSH Keys
 
-You can list SSH keys with the `bb key list` command:
+You can list SSH keys with the `bb ssh-key list` command:
 
 ```bash
 bb ssh-key list
@@ -1234,7 +1356,7 @@ bb ssh-key create \
   --key <key>
 ```
 
-The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin.
+The key name is optional. You can also provide the key in a file with the `--key-file` flag. If the filename is `-`, the key is read from stdin. You can set an expiration date for the key with the `--expires-on` flag (RFC3339 format, e.g. `2027-01-01T00:00:00Z`).
 
 If the `--user` flag is not provided, the key is created for the user associated with the current profile. If it is provided, it must be the UUID of the user, not the username.
 
@@ -1249,7 +1371,7 @@ bb ssh-key delete <fingerprint>
 The bitbucket-cli caches some data to speed up the commands. The following items are cached:
 
 - workspaces
-- projects
+- repositories
 - users
 
 The cache is stored in the [os.UserCacheDir](https://pkg.go.dev/os#UserCacheDir) directory, under `bitbucket`. The values are stored for a duration of 5 minutes, you can override this value with the environment variable `BITBUCKET_CLI_CACHE_DURATION` (for the format please follow [core.ParseDuration](https://pkg.go.dev/github.com/gildas/go-core#ParseDuration)). By default, the items are stored as JSON files unencrypted. To encrypt these files, you can set the environment variable `BITBUCKET_CLI_CACHE_ENCRYPTIONKEY` with an AES-256 key. The key must follow the [crypto/aes](https://pkg.go.dev/crypto/aes) requirements.
@@ -1272,10 +1394,10 @@ To enable completion, run the following command:
 source <(bb completion bash)
 ```
 
-You can also add this line to your `~/.bashrc` file to enable completion for every new shell.
+You can also add this line to your `~/.bashrc` file to enable completion for every new shell, or save the completion script in your bash-completion folder:
 
 ```bash
-bb completion bash > ~/.bashrc
+bb completion bash > ~/.local/share/bash-completion/completions/bb
 ```
 
 #### fish
@@ -1286,7 +1408,7 @@ To enable completion, run the following command:
 bb completion fish | source
 ```
 
-You can also add this line to your `~/.config/fish/config.fish` file to enable completion for every new shell.
+You can also add this line to your `~/.config/fish/config.fish` file to enable completion for every new shell, or save the completion script in your fish completions folder:
 
 ```bash
 bb completion fish > ~/.config/fish/completions/bb.fish
@@ -1310,10 +1432,10 @@ To enable completion, run the following command:
 source <(bb completion zsh)
 ```
 
-You can also add this line to your functions folder to enable completion for every new shell.
+You can also save the completion script in your functions folder to enable completion for every new shell.
 
 ```bash
-bb completion zsh > "~/${fpath[1]}/_bb"
+bb completion zsh > "${fpath[1]}/_bb"
 ```
 
 On macOS, you can add the completion to the brew functions:
@@ -1342,6 +1464,12 @@ LOG_DESTINATION=tmp/bb.log bb workspace list
 
 ```bash
 LOG_LEVEL=DEBUG bb --log tmp/bb.log workspace list
+```
+
+Or, with the `--debug` flag:
+
+```bash
+bb --log tmp/bb.log --debug workspace list
 ```
 
 You can also set these environment variables in a `.env` file in the current directory, and `bb` will automatically load them:

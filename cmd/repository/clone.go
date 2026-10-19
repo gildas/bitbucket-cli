@@ -32,7 +32,6 @@ var cloneOptions struct {
 	Protocol       *flags.EnumFlag
 	SshKeyFilename string
 	User           string
-	Password       string
 }
 
 func init() {
@@ -44,7 +43,6 @@ func init() {
 	cloneCmd.Flags().Var(cloneOptions.Protocol, "protocol", "Protocol to use for cloning. Default is set in the profile, can be https, git, or ssh")
 	cloneCmd.Flags().StringVar(&cloneOptions.SshKeyFilename, "ssh-key-file", "", "Path to the SSH private key file. Default is ~/.ssh/id_rsa")
 	cloneCmd.Flags().StringVar(&cloneOptions.User, "user", "", "User for authentication. If not set, it will be retrieved from the bitbucket-cli configuration")
-	cloneCmd.Flags().StringVar(&cloneOptions.Password, "password", "", "Password for authentication. If not set, it will be retrieved from the bitbucket-cli configuration")
 	_ = cloneCmd.MarkFlagDirname("destination")
 	_ = cloneCmd.MarkFlagFilename("ssh-key-file")
 	_ = cloneCmd.RegisterFlagCompletionFunc(cloneOptions.Protocol.CompletionFunc("protocol"))
@@ -97,12 +95,12 @@ func cloneProcess(cmd *cobra.Command, args []string) (err error) {
 
 	switch cloneOptions.Protocol.Value {
 	case "git":
-		options.URL = fmt.Sprintf("git@bitbucket.org:%s/%s.git", repository.Workspace, repository)
+		options.URL = fmt.Sprintf("git@ssh.bitbucket.org:%s/%s.git", repository.Workspace, repository)
 	case "ssh":
 		if len(cloneOptions.User) > 0 {
 			return errors.New("SSH protocol does not support username.")
 		}
-		options.URL = fmt.Sprintf("ssh://git@bitbucket.org/%s/%s.git", repository.Workspace, repository)
+		options.URL = fmt.Sprintf("ssh://git@ssh.bitbucket.org/%s/%s.git", repository.Workspace, repository)
 		if len(cloneOptions.SshKeyFilename) == 0 {
 			if len(profile.SshKeyFilename) > 0 {
 				cloneOptions.SshKeyFilename = profile.SshKeyFilename

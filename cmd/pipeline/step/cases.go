@@ -16,7 +16,6 @@ import (
 
 var casesCmd = &cobra.Command{
 	Use:               "cases [flags] <pipeline-step-uuid-or-name>",
-	Aliases:           []string{"cases"},
 	Short:             "list the test cases of a pipeline step",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: casesValidArgs,

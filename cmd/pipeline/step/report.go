@@ -16,7 +16,6 @@ import (
 
 var reportCmd = &cobra.Command{
 	Use:               "report [flags] <pipeline-step-uuid-or-name>",
-	Aliases:           []string{"report"},
 	Short:             "display the report of a pipeline step",
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: reportValidArgs,
