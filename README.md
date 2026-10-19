@@ -616,7 +616,7 @@ bb repo clone --protocol https myrepository
 When using the `ssh` protocol, you can also specify the SSH key to use with the `--ssh-key-file` flag. If not provided, the key set in the profile (`--default-ssh-key-file`) is used, and if nothing is configured: `~/.ssh/id_rsa`:
 
 ```bash
-bb repo clone --ssh-key-file /path/to/ssh/key myrepository
+bb repo clone --protocol ssh --ssh-key-file /path/to/ssh/key myrepository
 ```
 
 When using the `https` protocol while cloning a private repository, you can specify the username to use for authentication with the `--user` flag. If the username is not provided, the `cloneUser` from the profile is used. If the profile does not have a `cloneUser`, you cannot clone a private repository with the `https` protocol.
@@ -625,9 +625,9 @@ When using the `https` protocol while cloning a private repository, you can spec
 bb repo clone --protocol https --user myusername myrepository
 ```
 
-On Linux and macOS, the system keychain will be used to retrieve the credentials. You can set the vault key in the profile (`bb profile create --vault-key mykey`) to use a specific key in the keychain. If not set, the default value is `bitbucket-cli`. You can also set the username for cloning in the profile to use a specific username for authentication (`bb profile create ... --clone-user me`).
+ For authenticated HTTPS clones, `bb` invokes your system `git` with the username from `--user`, the profile's `cloneUser`, or the profile's `user`, in that order. Configure Git's credential helper to supply the password or token. The profile's `--vault-key` controls storage of API credentials, not credentials used by `git clone`. If not set, the default value is `bitbucket-cli`.
 
-On Windows, the Windows Credential Manager will be used to retrieve the credentials. And the username should be `<vaultkey>:<cloneuser>` or `<vaultkey>:<user>`.
+On Linux and macOS, the system keychain will be used to retrieve the credentials. On Windows, the Windows Credential Manager will be used to retrieve the credentials. And the username should be `<vaultkey>:<cloneuser>` or `<vaultkey>:<user>`.
 
 You can create a repository with the `bb repo create` command:
 
@@ -1055,10 +1055,12 @@ You can create an issue with the `bb issue create` command:
 ```bash
 bb issue create \
   --title       "My issue" \
-  --description "My issue description"
+  --description "My issue description" \
+  --kind        bug  \
+  --priority    major
 ```
 
-You can also set the kind of the issue with the `--kind` flag (`bug` (default), `enhancement`, `proposal`, or `task`), its priority with the `--priority` flag (`trivial`, `minor`, `major` (default), `critical`, or `blocker`), and its assignee with the `--assignee` flag (`myself` or a user ID).
+You must also set the kind of the issue with the `--kind` flag (`bug` (default), `enhancement`, `proposal`, or `task`), its priority with the `--priority` flag (`trivial`, `minor`, `major` (default), `critical`, or `blocker`), and, optionally, its assignee with the `--assignee` flag (`myself` or a user ID).
 
 You can get the details of an issue with the `bb issue get` or `bb issue show` command:
 
@@ -1288,7 +1290,7 @@ You can list the test cases of a step with the `bb pipeline step cases` command:
 bb pipeline step cases --pipeline 123456 {stepUUID}
 ```
 
-Steps can be given by their UUID or their name.
+Steps must be given by their UUID, which you can find with `bb pipeline step list --pipeline <pipeline-id>`.
 
 ### GPG Keys
 

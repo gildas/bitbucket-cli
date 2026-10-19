@@ -14,7 +14,7 @@ var deleteCmd = &cobra.Command{
 	Use:               "delete [flags] <profile-name>",
 	Aliases:           []string{"remove", "rm"},
 	Short:             "delete a profile by its <profile-name>.",
-	Args:              cobra.MinimumNArgs(1),
+	Args:              cobra.ArbitraryArgs,
 	ValidArgsFunction: ValidProfileNames,
 	PreRunE:           disableUnsupportedFlags,
 	RunE:              deleteProcess,
